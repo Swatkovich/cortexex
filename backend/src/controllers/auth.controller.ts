@@ -74,7 +74,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
 
     const result = await pool.query(
-        "SELECT id, name FROM users WHERE id = $1",
+        "SELECT name FROM users WHERE id = $1",
         [userId]
     );
 
@@ -84,7 +84,6 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
 
     const user = result.rows[0];
     return res.status(200).json({
-        id: user.id,
         name: user.name
     });
 }

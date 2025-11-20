@@ -72,3 +72,6 @@ export async function logout() {
   return response.json();
 }
 
+//TODO: Add axios
+//TODO: Config tailwind varuables (colors, background, etc) 
+//TODO: Make nested lists for themes

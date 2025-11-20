@@ -4,14 +4,10 @@ import {
   fetchProfile,
   logout as logoutRequest,
 } from '@/lib/api';
-
-export type AuthUser = {
-  id: string;
-  name: string;
-};
+import {User} from '../lib/interface'
 
 class AuthStore {
-  user: AuthUser | null = null;
+  user: User | null = null;
   loading = false;
   initialized = false;
   error: string | null = null;

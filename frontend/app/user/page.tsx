@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/navigation';
@@ -18,7 +20,7 @@ const UserPage = observer(() => {
 
   useEffect(() => {
     if (initialized && !isAuthenticated) {
-      router.replace('/login');
+      router.replace('/auth/login');
     }
   }, [initialized, isAuthenticated, router]);
 

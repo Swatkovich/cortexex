@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,12 +10,12 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setFormLoading(true);
 
     try {
       await authStore.login(name, password);
@@ -21,7 +23,7 @@ export default function LoginPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
 
@@ -75,17 +77,17 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={formLoading}
             className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {formLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
           Don't have an account?{' '}
           <Link
-            href="/register"
+            href="/auth/register"
             className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
             Register
