@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 import { themeStore } from '@/store/themeStore';

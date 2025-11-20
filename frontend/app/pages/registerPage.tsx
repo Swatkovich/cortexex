@@ -1,9 +1,7 @@
-'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { register } from '@/lib/api';
 import Link from 'next/link';
+import { register } from '@/lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();

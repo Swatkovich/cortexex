@@ -1,5 +1,3 @@
-'use client';
-
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';

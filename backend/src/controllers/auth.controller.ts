@@ -88,3 +88,13 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
         name: user.name
     });
 }
+
+export const logout = async (_req: Request, res: Response) => {
+    res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+    });
+
+    return res.status(200).json({ message: "Logout successful" });
+}

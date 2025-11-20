@@ -1,11 +1,26 @@
-'use client';
-
+import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
+import { authStore } from '@/store/authStore';
 
 const UserPage = observer(() => {
   const router = useRouter();
+  const initialized = authStore.initialized;
+  const isAuthenticated = authStore.isAuthenticated;
+  const loading = authStore.loading;
+
+  useEffect(() => {
+    if (!initialized && !loading) {
+      authStore.hydrate();
+    }
+  }, [initialized, loading]);
+
+  useEffect(() => {
+    if (initialized && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [initialized, isAuthenticated, router]);
 
   const handlePlay = () => {
     if (!themeStore.canPlay) {
@@ -17,6 +32,14 @@ const UserPage = observer(() => {
   const handleCreateTheme = () => {
     router.push('/create-theme');
   };
+
+  if (!initialized || loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+        <p className="text-gray-600 dark:text-gray-300">Checking your session...</p>
+      </div>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-0">

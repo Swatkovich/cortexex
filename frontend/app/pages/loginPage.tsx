@@ -1,9 +1,7 @@
-'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api';
 import Link from 'next/link';
+import { authStore } from '@/store/authStore';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,7 +16,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(name, password);
+      await authStore.login(name, password);
       router.push('/user'); // Перенаправление после успешного логина
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
