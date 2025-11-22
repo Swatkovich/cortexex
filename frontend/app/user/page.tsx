@@ -62,7 +62,7 @@ const UserPage = observer(() => {
         {themeStore.themes.map((theme) => (
           <article
             key={theme.id}
-            className="group rounded-2xl border border-light/10 bg-dark/50 p-6 backdrop-blur-sm hover:border-light/20"
+            className="group rounded-2xl border border-light/10 bg-dark-hover/50 p-6 backdrop-blur-sm hover:border-light/50"
           >
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1 space-y-3">
@@ -86,7 +86,7 @@ const UserPage = observer(() => {
                 className={`h-fit rounded-lg px-5 py-2.5 text-sm font-semibold ${
                   themeStore.isSelected(theme.id)
                     ? 'bg-light text-dark hover:bg-light-hover hover:scale-105'
-                    : 'border border-light/20 bg-transparent text-light hover:border-light/40 hover:bg-light/5'
+                    : 'border border-light/20 bg-transparent text-light hover:border-light/40 hover:bg-light/5 hover:scale-105'
                 }`}
               >
                 {themeStore.isSelected(theme.id) ? 'Selected' : 'Select'}
@@ -101,7 +101,7 @@ const UserPage = observer(() => {
           type="button"
           onClick={handlePlay}
           disabled={!themeStore.canPlay}
-          className="flex-1 rounded-xl bg-light px-8 py-4 text-center text-base font-semibold text-dark hover:bg-light-hover hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:bg-light disabled:opacity-50 disabled:hover:scale-100"
+          className="flex-1 rounded-xl bg-light px-8 py-4 text-center text-base font-semibold text-dark hover:bg-light-hover disabled:cursor-not-allowed disabled:hover:bg-light disabled:opacity-50"
         >
           Play
         </button>

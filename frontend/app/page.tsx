@@ -11,19 +11,19 @@ const HomePage = observer(() => {
     <div className="flex min-h-screen items-center justify-center bg-dark font-sans">
       <div className="mx-auto max-w-4xl px-6 text-center">
         <div className="mb-6 inline-block rounded-full border border-light/20 bg-light/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-light/80">
-          Beta 2.0
+          Beta 1.0
         </div>
         <h1 className="mb-6 text-6xl font-bold leading-tight text-light sm:text-7xl lg:text-8xl">
-          Instant Learning
+          Learn Anything
           <br />
           <span className="bg-gradient-to-r from-light to-light/60 bg-clip-text text-transparent">
-            Powered by AI
+            By Yourself
           </span>
         </h1>
         <p className="mx-auto mb-12 max-w-2xl text-lg leading-relaxed text-light/70 sm:text-xl">
-          Spare yourself unnecessary explanations and
+          Master any topic at your own pace.
           <br />
-          stop leaving the learning guessing.
+          Create custom learning tracks and take control of your education.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           {isAuthenticated ? (
@@ -51,7 +51,7 @@ const HomePage = observer(() => {
           )}
         </div>
         <p className="mt-12 text-sm text-light/50">
-          Trusted by people from companies that create cool stuff
+         In developing
         </p>
       </div>
     </div>
