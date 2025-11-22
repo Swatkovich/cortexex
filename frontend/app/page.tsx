@@ -1,7 +1,12 @@
-import Link from 'next/link';
+"use client";
 
-export default function HomePage() {
-  
+import Link from 'next/link';
+import { observer } from 'mobx-react-lite';
+import { authStore } from '@/store/authStore';
+
+const HomePage = observer(() => {
+  const isAuthenticated = authStore.isAuthenticated;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-dark font-sans">
       <div className="mx-auto max-w-4xl px-6 text-center">
@@ -21,18 +26,29 @@ export default function HomePage() {
           stop leaving the learning guessing.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link
-            href="/auth?type=register"
-            className="rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover hover:scale-105"
-          >
-            Register
-          </Link>
-          <Link
-            href="/auth?type=login"
-            className="rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light  hover:border-light/40 hover:bg-light/5 hover:scale-105"
-          >
-            Log In
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href="/user"
+              className="rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover"
+            >
+              GET STARTED
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/auth?type=register"
+                className="rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover"
+              >
+                Register
+              </Link>
+              <Link
+                href="/auth?type=login"
+                className="rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light  hover:border-light/40 hover:bg-light/5 hover:scale-105"
+              >
+                Log In
+              </Link>
+            </>
+          )}
         </div>
         <p className="mt-12 text-sm text-light/50">
           Trusted by people from companies that create cool stuff
@@ -40,4 +56,6 @@ export default function HomePage() {
       </div>
     </div>
   );
-}
+});
+
+export default HomePage;

@@ -20,13 +20,16 @@ const Navigation = observer(() => {
   useEffect(() => {
     if (!authStore.initialized) {
       authStore.hydrate();
-      return;
     }
   
-    if (authStore.isAuthenticated) {
-      router.push('/user');
+  }, [authStore.initialized]);
+
+  useEffect(() => {
+    const path = window.location.pathname
+    if (path === "/auth") {
+      router.push('/user')
     }
-  }, [authStore.initialized, authStore.isAuthenticated]);
+  }, [])
 
   return (
     <nav className="border-b border-light/10 bg-dark-hover/50 backdrop-blur-sm sticky top-0 z-50">
