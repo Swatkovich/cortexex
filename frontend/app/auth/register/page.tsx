@@ -28,20 +28,25 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-dark">
-      <div className="w-full max-w-md rounded-lg bg-dark p-8 shadow-[0_0px_60px_rgba(249,249,223,0.25)]">
-        <h1 className="mb-6 text-3xl font-bold text-light">
+    <div className="flex min-h-screen items-center justify-center bg-dark px-6 py-12">
+      <div className="w-full max-w-md rounded-2xl border border-light/10 bg-dark/50 p-10 shadow-[0_0px_60px_rgba(249,249,223,0.15)] backdrop-blur-sm">
+        <div className="mb-8">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-light">
           Register
-        </h1>
+          </h1>
+          <p className="text-sm text-light/60">
+            Create your CortexEx account
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="rounded-md bg-red-100 p-3 text-sm text-red-700">
+            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
               {error}
             </div>
           )}
 
-          <div>
+          <div className="space-y-2">
             <label
               htmlFor="name"
               className="block text-sm font-medium text-light"
@@ -54,11 +59,12 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="mt-1 w-full rounded-md border border-light bg-dark px-3 py-2 text-light focus:border-light-hover focus:outline-none focus:ring-1 focus:ring-dark"
+              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-light placeholder:text-light/40 transition-all focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+              placeholder="Enter your name"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <label
               htmlFor="password"
               className="block text-sm font-medium text-light"
@@ -71,26 +77,27 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 w-full rounded-md border border-light bg-dark px-3 py-2 text-light focus:border-light-hover focus:outline-none focus:ring-1 focus:ring-dark"
+              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-light placeholder:text-light/40 transition-all focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+              placeholder="Create a password"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-light px-4 py-2 font-medium text-dark hover:bg-light-hover focus:outline-none focus:ring-2 focus:ring-dark focus:ring-offset-2 disabled:opacity-50"
+            className="w-full rounded-lg bg-light px-6 py-3 text-base font-semibold text-dark transition-all hover:bg-light-hover hover:scale-[1.02] hover:shadow-[0_0px_30px_rgba(249,249,223,0.3)] focus:outline-none focus:ring-2 focus:ring-light/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? 'Creating account...' : 'Register'}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-light">
+        <p className="mt-6 text-center text-sm text-light/60">
           Already have an account?{' '}
           <Link
             href="/auth/login"
-            className="font-medium text-light hover:text-light-hover"
+            className="font-semibold text-light transition-colors hover:text-light-hover"
           >
-            Login
+            Log in
           </Link>
         </p>
       </div>

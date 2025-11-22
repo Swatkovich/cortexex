@@ -28,54 +28,54 @@ const UserPage = observer(() => {
     if (!themeStore.canPlay) {
       return;
     }
-    router.push('/play');
+    router.push('/game');
   };
 
   const handleCreateTheme = () => {
-    router.push('/create-theme');
+    router.push('/createTheme');
   };
 
   if (!initialized || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-dark">
-        <p className="text-light">Checking your session...</p>
+        <p className="text-lg text-light/70">Checking your session...</p>
       </div>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-0">
-      <section>
-        <p className="text-sm font-medium uppercase tracking-wide text-light">
+    <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-12 px-6 py-12 sm:px-8 lg:px-12">
+      <section className="space-y-3">
+        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
           Dashboard
         </p>
-        <h1 className="mt-2 text-3xl font-semibold text-light">
+        <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
           Choose your next challenge
         </h1>
-        <p className="mt-2 text-light">
+        <p className="max-w-2xl text-lg text-light/70">
           Pick one or multiple themes to activate the play mode. You can also craft a
           custom theme that fits your session.
         </p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-2">
         {themeStore.themes.map((theme) => (
           <article
             key={theme.id}
-            className="rounded-2xl border border-light bg-dark p-5 shadow-[0_0px_60px_rgba(249,249,223,0.25)] transition hover:shadow-[0_0px_80px_rgba(249,249,223,0.35)]"
+            className="group rounded-2xl border border-light/10 bg-dark/50 p-6 shadow-[0_0px_40px_rgba(249,249,223,0.1)] backdrop-blur-sm transition-all hover:border-light/20 hover:shadow-[0_0px_60px_rgba(249,249,223,0.2)]"
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-light">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex-1 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-light/60">
                   {theme.difficulty}
                 </p>
-                <h2 className="mt-1 text-xl font-semibold text-light">
+                <h2 className="text-xl font-bold text-light">
                   {theme.title}
                 </h2>
-                <p className="mt-2 text-sm text-light">
+                <p className="text-sm leading-relaxed text-light/70">
                   {theme.description}
                 </p>
-                <p className="mt-3 text-xs font-medium text-light">
+                <p className="text-xs font-medium text-light/50">
                   {theme.questions} curated questions
                 </p>
               </div>
@@ -83,10 +83,10 @@ const UserPage = observer(() => {
               <button
                 type="button"
                 onClick={() => themeStore.toggleTheme(theme.id)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                className={`h-fit rounded-lg px-5 py-2.5 text-sm font-semibold transition-all ${
                   themeStore.isSelected(theme.id)
-                    ? 'bg-light text-dark hover:bg-light-hover'
-                    : 'border border-light text-light hover:bg-light-hover hover:text-dark'
+                    ? 'bg-light text-dark shadow-[0_0px_20px_rgba(249,249,223,0.3)] hover:bg-light-hover hover:scale-105'
+                    : 'border border-light/20 bg-transparent text-light hover:border-light/40 hover:bg-light/5'
                 }`}
               >
                 {themeStore.isSelected(theme.id) ? 'Selected' : 'Select'}
@@ -96,19 +96,19 @@ const UserPage = observer(() => {
         ))}
       </section>
 
-      <section className="mt-4 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+      <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={handlePlay}
           disabled={!themeStore.canPlay}
-          className="flex-1 rounded-xl bg-light px-6 py-3 text-center text-base font-semibold text-dark transition hover:bg-light-hover disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex-1 rounded-xl bg-light px-8 py-4 text-center text-base font-semibold text-dark transition-all hover:bg-light-hover hover:scale-[1.02] hover:shadow-[0_0px_40px_rgba(249,249,223,0.3)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
         >
           Play
         </button>
         <button
           type="button"
           onClick={handleCreateTheme}
-          className="flex-1 rounded-xl border border-light px-6 py-3 text-center text-base font-semibold text-light transition hover:bg-light-hover hover:text-dark"
+          className="flex-1 rounded-xl border border-light/20 bg-transparent px-8 py-4 text-center text-base font-semibold text-light transition-all hover:border-light/40 hover:bg-light/5"
         >
           Create Theme
         </button>
