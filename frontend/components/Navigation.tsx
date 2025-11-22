@@ -25,24 +25,24 @@ const Navigation = observer(() => {
   }, [authStore.user])
 
   return (
-    <nav className="border-b border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <nav className="border-b border-dark-compose bg-dark">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link
             href="/"
-            className="text-xl font-bold text-black dark:text-white"
+            className="text-xl font-bold text-light"
           >
             CortexEx
           </Link>
           {authStore.isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              <span className="text-sm font-medium text-light">
                 {authStore.user?.name}
               </span>
               <button
                 type="button"
                 onClick={() => authStore.logout()}
-                className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-200 dark:hover:bg-zinc-800"
+                className="rounded-md border border-dark-compose px-4 py-2 text-sm font-medium text-light hover:bg-dark-compose"
               >
                 Logout
               </button>
@@ -51,13 +51,13 @@ const Navigation = observer(() => {
             <div className="flex gap-4">
               <Link
                 href="/auth/login"
-                className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800"
+                className="rounded-md px-4 py-2 text-sm font-medium bg-light text-dark hover:bg-light-hover"
               >
                 Login
               </Link>
               <Link
                 href="/auth/register"
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="rounded-md px-4 py-2 text-sm font-medium bg-light text-dark hover:bg-light-hover"
               >
                 Register
               </Link>

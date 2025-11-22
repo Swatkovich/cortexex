@@ -10,7 +10,11 @@ module.exports = {
           primary: {
             white: '#F9F9DF',
             dark: '#1A1A1A'
-          }
+          },
+          dark: '#1A1A1A',
+          'dark-compose': '#2A2A2A',
+          light: '#F9F9DF',
+          'light-hover': '#F5F5C8',
         },
       },
     },

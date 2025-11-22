@@ -1,3 +1,5 @@
+"use client";
+
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
@@ -24,55 +26,55 @@ export default function CreateThemePage() {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-0">
       <header>
-        <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+        <p className="text-sm font-semibold uppercase tracking-wide text-light">
           Create Theme
         </p>
-        <h1 className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-100">
+        <h1 className="mt-2 text-3xl font-semibold text-light">
           Design a new learning track
         </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-light">
           Define the essentials and immediately make it available on your dashboard.
         </p>
       </header>
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+        className="space-y-6 rounded-2xl border border-light bg-dark p-6 shadow-[0_0px_60px_rgba(249,249,223,0.25)]"
       >
         <div>
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-light">
             Theme title
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               required
-              className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+              className="mt-2 w-full rounded-lg border border-light bg-dark px-3 py-2 text-base text-light focus:border-light-hover focus:outline-none focus:ring-2 focus:ring-dark"
               placeholder="Neuro Linguistics"
             />
           </label>
         </div>
 
         <div>
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-light">
             Description
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               required
               rows={4}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+              className="mt-2 w-full rounded-lg border border-light bg-dark px-3 py-2 text-base text-light focus:border-light-hover focus:outline-none focus:ring-2 focus:ring-dark"
               placeholder="Outline why this topic matters and what to expect."
             />
           </label>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-light">
             Difficulty
             <select
               value={difficulty}
               onChange={(event) => setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+              className="mt-2 w-full rounded-lg border border-light bg-dark px-3 py-2 text-base text-light focus:border-light-hover focus:outline-none focus:ring-2 focus:ring-dark"
             >
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
@@ -80,14 +82,14 @@ export default function CreateThemePage() {
             </select>
           </label>
 
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-light">
             Questions count
             <input
               type="number"
               min={1}
               value={questions}
               onChange={(event) => setQuestions(Number(event.target.value))}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+              className="mt-2 w-full rounded-lg border border-light bg-dark px-3 py-2 text-base text-light focus:border-light-hover focus:outline-none focus:ring-2 focus:ring-dark"
             />
           </label>
         </div>
@@ -95,7 +97,7 @@ export default function CreateThemePage() {
         <div className="flex flex-col gap-4 sm:flex-row">
           <button
             type="submit"
-            className="flex-1 rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-blue-700"
+            className="flex-1 rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark transition hover:bg-light-hover"
             disabled={!title.trim() || !description.trim()}
           >
             Save theme
@@ -103,7 +105,7 @@ export default function CreateThemePage() {
           <button
             type="button"
             onClick={() => router.push('/user')}
-            className="flex-1 rounded-xl border border-gray-300 px-6 py-3 text-base font-semibold text-gray-800 transition hover:bg-gray-50 dark:border-zinc-700 dark:text-gray-100 dark:hover:bg-zinc-800"
+            className="flex-1 rounded-xl border border-light px-6 py-3 text-base font-semibold text-light transition hover:bg-light-hover hover:text-dark"
           >
             Cancel
           </button>
