@@ -30,6 +30,7 @@ export interface Question {
     question_type: 'input' | 'select' | 'radiobutton';
     is_strict: boolean;
     options: string[] | null;
+    answer: string | null;
 }
 
 export interface CreateQuestionDto {
@@ -37,6 +38,7 @@ export interface CreateQuestionDto {
     question_type: 'input' | 'select' | 'radiobutton';
     is_strict: boolean;
     options?: string[];
+    answer?: string;
 }
 
 export interface UpdateQuestionDto {
@@ -44,5 +46,6 @@ export interface UpdateQuestionDto {
     question_type?: 'input' | 'select' | 'radiobutton';
     is_strict?: boolean;
     options?: string[];
+    answer?: string;
 }
   

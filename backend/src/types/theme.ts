@@ -14,6 +14,7 @@ export interface Question {
     question_type: 'input' | 'select' | 'radiobutton';
     is_strict: boolean;
     options: string[] | null; // Array of options for select/radiobutton types
+    answer: string | null; // Correct answer for input type questions
 }
 
 export interface CreateThemeDto {
@@ -33,6 +34,7 @@ export interface CreateQuestionDto {
     question_type: 'input' | 'select' | 'radiobutton';
     is_strict: boolean;
     options?: string[]; // Required for select/radiobutton, not needed for input
+    answer?: string; // Required for input type, not needed for select/radiobutton
 }
 
 export interface UpdateQuestionDto {
@@ -40,5 +42,6 @@ export interface UpdateQuestionDto {
     question_type?: 'input' | 'select' | 'radiobutton';
     is_strict?: boolean;
     options?: string[];
+    answer?: string;
 }
 

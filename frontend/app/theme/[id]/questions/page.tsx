@@ -22,6 +22,7 @@ export default function QuestionsPage() {
   const [questionType, setQuestionType] = useState<'input' | 'select' | 'radiobutton'>('input');
   const [isStrict, setIsStrict] = useState(false);
   const [options, setOptions] = useState<string[]>(['']);
+  const [answer, setAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function QuestionsPage() {
     setQuestionType('input');
     setIsStrict(false);
     setOptions(['']);
+    setAnswer('');
     setEditingQuestion(null);
     setShowAddForm(false);
   };
@@ -71,6 +73,7 @@ export default function QuestionsPage() {
     setQuestionType(question.question_type);
     setIsStrict(question.is_strict);
     setOptions(question.options && question.options.length > 0 ? question.options : ['']);
+    setAnswer(question.answer || '');
     setShowAddForm(true);
   };
 
@@ -87,6 +90,7 @@ export default function QuestionsPage() {
         options: (questionType === 'select' || questionType === 'radiobutton')
           ? options.filter(opt => opt.trim() !== '')
           : undefined,
+        answer: questionType === 'input' ? answer.trim() : undefined,
       };
 
       if (editingQuestion) {
@@ -208,8 +212,12 @@ export default function QuestionsPage() {
                   setQuestionType(newType);
                   if (newType === 'input') {
                     setOptions(['']);
-                  } else if (options.length === 0 || (options.length === 1 && options[0] === '')) {
-                    setOptions(['']);
+                    // Keep answer field for input type
+                  } else {
+                    setAnswer('');
+                    if (options.length === 0 || (options.length === 1 && options[0] === '')) {
+                      setOptions(['']);
+                    }
                   }
                 }}
                 className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
@@ -238,6 +246,25 @@ export default function QuestionsPage() {
               </div>
             </div>
           </div>
+
+          {questionType === 'input' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-light">
+                Correct Answer
+              </label>
+              <input
+                type="text"
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                required={questionType === 'input'}
+                className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+                placeholder="Enter the correct answer..."
+              />
+              <p className="text-xs text-light/50">
+                This is the expected answer for this question.
+              </p>
+            </div>
+          )}
 
           {(questionType === 'select' || questionType === 'radiobutton') && (
             <div className="space-y-2">
@@ -278,7 +305,12 @@ export default function QuestionsPage() {
           <div className="flex flex-col gap-4 pt-4 sm:flex-row">
             <button
               type="submit"
-              disabled={submitting || !questionText.trim() || (questionType !== 'input' && options.filter(opt => opt.trim() !== '').length === 0)}
+              disabled={
+                submitting || 
+                !questionText.trim() || 
+                (questionType === 'input' && !answer.trim()) ||
+                (questionType !== 'input' && options.filter(opt => opt.trim() !== '').length === 0)
+              }
               className="flex-1 rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Saving...' : editingQuestion ? 'Update Question' : 'Add Question'}
@@ -320,6 +352,14 @@ export default function QuestionsPage() {
                     )}
                   </div>
                   <p className="text-base font-medium text-light">{question.question_text}</p>
+                  {question.question_type === 'input' && question.answer && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-light/50">Correct Answer:</p>
+                      <p className="text-sm text-light/70 font-mono bg-dark/50 px-3 py-2 rounded border border-light/10">
+                        {question.answer}
+                      </p>
+                    </div>
+                  )}
                   {question.options && question.options.length > 0 && (
                     <div className="space-y-1">
                       <p className="text-xs font-medium text-light/50">Options:</p>

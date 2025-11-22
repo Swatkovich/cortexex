@@ -67,6 +67,7 @@ export const getTheme = async (req: AuthRequest, res: Response) => {
             question_type: q.question_type,
             is_strict: q.is_strict,
             options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : null,
+            answer: q.answer || null,
         }))
     });
 };
@@ -190,7 +191,7 @@ export const deleteTheme = async (req: AuthRequest, res: Response) => {
 export const createQuestion = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { themeId } = req.params;
-    const { question_text, question_type, is_strict, options }: CreateQuestionDto = req.body;
+    const { question_text, question_type, is_strict, options, answer }: CreateQuestionDto = req.body;
 
     if (!question_text || !question_type) {
         return res.status(400).json({ message: "Question text and type are required" });
@@ -215,14 +216,20 @@ export const createQuestion = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: "Options are required for select and radiobutton types" });
     }
 
+    // Validate answer for input type
+    if (question_type === 'input' && !answer) {
+        return res.status(400).json({ message: "Answer is required for input type questions" });
+    }
+
     const id = randomUUID();
     const optionsJson = (question_type === 'select' || question_type === 'radiobutton') ? JSON.stringify(options) : null;
+    const answerValue = question_type === 'input' ? answer : null;
 
     const result = await pool.query(
-        `INSERT INTO questions (id, theme_id, question_text, question_type, is_strict, options)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO questions (id, theme_id, question_text, question_type, is_strict, options, answer)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [id, themeId, question_text, question_type, is_strict || false, optionsJson]
+        [id, themeId, question_text, question_type, is_strict || false, optionsJson, answerValue]
     );
 
     return res.status(201).json({
@@ -235,7 +242,7 @@ export const createQuestion = async (req: AuthRequest, res: Response) => {
 export const updateQuestion = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { themeId, questionId } = req.params;
-    const { question_text, question_type, is_strict, options }: UpdateQuestionDto = req.body;
+    const { question_text, question_type, is_strict, options, answer }: UpdateQuestionDto = req.body;
 
     // Check if theme exists and belongs to user
     const themeResult = await pool.query(
@@ -284,6 +291,14 @@ export const updateQuestion = async (req: AuthRequest, res: Response) => {
         }
         updates.push(`options = $${paramCount++}`);
         values.push((finalType === 'select' || finalType === 'radiobutton') ? JSON.stringify(options) : null);
+    }
+    if (answer !== undefined) {
+        const finalType = question_type || questionResult.rows[0].question_type;
+        if (finalType === 'input' && !answer) {
+            return res.status(400).json({ message: "Answer is required for input type questions" });
+        }
+        updates.push(`answer = $${paramCount++}`);
+        values.push(finalType === 'input' ? answer : null);
     }
 
     if (updates.length === 0) {

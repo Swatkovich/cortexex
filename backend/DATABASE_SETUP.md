@@ -66,6 +66,7 @@ You can verify the tables were created successfully:
 - `question_type` (VARCHAR): One of 'input', 'select', 'radiobutton'
 - `is_strict` (BOOLEAN): Whether the answer must match exactly
 - `options` (JSONB): Array of options for select/radiobutton types (null for input type)
+- `answer` (TEXT): Correct answer for input type questions (null for select/radiobutton types)
 
 ### Notes
 
@@ -73,5 +74,17 @@ You can verify the tables were created successfully:
 - Cascade delete ensures that when a user is deleted, their themes are deleted
 - When a theme is deleted, all its questions are automatically deleted
 - The `options` field stores JSON arrays like: `["Option 1", "Option 2", "Option 3"]`
+- The `answer` field is required for input type questions and stores the correct answer text
 - Indexes improve query performance when fetching themes by user or questions by theme
+
+### Migration Note
+
+If you already have the `questions` table without the `answer` field, run the migration script:
+
+```sql
+-- Run this migration if questions table exists without answer field
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS answer TEXT;
+```
+
+The migration file is available at `backend/migrations/add_answer_to_questions.sql`
 
