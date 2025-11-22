@@ -18,14 +18,18 @@ const Navigation = observer(() => {
 
 
   useEffect(() => {
-    const path = window.location.pathname
-    if (authStore.isAuthenticated && (path === '/' || path === '/auth/login' || path === '/auth/register')) {
+    if (!authStore.initialized) {
+      authStore.hydrate();
+      return;
+    }
+  
+    if (authStore.isAuthenticated) {
       router.push('/user');
     }
-  }, [authStore.user])
+  }, [authStore.initialized, authStore.isAuthenticated]);
 
   return (
-    <nav className="border-b border-light/10 bg-dark/95 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-light/10 bg-dark-hover/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
         <div className="flex h-20 items-center justify-between">
           <Link
@@ -42,7 +46,7 @@ const Navigation = observer(() => {
               <button
                 type="button"
                 onClick={() => authStore.logout()}
-                className="rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-medium text-light transition-all hover:border-light/40 hover:bg-light/5"
+                className="rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-medium text-light hover:border-light/40 hover:bg-light/5"
               >
                 Log Out
               </button>
@@ -50,14 +54,14 @@ const Navigation = observer(() => {
           ) : (
             <div className="flex items-center gap-3">
               <Link
-                href="/auth/login"
-                className="rounded-lg px-5 py-2.5 text-sm font-medium text-light transition-opacity hover:opacity-70"
+                href="/auth?type=login"
+                className="rounded-lg border border-light/20 text-sm bg-transparent px-5 py-2.5 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5 hover:scale-[1.02]"
               >
                 Log In
               </Link>
               <Link
-                href="/auth/register"
-                className="rounded-lg bg-light px-5 py-2.5 text-sm font-semibold text-dark transition-all hover:bg-light-hover hover:scale-[1.02]"
+                href="/auth?type=register"
+                className="rounded-lg bg-light px-5 py-2.5 text-sm font-semibold text-dark hover:bg-light-hover hover:scale-[1.02]"
               >
                Register
               </Link>

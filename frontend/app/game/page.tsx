@@ -24,7 +24,7 @@ const PlayPage = observer(() => {
       </header>
 
       {hasSelection ? (
-        <section className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-8 shadow-[0_0px_60px_rgba(249,249,223,0.15)] backdrop-blur-sm">
+        <section className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm">
           {themeStore.selectedThemes.map((theme) => (
             <article key={theme.id} className="border-b border-light/10 pb-6 last:border-none last:pb-0">
               <div className="mb-2 flex items-center gap-3">
@@ -56,7 +56,7 @@ const PlayPage = observer(() => {
       <div className="mt-auto">
         <Link
           href="/user"
-          className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light transition-all hover:border-light/40 hover:bg-light/5"
+          className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
         >
           Back to Themes
         </Link>

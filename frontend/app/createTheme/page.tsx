@@ -39,7 +39,7 @@ export default function CreateThemePage() {
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 shadow-[0_0px_60px_rgba(249,249,223,0.15)] backdrop-blur-sm"
+        className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm"
       >
         <div className="space-y-2">
           <label className="block text-sm font-medium text-light">
@@ -49,7 +49,7 @@ export default function CreateThemePage() {
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             required
-            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 transition-all focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
             placeholder="Neuro Linguistics"
           />
         </div>
@@ -63,7 +63,7 @@ export default function CreateThemePage() {
             onChange={(event) => setDescription(event.target.value)}
             required
             rows={4}
-            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 transition-all focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
             placeholder="Outline why this topic matters and what to expect."
           />
         </div>
@@ -76,7 +76,7 @@ export default function CreateThemePage() {
             <select
               value={difficulty}
               onChange={(event) => setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')}
-              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light transition-all focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
             >
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
@@ -93,7 +93,7 @@ export default function CreateThemePage() {
               min={1}
               value={questions}
               onChange={(event) => setQuestions(Number(event.target.value))}
-              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 transition-all focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
             />
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function CreateThemePage() {
         <div className="flex flex-col gap-4 pt-4 sm:flex-row">
           <button
             type="submit"
-            className="flex-1 rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark transition-all hover:bg-light-hover hover:scale-[1.02] hover:shadow-[0_0px_30px_rgba(249,249,223,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="flex-1 rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             disabled={!title.trim() || !description.trim()}
           >
             Save theme
@@ -109,7 +109,7 @@ export default function CreateThemePage() {
           <button
             type="button"
             onClick={() => router.push('/user')}
-            className="flex-1 rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light transition-all hover:border-light/40 hover:bg-light/5"
+            className="flex-1 rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
           >
             Cancel
           </button>

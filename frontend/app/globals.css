@@ -4,7 +4,7 @@
   --background: #ffffff;
   --foreground: #171717;
   --color-dark: #1A1A1A;
-  --color-dark-compose: #2A2A2A;
+  --color-dark-hover: #2A2A2A;
   --color-light: #F9F9DF;
   --color-light-hover: #F5F5C8;
 }
@@ -13,7 +13,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-dark: #1A1A1A;
-  --color-dark-compose: #2A2A2A;
+  --color-dark-hover: #2A2A2A;
   --color-light: #F9F9DF;
   --color-light-hover: #F5F5C8;
   --font-sans: var(--font-geist-sans);

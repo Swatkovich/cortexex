@@ -20,7 +20,7 @@ const UserPage = observer(() => {
 
   useEffect(() => {
     if (initialized && !isAuthenticated) {
-      router.replace('/auth/login');
+      router.replace('/auth?type=login');
     }
   }, [initialized, isAuthenticated, router]);
 
@@ -62,7 +62,7 @@ const UserPage = observer(() => {
         {themeStore.themes.map((theme) => (
           <article
             key={theme.id}
-            className="group rounded-2xl border border-light/10 bg-dark/50 p-6 shadow-[0_0px_40px_rgba(249,249,223,0.1)] backdrop-blur-sm transition-all hover:border-light/20 hover:shadow-[0_0px_60px_rgba(249,249,223,0.2)]"
+            className="group rounded-2xl border border-light/10 bg-dark/50 p-6 backdrop-blur-sm hover:border-light/20"
           >
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1 space-y-3">
@@ -83,9 +83,9 @@ const UserPage = observer(() => {
               <button
                 type="button"
                 onClick={() => themeStore.toggleTheme(theme.id)}
-                className={`h-fit rounded-lg px-5 py-2.5 text-sm font-semibold transition-all ${
+                className={`h-fit rounded-lg px-5 py-2.5 text-sm font-semibold ${
                   themeStore.isSelected(theme.id)
-                    ? 'bg-light text-dark shadow-[0_0px_20px_rgba(249,249,223,0.3)] hover:bg-light-hover hover:scale-105'
+                    ? 'bg-light text-dark hover:bg-light-hover hover:scale-105'
                     : 'border border-light/20 bg-transparent text-light hover:border-light/40 hover:bg-light/5'
                 }`}
               >
@@ -101,14 +101,14 @@ const UserPage = observer(() => {
           type="button"
           onClick={handlePlay}
           disabled={!themeStore.canPlay}
-          className="flex-1 rounded-xl bg-light px-8 py-4 text-center text-base font-semibold text-dark transition-all hover:bg-light-hover hover:scale-[1.02] hover:shadow-[0_0px_40px_rgba(249,249,223,0.3)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+          className="flex-1 rounded-xl bg-light px-8 py-4 text-center text-base font-semibold text-dark hover:bg-light-hover hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:bg-light disabled:opacity-50 disabled:hover:scale-100"
         >
           Play
         </button>
         <button
           type="button"
           onClick={handleCreateTheme}
-          className="flex-1 rounded-xl border border-light/20 bg-transparent px-8 py-4 text-center text-base font-semibold text-light transition-all hover:border-light/40 hover:bg-light/5"
+          className="flex-1 rounded-xl border border-light/20 bg-transparent px-8 py-4 text-center text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
         >
           Create Theme
         </button>

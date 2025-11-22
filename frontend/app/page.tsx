@@ -22,14 +22,14 @@ export default function HomePage() {
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
-            href="/auth/register"
-            className="rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark transition-all hover:bg-light-hover hover:scale-105 hover:shadow-[0_0px_40px_rgba(249,249,223,0.3)]"
+            href="/auth?type=register"
+            className="rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover hover:scale-105"
           >
             Register
           </Link>
           <Link
-            href="/auth/login"
-            className="rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light transition-all hover:border-light/40 hover:bg-light/5"
+            href="/auth?type=login"
+            className="rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light  hover:border-light/40 hover:bg-light/5 hover:scale-105"
           >
             Log In
           </Link>
