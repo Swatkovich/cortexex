@@ -24,6 +24,12 @@ const UserPage = observer(() => {
     }
   }, [initialized, isAuthenticated, router]);
 
+  useEffect(() => {
+    if (isAuthenticated && !themeStore.initialized && !themeStore.loading) {
+      themeStore.fetchThemes();
+    }
+  }, [isAuthenticated]);
+
   const handlePlay = () => {
     if (!themeStore.canPlay) {
       return;
@@ -33,6 +39,10 @@ const UserPage = observer(() => {
 
   const handleCreateTheme = () => {
     router.push('/createTheme');
+  };
+
+  const handleEditTheme = (themeId: string) => {
+    router.push(`/createTheme?id=${themeId}`);
   };
 
   if (!initialized || loading) {
@@ -58,43 +68,68 @@ const UserPage = observer(() => {
         </p>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        {themeStore.themes.map((theme) => (
-          <article
-            key={theme.id}
-            className="group rounded-2xl border border-light/10 bg-dark-hover/50 p-6 backdrop-blur-sm hover:border-light/50"
-          >
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex-1 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-light/60">
-                  {theme.difficulty}
-                </p>
-                <h2 className="text-xl font-bold text-light">
-                  {theme.title}
-                </h2>
-                <p className="text-sm leading-relaxed text-light/70">
-                  {theme.description}
-                </p>
-                <p className="text-xs font-medium text-light/50">
-                  {theme.questions} curated questions
-                </p>
-              </div>
+      {themeStore.loading && !themeStore.initialized ? (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-lg text-light/70">Loading themes...</p>
+        </div>
+      ) : themeStore.error ? (
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
+          <p className="text-red-400">Error: {themeStore.error}</p>
+        </div>
+      ) : themeStore.themes.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
+          <p className="text-sm font-medium text-light/50">
+            No themes yet. Create your first theme to get started.
+          </p>
+        </div>
+      ) : (
+        <section className="grid gap-6 lg:grid-cols-2">
+          {themeStore.themes.map((theme) => (
+            <article
+              key={theme.id}
+              className="group rounded-2xl border border-light/10 bg-dark-hover/50 p-6 backdrop-blur-sm hover:border-light/50"
+            >
+              <div className="flex flex-col gap-5">
+                <div className="flex-1 space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-light/60">
+                    {theme.difficulty}
+                  </p>
+                  <h2 className="text-xl font-bold text-light">
+                    {theme.title}
+                  </h2>
+                  <p className="text-sm leading-relaxed text-light/70">
+                    {theme.description}
+                  </p>
+                  <p className="text-xs font-medium text-light/50">
+                    {theme.questions} curated questions
+                  </p>
+                </div>
 
-              <button
-                type="button"
-                onClick={() => themeStore.toggleTheme(theme.id)}
-                className={`h-fit rounded-lg px-5 py-2.5 text-sm font-semibold ${
-                  themeStore.isSelected(theme.id)
-                    ? 'bg-light text-dark hover:bg-light-hover hover:scale-105'
-                    : 'border border-light/20 bg-transparent text-light hover:border-light/40 hover:bg-light/5 hover:scale-105'
-                }`}
-              >
-                {themeStore.isSelected(theme.id) ? 'Selected' : 'Select'}
-              </button>
-            </div>
-          </article>
-        ))}
-      </section>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => themeStore.toggleTheme(theme.id)}
+                    className={`flex-1 rounded-lg px-5 py-2.5 text-sm font-semibold ${
+                      themeStore.isSelected(theme.id)
+                        ? 'bg-light text-dark hover:bg-light-hover hover:scale-105'
+                        : 'border border-light/20 bg-transparent text-light hover:border-light/40 hover:bg-light/5 hover:scale-105'
+                    }`}
+                  >
+                    {themeStore.isSelected(theme.id) ? 'Selected' : 'Select'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleEditTheme(theme.id)}
+                    className="rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5 hover:scale-105"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
 
       <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
         <button

@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser"
 import authRoutes from "./routes/auth.routes";
+import themeRoutes from "./routes/theme.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(cookieParser())
 
 //Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/themes", themeRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: "API is running"})

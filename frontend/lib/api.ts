@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { CreateThemeDto, Theme, UpdateThemeDto } from './interface';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -61,5 +62,47 @@ export async function logout() {
   }
 }
 
-//TODO: Config tailwind varuables (colors, background, etc) 
-//TODO: Make nested lists for themes
+
+export async function fetchThemes(): Promise<Theme[]> {
+  try {
+    const response = await apiClient.get('/themes');
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to fetch themes');
+  }
+}
+
+export async function fetchTheme(id: string): Promise<Theme> {
+  try {
+    const response = await apiClient.get(`/themes/${id}`);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to fetch theme');
+  }
+}
+
+export async function createTheme(data: CreateThemeDto): Promise<Theme> {
+  try {
+    const response = await apiClient.post('/themes', data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to create theme');
+  }
+}
+
+export async function updateTheme(id: string, data: UpdateThemeDto): Promise<Theme> {
+  try {
+    const response = await apiClient.put(`/themes/${id}`, data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to update theme');
+  }
+}
+
+export async function deleteTheme(id: string): Promise<void> {
+  try {
+    await apiClient.delete(`/themes/${id}`);
+  } catch (error) {
+    handleError(error, 'Failed to delete theme');
+  }
+}

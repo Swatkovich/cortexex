@@ -1,4 +1,6 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
+import * as api from '@/lib/api';
+import { CreateThemeDto, UpdateThemeDto } from '@/lib/interface';
 
 export type Theme = {
   id: string;
@@ -8,41 +10,93 @@ export type Theme = {
   questions: number;
 };
 
-let themeId = 0;
-const generateId = () => {
-  themeId += 1;
-  return `theme-${themeId}`;
-};
-
 class ThemeStore {
-  themes: Theme[] = [
-    {
-      id: generateId(),
-      title: 'Neuroscience Basics',
-      description: 'Explore the fundamental structures and functions of the brain.',
-      difficulty: 'Easy',
-      questions: 12,
-    },
-    {
-      id: generateId(),
-      title: 'Cognitive Psychology',
-      description: 'Dive into perception, memory, and decision making challenges.',
-      difficulty: 'Medium',
-      questions: 15,
-    },
-    {
-      id: generateId(),
-      title: 'AI Ethics',
-      description: 'Debate dilemmas around AI governance, bias, and transparency.',
-      difficulty: 'Hard',
-      questions: 10,
-    },
-  ];
-
+  themes: Theme[] = [];
   selectedThemeIds: string[] = [];
+  loading = false;
+  error: string | null = null;
+  initialized = false;
 
   constructor() {
     makeAutoObservable(this);
+  }
+
+  async fetchThemes() {
+    this.loading = true;
+    this.error = null;
+    try {
+      const themes = await api.fetchThemes();
+      runInAction(() => {
+        this.themes = themes;
+        this.loading = false;
+        this.initialized = true;
+      });
+    } catch (error) {
+      runInAction(() => {
+        this.error = error instanceof Error ? error.message : 'Failed to fetch themes';
+        this.loading = false;
+        this.initialized = true;
+      });
+    }
+  }
+
+  async addTheme(theme: CreateThemeDto) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const newTheme = await api.createTheme(theme);
+      runInAction(() => {
+        this.themes = [...this.themes, newTheme];
+        this.loading = false;
+      });
+      return newTheme;
+    } catch (error) {
+      runInAction(() => {
+        this.error = error instanceof Error ? error.message : 'Failed to create theme';
+        this.loading = false;
+      });
+      throw error;
+    }
+  }
+
+  async updateTheme(id: string, updates: UpdateThemeDto) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const updatedTheme = await api.updateTheme(id, updates);
+      runInAction(() => {
+        this.themes = this.themes.map((theme) =>
+          theme.id === id ? updatedTheme : theme
+        );
+        this.loading = false;
+      });
+      return updatedTheme;
+    } catch (error) {
+      runInAction(() => {
+        this.error = error instanceof Error ? error.message : 'Failed to update theme';
+        this.loading = false;
+      });
+      throw error;
+    }
+  }
+
+  async deleteTheme(id: string) {
+    this.loading = true;
+    this.error = null;
+    try {
+      await api.deleteTheme(id);
+      runInAction(() => {
+        this.themes = this.themes.filter((theme) => theme.id !== id);
+        this.selectedThemeIds = this.selectedThemeIds.filter((selectedId) => selectedId !== id);
+        this.loading = false;
+      });
+    } catch (error) {
+      runInAction(() => {
+        this.error = error instanceof Error ? error.message : 'Failed to delete theme';
+        this.loading = false;
+      });
+      throw error;
+    }
   }
 
   toggleTheme(themeId: string) {
@@ -51,14 +105,6 @@ class ThemeStore {
     } else {
       this.selectedThemeIds = [...this.selectedThemeIds, themeId];
     }
-  }
-
-  addTheme(theme: Omit<Theme, 'id'>) {
-    const newTheme: Theme = {
-      ...theme,
-      id: generateId(),
-    };
-    this.themes = [...this.themes, newTheme];
   }
 
   isSelected(themeId: string) {
