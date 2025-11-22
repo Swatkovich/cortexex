@@ -9,17 +9,40 @@ export interface Theme {
     description: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
     questions: number;
-  }
-  
-  export interface CreateThemeDto {
+}
+
+export interface CreateThemeDto {
     title: string;
     description: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
-  }
-  
-  export interface UpdateThemeDto {
+}
+
+export interface UpdateThemeDto {
     title?: string;
     description?: string;
     difficulty?: 'Easy' | 'Medium' | 'Hard';
-  }
+}
+
+export interface Question {
+    id: string;
+    theme_id: string;
+    question_text: string;
+    question_type: 'input' | 'select' | 'radiobutton';
+    is_strict: boolean;
+    options: string[] | null;
+}
+
+export interface CreateQuestionDto {
+    question_text: string;
+    question_type: 'input' | 'select' | 'radiobutton';
+    is_strict: boolean;
+    options?: string[];
+}
+
+export interface UpdateQuestionDto {
+    question_text?: string;
+    question_type?: 'input' | 'select' | 'radiobutton';
+    is_strict?: boolean;
+    options?: string[];
+}
   

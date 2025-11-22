@@ -66,7 +66,7 @@ export const getTheme = async (req: AuthRequest, res: Response) => {
             question_text: q.question_text,
             question_type: q.question_type,
             is_strict: q.is_strict,
-            options: q.options,
+            options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : null,
         }))
     });
 };

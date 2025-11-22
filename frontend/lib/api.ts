@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { CreateThemeDto, Theme, UpdateThemeDto } from './interface';
+import { CreateThemeDto, Theme, UpdateThemeDto, Question, CreateQuestionDto, UpdateQuestionDto } from './interface';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -72,7 +72,7 @@ export async function fetchThemes(): Promise<Theme[]> {
   }
 }
 
-export async function fetchTheme(id: string): Promise<Theme> {
+export async function fetchTheme(id: string): Promise<Theme & { questions?: Question[] }> {
   try {
     const response = await apiClient.get(`/themes/${id}`);
     return response.data;
@@ -104,5 +104,32 @@ export async function deleteTheme(id: string): Promise<void> {
     await apiClient.delete(`/themes/${id}`);
   } catch (error) {
     handleError(error, 'Failed to delete theme');
+  }
+}
+
+// Question API functions
+export async function createQuestion(themeId: string, data: CreateQuestionDto): Promise<Question> {
+  try {
+    const response = await apiClient.post(`/themes/${themeId}/questions`, data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to create question');
+  }
+}
+
+export async function updateQuestion(themeId: string, questionId: string, data: UpdateQuestionDto): Promise<Question> {
+  try {
+    const response = await apiClient.put(`/themes/${themeId}/questions/${questionId}`, data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to update question');
+  }
+}
+
+export async function deleteQuestion(themeId: string, questionId: string): Promise<void> {
+  try {
+    await apiClient.delete(`/themes/${themeId}/questions/${questionId}`);
+  } catch (error) {
+    handleError(error, 'Failed to delete question');
   }
 }

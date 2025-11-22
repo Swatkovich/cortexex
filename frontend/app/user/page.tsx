@@ -45,6 +45,10 @@ const UserPage = observer(() => {
     router.push(`/createTheme?id=${themeId}`);
   };
 
+  const handleManageQuestions = (themeId: string) => {
+    router.push(`/theme/${themeId}/questions`);
+  };
+
   if (!initialized || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-dark">
@@ -123,6 +127,13 @@ const UserPage = observer(() => {
                     className="rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5 hover:scale-105"
                   >
                     Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleManageQuestions(theme.id)}
+                    className="rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5 hover:scale-105"
+                  >
+                    Questions
                   </button>
                 </div>
               </div>
