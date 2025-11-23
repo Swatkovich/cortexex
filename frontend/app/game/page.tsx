@@ -3,57 +3,379 @@
 import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 import { themeStore } from '@/store/themeStore';
+import { useEffect, useMemo, useState } from 'react';
+import * as api from '@/lib/api';
+import { Question } from '@/lib/interface';
+
+function shuffle<T>(arr: T[]) {
+  return arr
+    .map((a) => ({ sort: Math.random(), value: a }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((a) => a.value);
+}
 
 const PlayPage = observer(() => {
-  const hasSelection = themeStore.selectedThemes.length > 0;
+  const selected = themeStore.selectedThemes;
+
+  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
+  const [count, setCount] = useState<number>(5);
+  const [loading, setLoading] = useState(false);
+
+  const [playing, setPlaying] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [index, setIndex] = useState(0);
+
+  const [passed, setPassed] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>>({});
+  const [showResults, setShowResults] = useState(false);
+
+  const [inputValue, setInputValue] = useState('');
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<Record<number, boolean>>({});
+
+  const [submitted, setSubmitted] = useState(false);
+  const [lastWasCorrect, setLastWasCorrect] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // load questions from selected themes
+    const load = async () => {
+      if (selected.length === 0) {
+        setAvailableQuestions([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const all: Question[] = [];
+        for (const t of selected) {
+          const data = await api.fetchTheme(t.id);
+          if (data.questions && Array.isArray(data.questions)) {
+            all.push(...data.questions);
+          }
+        }
+        setAvailableQuestions(all);
+        // default count should be the max available so user sees e.g. "86/86"
+        setCount(all.length || 1);
+      } catch (err) {
+        setAvailableQuestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [selected]);
+
+  const totalAvailable = availableQuestions.length;
+
+  const startGame = () => {
+    const pool = shuffle(availableQuestions).slice(0, Math.min(count, availableQuestions.length));
+    setQuestions(pool);
+    setIndex(0);
+    setPlaying(true);
+    setSubmitted(false);
+    setLastWasCorrect(null);
+    setInputValue('');
+    setSelectedOption(null);
+    setSelectedOptions({});
+    setPassed(0);
+  };
+
+  const resetGame = () => {
+    setPlaying(false);
+    setQuestions([]);
+    setIndex(0);
+    setSubmitted(false);
+    setLastWasCorrect(null);
+    setUserAnswers({});
+    setShowResults(false);
+  };
+
+  const current = questions[index];
+
+  const handleToggleCheckbox = (idx: number) => {
+    setSelectedOptions((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const canProceed = submitted && (!current?.is_strict || lastWasCorrect === true);
+
+  const handleSubmitAnswer = () => {
+    if (!current) return;
+    // Determine user's answer representation
+    let answerVal: string | string[] | null = null;
+    if (current.question_type === 'input') {
+      answerVal = inputValue.trim() || null;
+    } else if (current.question_type === 'radiobutton') {
+      answerVal = selectedOption;
+    } else if (current.question_type === 'select') {
+      const arr: string[] = [];
+      current.options?.forEach((opt, i) => {
+        if (selectedOptions[i]) arr.push(opt);
+      });
+      answerVal = arr.length > 0 ? arr : null;
+    }
+
+    // Check correctness where applicable (only input has stored answer currently)
+    let isCorrect: boolean | null = null;
+
+    if (current.question_type === 'input' && current.answer) {
+      const user = (answerVal as string) || '';
+      const correct = current.answer.trim();
+      isCorrect = user.toLowerCase() === correct.toLowerCase();
+    } else if ((current.question_type === 'radiobutton' || current.question_type === 'select') && current.correct_options && current.correct_options.length > 0) {
+      // grade based on correct_options
+      if (current.question_type === 'radiobutton') {
+        const user = (answerVal as string) || '';
+        const correct = current.correct_options[0] || '';
+        isCorrect = user.trim().toLowerCase() === correct.trim().toLowerCase();
+      } else {
+        // select: compare sets (case-insensitive)
+        const userArr = Array.isArray(answerVal) ? (answerVal as string[]).map(a => a.trim().toLowerCase()).sort() : [];
+        const correctArr = (current.correct_options || []).map(a => a.trim().toLowerCase()).sort();
+        if (userArr.length === 0) {
+          isCorrect = false;
+        } else {
+          isCorrect = userArr.length === correctArr.length && userArr.every((v, i) => v === correctArr[i]);
+        }
+      }
+    } else {
+      isCorrect = null;
+    }
+
+    // Save user's answer
+    setUserAnswers((prev) => ({ ...prev, [current.id]: { answer: answerVal, isCorrect } }));
+
+    // For strict questions, only allow progression when answer is correct (if evaluation is available)
+    if (current.is_strict) {
+      if (isCorrect === false) {
+        setLastWasCorrect(false);
+        setSubmitted(true);
+        return; // allow retry
+      }
+      // if correctness unknown (null) or true, allow proceed but set lastWasCorrect accordingly
+      setLastWasCorrect(isCorrect === null ? true : isCorrect);
+      setSubmitted(true);
+      return;
+    }
+
+    // Non-strict: accept any answer for progression, but record correctness if available
+    setLastWasCorrect(true);
+    setSubmitted(true);
+  };
+
+  const handleNext = () => {
+    // mark current as passed (answered)
+    setPassed((p) => p + 1);
+
+    const next = index + 1;
+    if (next >= questions.length) {
+      // finished -> show results summary instead of immediately resetting
+      setShowResults(true);
+      setPlaying(false);
+      return;
+    }
+    setIndex(next);
+    setSubmitted(false);
+    setLastWasCorrect(null);
+    setInputValue('');
+    setSelectedOption(null);
+    setSelectedOptions({});
+  };
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-4xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
       <header className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
-          Play Mode
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">Play Mode</p>
         <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
-          {hasSelection ? 'Get ready!' : 'No themes selected'}
+          {selected.length === 0 ? 'No themes selected' : playing ? 'Playing' : 'Get ready!'}
         </h1>
         <p className="max-w-2xl text-lg text-light/70">
-          {hasSelection
-            ? 'You can now start the interactive session with the selected themes.'
-            : 'Head back and choose at least one theme to unlock play mode.'}
+          {selected.length === 0
+            ? 'Head back and choose at least one theme to unlock play mode.'
+            : playing
+            ? 'Answer questions and progress through the session.'
+            : 'Choose how many questions and start the session.'}
         </p>
       </header>
 
-      {hasSelection ? (
-        <section className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm">
-          {themeStore.selectedThemes.map((theme) => (
-            <article key={theme.id} className="border-b border-light/10 pb-6 last:border-none last:pb-0">
-              <div className="mb-2 flex items-center gap-3">
-                <span className="rounded-full border border-light/20 bg-light/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-light/60">
-                  {theme.difficulty}
-                </span>
-                <span className="text-xs text-light/50">
-                  {theme.questions} questions
-                </span>
-              </div>
-              <h2 className="mb-2 text-xl font-bold text-light">{theme.title}</h2>
-              <p className="text-sm leading-relaxed text-light/70">{theme.description}</p>
-            </article>
-          ))}
-          <div className="mt-6 rounded-lg border border-light/10 bg-light/5 p-4">
-            <p className="text-sm text-light/60">
-              This is a placeholder view. Hook it to the gameplay experience whenever you&apos;re ready.
-            </p>
-          </div>
+      {selected.length === 0 ? (
+        <section className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
+          <p className="text-sm font-medium text-light/50">Nothing to load yet — add themes first.</p>
         </section>
       ) : (
-        <section className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
-          <p className="text-sm font-medium text-light/50">
-            Nothing to load yet — add themes first.
-          </p>
+        <section className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm">
+          {!playing ? (
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-light">Selected Themes</label>
+                <ul className="mt-2 space-y-2 text-sm text-light/70">
+                  {selected.map((t) => (
+                    <li key={t.id} className="flex items-center justify-between rounded-md bg-dark/30 px-3 py-2">
+                      <div>
+                        <div className="font-medium text-light">{t.title}</div>
+                        <div className="text-xs text-light/50">{t.questions} questions • {t.difficulty}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-light">Questions per session</label>
+                <div className="mt-6 flex gap-3">
+                  <input
+                    type="number"
+                    min={1}
+                    max={totalAvailable}
+                    value={count}
+                    onChange={(e) => setCount(Number(e.target.value))}
+                    className="w-32 rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light"
+                  />
+                  <div className="text-sm text-light/50">{count}/{totalAvailable}</div>
+                </div>
+                <p className="mt-2 text-xs text-light/50">Total available questions: {totalAvailable}{loading ? ' (loading...)' : ''}</p>
+
+                <div className="mt-4 flex gap-3">
+                  <button
+                    onClick={startGame}
+                    disabled={totalAvailable === 0}
+                    className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark disabled:opacity-50"
+                  >
+                    Start
+                  </button>
+                  <button
+                    onClick={() => themeStore.resetSelection()}
+                    className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : showResults ? (
+            <div className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-6">
+              <h2 className="text-2xl font-bold text-light">Results</h2>
+              <p className="text-sm text-light/60">You answered {Object.values(userAnswers).filter(a => a.isCorrect === true).length} correct out of {questions.length}</p>
+              <div className="mt-4 space-y-3">
+                {questions.map((q, i) => {
+                  const ua = userAnswers[q.id];
+                  return (
+                    <div key={q.id} className="rounded-md border border-light/10 bg-dark/30 p-3">
+                      <div className="font-medium text-light">{i + 1}. {q.question_text}</div>
+                      <div className="text-xs text-light/50 mt-1">Your answer: {Array.isArray(ua?.answer) ? ua?.answer.join(', ') : ua?.answer ?? '—'}</div>
+                      {q.answer && (
+                        <div className="text-xs text-light/50 mt-1">Correct answer: {q.answer}</div>
+                      )}
+                      <div className={`mt-2 text-sm ${ua?.isCorrect === true ? 'text-green-400' : ua?.isCorrect === false ? 'text-red-400' : 'text-light/60'}`}>
+                        {ua?.isCorrect === true ? 'Correct' : ua?.isCorrect === false ? 'Incorrect' : 'Recorded'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-6 flex gap-3">
+                <button onClick={() => { setShowResults(false); startGame(); }} className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark">Play Again</button>
+                <button onClick={resetGame} className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light">Close</button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-light/50">Question {index + 1} / {questions.length}</div>
+                  <div className="text-xs text-light/50">Passed: {passed}/{questions.length}</div>
+                  <div className="text-lg font-semibold text-light">{current?.question_text}</div>
+                </div>
+                <div>
+                  <button onClick={resetGame} className="rounded-lg border border-light/20 bg-transparent px-4 py-2 text-sm text-light">End</button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {current?.question_type === 'input' && (
+                  <div>
+                    <input
+                      type="text"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light"
+                      placeholder="Type your answer here..."
+                      disabled={canProceed}
+                    />
+                  </div>
+                )}
+
+                {current?.question_type === 'radiobutton' && (
+                  <div className="space-y-2">
+                    {current.options?.map((opt, i) => (
+                      <label key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
+                        <input
+                          type="radio"
+                          name="rb"
+                          checked={selectedOption === opt}
+                          onChange={() => setSelectedOption(opt)}
+                          className="h-4 w-4"
+                          disabled={canProceed}
+                        />
+                        <span className="text-light">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {current?.question_type === 'select' && (
+                  <div className="space-y-2">
+                    {current.options?.map((opt, i) => (
+                      <label key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
+                        <input
+                          type="checkbox"
+                          checked={!!selectedOptions[i]}
+                          onChange={() => handleToggleCheckbox(i)}
+                          className="h-4 w-4"
+                          disabled={canProceed}
+                        />
+                        <span className="text-light">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={handleSubmitAnswer}
+                    disabled={canProceed}
+                    className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark disabled:opacity-50"
+                  >
+                    Submit
+                  </button>
+
+                  <button
+                    onClick={handleNext}
+                    disabled={!canProceed}
+                    className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+
+                {submitted && (
+                  <div className="mt-4 rounded-md border border-light/10 bg-dark/40 p-3">
+                    {current?.is_strict ? (
+                      lastWasCorrect === true ? (
+                        <div className="text-sm text-green-400">Correct — you may proceed.</div>
+                      ) : (
+                        <div className="text-sm text-red-400">Incorrect — try again.</div>
+                      )
+                    ) : (
+                      <div className="text-sm text-light/60">Answer recorded.</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
-      <div className="mt-auto">
+      <div className="mt-auto flex items-center justify-between">
         <Link
           href="/user"
           className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"

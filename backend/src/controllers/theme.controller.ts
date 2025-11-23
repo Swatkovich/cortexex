@@ -69,6 +69,7 @@ export const getTheme = async (req: AuthRequest, res: Response) => {
             is_strict: q.is_strict,
             options: safeParseJson(q.options),
             answer: q.answer || null,
+            correct_options: safeParseJson(q.correct_options),
         }))
     });
 };
@@ -192,7 +193,7 @@ export const deleteTheme = async (req: AuthRequest, res: Response) => {
 export const createQuestion = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { themeId } = req.params;
-    const { question_text, question_type, is_strict, options, answer }: CreateQuestionDto = req.body;
+    const { question_text, question_type, is_strict, options, answer, correct_options }: CreateQuestionDto = req.body;
 
     if (!question_text || !question_type) {
         return res.status(400).json({ message: "Question text and type are required" });
@@ -217,6 +218,21 @@ export const createQuestion = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: "Options are required for select and radiobutton types" });
     }
 
+    // If correct_options provided, validate they belong to options
+    if ((question_type === 'select' || question_type === 'radiobutton') && correct_options !== undefined && correct_options !== null) {
+        if (!Array.isArray(correct_options) || correct_options.length === 0) {
+            return res.status(400).json({ message: "correct_options must be a non-empty array for select/radiobutton when provided" });
+        }
+        const invalid = correct_options.some((c: string) => !(options || []).includes(c));
+        if (invalid) {
+            return res.status(400).json({ message: "All correct_options must be present in the options array" });
+        }
+        // For radiobutton enforce single correct option
+        if (question_type === 'radiobutton' && correct_options.length > 1) {
+            return res.status(400).json({ message: "radiobutton type can have only one correct option" });
+        }
+    }
+
     // Validate answer for input type
     if (question_type === 'input' && !answer) {
         return res.status(400).json({ message: "Answer is required for input type questions" });
@@ -225,17 +241,19 @@ export const createQuestion = async (req: AuthRequest, res: Response) => {
     const id = randomUUID();
     const optionsJson = (question_type === 'select' || question_type === 'radiobutton') ? JSON.stringify(options) : null;
     const answerValue = question_type === 'input' ? answer : null;
+    const correctOptionsJson = (question_type === 'select' || question_type === 'radiobutton') && correct_options ? JSON.stringify(correct_options) : null;
 
     const result = await pool.query(
-        `INSERT INTO questions (id, theme_id, question_text, question_type, is_strict, options, answer)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO questions (id, theme_id, question_text, question_type, is_strict, options, answer, correct_options)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [id, themeId, question_text, question_type, is_strict || false, optionsJson, answerValue]
+        [id, themeId, question_text, question_type, is_strict || false, optionsJson, answerValue, correctOptionsJson]
     );
 
     return res.status(201).json({
         ...result.rows[0],
-        options: safeParseJson(result.rows[0].options)
+        options: safeParseJson(result.rows[0].options),
+        correct_options: safeParseJson(result.rows[0].correct_options)
     });
 };
 
@@ -243,7 +261,7 @@ export const createQuestion = async (req: AuthRequest, res: Response) => {
 export const updateQuestion = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { themeId, questionId } = req.params;
-    const { question_text, question_type, is_strict, options, answer }: UpdateQuestionDto = req.body;
+    const { question_text, question_type, is_strict, options, answer, correct_options }: UpdateQuestionDto = req.body;
 
     // Check if theme exists and belongs to user
     const themeResult = await pool.query(
@@ -293,6 +311,30 @@ export const updateQuestion = async (req: AuthRequest, res: Response) => {
         updates.push(`options = $${paramCount++}`);
         values.push((finalType === 'select' || finalType === 'radiobutton') ? JSON.stringify(options) : null);
     }
+    if (correct_options !== undefined) {
+        const finalType = question_type || questionResult.rows[0].question_type;
+        if (finalType === 'select' || finalType === 'radiobutton') {
+            if (correct_options !== null && (!Array.isArray(correct_options) || correct_options.length === 0)) {
+                return res.status(400).json({ message: "correct_options must be a non-empty array or null" });
+            }
+            // If options were not provided in the same request, use existing options to validate
+            const optionsToCheck = options || safeParseJson(questionResult.rows[0].options) || [];
+            if (correct_options !== null) {
+                const invalid = correct_options.some((c: string) => !optionsToCheck.includes(c));
+                if (invalid) {
+                    return res.status(400).json({ message: "All correct_options must be present in the options array" });
+                }
+                if (finalType === 'radiobutton' && correct_options.length > 1) {
+                    return res.status(400).json({ message: "radiobutton type can have only one correct option" });
+                }
+            }
+            updates.push(`correct_options = $${paramCount++}`);
+            values.push(correct_options !== null ? JSON.stringify(correct_options) : null);
+        } else {
+            updates.push(`correct_options = $${paramCount++}`);
+            values.push(null);
+        }
+    }
     if (answer !== undefined) {
         const finalType = question_type || questionResult.rows[0].question_type;
         if (finalType === 'input' && !answer) {
@@ -318,7 +360,8 @@ export const updateQuestion = async (req: AuthRequest, res: Response) => {
 
     return res.status(200).json({
         ...result.rows[0],
-        options: safeParseJson(result.rows[0].options)
+        options: safeParseJson(result.rows[0].options),
+        correct_options: safeParseJson(result.rows[0].correct_options)
     });
 };
 

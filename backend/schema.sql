@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS questions (
     question_type VARCHAR(20) NOT NULL CHECK (question_type IN ('input', 'select', 'radiobutton')),
     is_strict BOOLEAN DEFAULT false,
     options JSONB, -- For select and radiobutton types, stores array of options
-    answer TEXT -- For input type questions, stores the correct answer
+    answer TEXT, -- For input type questions, stores the correct answer
+    correct_options JSONB -- For select/radiobutton: array of correct option values (nullable)
 );
 
 -- Indexes for better query performance

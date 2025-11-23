@@ -15,6 +15,7 @@ export interface Question {
     is_strict: boolean;
     options: string[] | null; // Array of options for select/radiobutton types
     answer: string | null; // Correct answer for input type questions
+    correct_options?: string[] | null; // For select/radiobutton: the correct option(s)
 }
 
 export interface CreateThemeDto {
@@ -35,6 +36,7 @@ export interface CreateQuestionDto {
     is_strict: boolean;
     options?: string[]; // Required for select/radiobutton, not needed for input
     answer?: string; // Required for input type, not needed for select/radiobutton
+    correct_options?: string[]; // Optional correct option(s) for select/radiobutton
 }
 
 export interface UpdateQuestionDto {
@@ -43,5 +45,6 @@ export interface UpdateQuestionDto {
     is_strict?: boolean;
     options?: string[];
     answer?: string;
+    correct_options?: string[] | null;
 }
 

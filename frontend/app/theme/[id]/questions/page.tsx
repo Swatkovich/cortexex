@@ -22,6 +22,8 @@ export default function QuestionsPage() {
   const [questionType, setQuestionType] = useState<'input' | 'select' | 'radiobutton'>('input');
   const [isStrict, setIsStrict] = useState(false);
   const [options, setOptions] = useState<string[]>(['']);
+  const [correctIndices, setCorrectIndices] = useState<Record<number, boolean>>({});
+  const [correctRadioIndex, setCorrectRadioIndex] = useState<number | null>(null);
   const [answer, setAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,6 +51,18 @@ export default function QuestionsPage() {
 
   const handleRemoveOption = (index: number) => {
     setOptions(options.filter((_, i) => i !== index));
+    // shift correct indices mapping
+    const newCorrect: Record<number, boolean> = {};
+    Object.keys(correctIndices).forEach(k => {
+      const idx = Number(k);
+      if (idx < index) newCorrect[idx] = correctIndices[idx];
+      else if (idx > index) newCorrect[idx - 1] = correctIndices[idx];
+    });
+    setCorrectIndices(newCorrect);
+    if (correctRadioIndex !== null) {
+      if (correctRadioIndex === index) setCorrectRadioIndex(null);
+      else if (correctRadioIndex > index) setCorrectRadioIndex(correctRadioIndex - 1);
+    }
   };
 
   const handleOptionChange = (index: number, value: string) => {
@@ -57,11 +71,17 @@ export default function QuestionsPage() {
     setOptions(newOptions);
   };
 
+  const toggleCorrectIndex = (index: number) => {
+    setCorrectIndices(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
   const resetForm = () => {
     setQuestionText('');
     setQuestionType('input');
     setIsStrict(false);
     setOptions(['']);
+    setCorrectIndices({});
+    setCorrectRadioIndex(null);
     setAnswer('');
     setEditingQuestion(null);
     setShowAddForm(false);
@@ -73,6 +93,22 @@ export default function QuestionsPage() {
     setQuestionType(question.question_type);
     setIsStrict(question.is_strict);
     setOptions(question.options && question.options.length > 0 ? question.options : ['']);
+    // load correct options
+    if (question.question_type === 'radiobutton') {
+      if (question.correct_options && question.correct_options.length > 0) {
+        const idx = question.options?.findIndex(o => o === question.correct_options![0]) ?? -1;
+        setCorrectRadioIndex(idx >= 0 ? idx : null);
+      } else {
+        setCorrectRadioIndex(null);
+      }
+    } else {
+      const ci: Record<number, boolean> = {};
+      (question.correct_options || []).forEach(co => {
+        const idx = question.options?.findIndex(o => o === co) ?? -1;
+        if (idx >= 0) ci[idx] = true;
+      });
+      setCorrectIndices(ci);
+    }
     setAnswer(question.answer || '');
     setShowAddForm(true);
   };
@@ -91,6 +127,11 @@ export default function QuestionsPage() {
           ? options.filter(opt => opt.trim() !== '')
           : undefined,
         answer: questionType === 'input' ? answer.trim() : undefined,
+        correct_options: questionType === 'select'
+          ? Object.keys(correctIndices).filter(k => correctIndices[Number(k)]).map(k => options[Number(k)])
+          : questionType === 'radiobutton' && correctRadioIndex !== null
+          ? [options[correctRadioIndex]]
+          : undefined,
       };
 
       if (editingQuestion) {
@@ -223,7 +264,7 @@ export default function QuestionsPage() {
                 className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
               >
                 <option value="input">Text Input</option>
-                <option value="select">Dropdown Select</option>
+                <option value="select">Select (multiple)</option>
                 <option value="radiobutton">Radio Buttons</option>
               </select>
             </div>
@@ -269,10 +310,27 @@ export default function QuestionsPage() {
           {(questionType === 'select' || questionType === 'radiobutton') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-light">
-                Options {questionType === 'select' ? '(for dropdown)' : '(for radio buttons)'}
+                Options {questionType === 'select' ? '(for select / multi-select)' : '(for radio buttons)'}
               </label>
               {options.map((option, index) => (
-                <div key={index} className="flex gap-2">
+                <div key={index} className="flex items-center gap-3">
+                  {questionType === 'radiobutton' ? (
+                    <input
+                      type="radio"
+                      name="correctRadio"
+                      checked={correctRadioIndex === index}
+                      onChange={() => setCorrectRadioIndex(index)}
+                      className="h-4 w-4"
+                    />
+                  ) : questionType === 'select' ? (
+                    <input
+                      type="checkbox"
+                      checked={!!correctIndices[index]}
+                      onChange={() => toggleCorrectIndex(index)}
+                      className="h-4 w-4"
+                    />
+                  ) : null}
+
                   <input
                     type="text"
                     value={option}
@@ -281,6 +339,7 @@ export default function QuestionsPage() {
                     className="flex-1 rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
                     placeholder={`Option ${index + 1}`}
                   />
+
                   {options.length > 1 && (
                     <button
                       type="button"

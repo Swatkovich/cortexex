@@ -31,6 +31,7 @@ export interface Question {
     is_strict: boolean;
     options: string[] | null;
     answer: string | null;
+    correct_options?: string[] | null;
 }
 
 export interface CreateQuestionDto {
@@ -39,6 +40,7 @@ export interface CreateQuestionDto {
     is_strict: boolean;
     options?: string[];
     answer?: string;
+    correct_options?: string[];
 }
 
 export interface UpdateQuestionDto {
@@ -47,5 +49,6 @@ export interface UpdateQuestionDto {
     is_strict?: boolean;
     options?: string[];
     answer?: string;
+    correct_options?: string[] | null;
 }
   
