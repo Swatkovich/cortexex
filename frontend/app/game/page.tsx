@@ -26,6 +26,7 @@ const PlayPage = observer(() => {
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [count, setCount] = useState<number>(5);
   const [loading, setLoading] = useState(false);
+  const [includeNonStrict, setIncludeNonStrict] = useState<boolean>(true);
 
   const [playing, setPlaying] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -94,6 +95,7 @@ const PlayPage = observer(() => {
             setUserAnswers(s.userAnswers || {});
             setPassed(typeof s.passed === 'number' ? s.passed : 0);
             setLastWasCorrect(typeof s.lastWasCorrect === 'boolean' ? s.lastWasCorrect : null);
+            setIncludeNonStrict(typeof s.includeNonStrict === 'boolean' ? s.includeNonStrict : true);
             // restore selected theme ids into store so selectedThemes is populated
             if (Array.isArray(s.selectedThemeIds) && s.selectedThemeIds.length > 0) {
               try {
@@ -128,17 +130,21 @@ const PlayPage = observer(() => {
         showResults,
         lastWasCorrect,
         selectedThemeIds: (themeStore as any).selectedThemeIds || [],
+        includeNonStrict,
       };
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (err) {
       // ignore storage errors
     }
-  }, [playing, questions, index, submitted, inputValue, selectedOption, selectedOptions, userAnswers, passed, showResults, lastWasCorrect]);
+  }, [playing, questions, index, submitted, inputValue, selectedOption, selectedOptions, userAnswers, passed, showResults, lastWasCorrect, includeNonStrict]);
 
   const totalAvailable = availableQuestions.length;
+  const strictAvailable = availableQuestions.filter((q) => q.is_strict).length;
+  const effectiveAvailable = includeNonStrict ? totalAvailable : strictAvailable;
 
   const startGame = () => {
-    const pool = shuffle(availableQuestions).slice(0, Math.min(count, availableQuestions.length));
+    const source = includeNonStrict ? availableQuestions : availableQuestions.filter((q) => q.is_strict);
+    const pool = shuffle(source).slice(0, Math.min(count, source.length));
     setQuestions(pool);
     setIndex(0);
     setPlaying(true);
@@ -330,17 +336,36 @@ const PlayPage = observer(() => {
                   <TextInput
                     type="number"
                     min={1}
-                    max={totalAvailable}
+                    max={effectiveAvailable}
                     value={count}
                     onChange={(e) => setCount(Number(e.target.value))}
                     className="w-32"
                   />
-                  <div className="text-sm text-light/50">{count}/{totalAvailable}</div>
+                  <div className="text-sm text-light/50">{count}/{effectiveAvailable}</div>
                 </div>
-                <p className="mt-2 text-xs text-light/50">Total available questions: {totalAvailable}{loading ? ' (loading...)' : ''}</p>
+                <p className="mt-2 text-xs text-light/50">Total available questions: {totalAvailable} ({strictAvailable} strict){loading ? ' (loading...)' : ''}</p>
+
+                <div className="mt-4">
+                  <label className="inline-flex items-center gap-2 text-sm text-light/80">
+                    <input
+                      type="checkbox"
+                      checked={includeNonStrict}
+                      onChange={() => {
+                        const next = !includeNonStrict;
+                        setIncludeNonStrict(next);
+                        if (!next) {
+                          const strictCount = availableQuestions.filter((q) => q.is_strict).length || 1;
+                          setCount((c) => Math.min(c, strictCount));
+                        }
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <span className="text-light">Include non-strict questions</span>
+                  </label>
+                </div>
 
                 <div className="mt-4 flex gap-3">
-                  <Button onClick={startGame} disabled={totalAvailable === 0} className="px-6 py-3 text-base">Start</Button>
+                  <Button onClick={startGame} disabled={effectiveAvailable === 0} className="px-6 py-3 text-base">Start</Button>
                 </div>
               </div>
             </div>
