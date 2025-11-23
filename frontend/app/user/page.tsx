@@ -95,9 +95,17 @@ const UserPage = observer(() => {
             >
               <div className="flex flex-col gap-5">
                 <div className="flex-1 space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-light/60">
-                    {theme.difficulty}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    {theme.difficulty === 'Easy' && (
+                      <span className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400">Easy</span>
+                    )}
+                    {theme.difficulty === 'Medium' && (
+                      <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">Medium</span>
+                    )}
+                    {theme.difficulty === 'Hard' && (
+                      <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">Hard</span>
+                    )}
+                  </div>
                   <h2 className="text-xl font-bold text-light">
                     {theme.title}
                   </h2>

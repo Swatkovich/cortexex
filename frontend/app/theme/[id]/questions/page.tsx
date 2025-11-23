@@ -16,7 +16,7 @@ export default function QuestionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
   const [questionText, setQuestionText] = useState('');
@@ -89,34 +89,156 @@ export default function QuestionsPage() {
     setCorrectIndices({});
     setCorrectRadioIndex(null);
     setAnswer('');
-    setEditingQuestion(null);
     setShowAddForm(false);
   };
 
-  const handleEdit = (question: Question) => {
-    setEditingQuestion(question);
-    setQuestionText(question.question_text);
-    setQuestionType(question.question_type);
-    setIsStrict(question.is_strict);
-    setOptions(question.options && question.options.length > 0 ? question.options : ['']);
-    // load correct options
-    if (question.question_type === 'radiobutton') {
-      if (question.correct_options && question.correct_options.length > 0) {
-        const idx = question.options?.findIndex(o => o === question.correct_options![0]) ?? -1;
-        setCorrectRadioIndex(idx >= 0 ? idx : null);
-      } else {
-        setCorrectRadioIndex(null);
-      }
-    } else {
+  // Inline edit form component for a single question
+  const InlineEditForm = ({ q, onDone }: { q: Question; onDone: () => void }) => {
+    const [qText, setQText] = useState(q.question_text);
+    const [qType, setQType] = useState<'input' | 'select' | 'radiobutton'>(q.question_type);
+    const [qIsStrict, setQIsStrict] = useState(q.is_strict);
+    const [qOptions, setQOptions] = useState<string[]>(q.options && q.options.length > 0 ? q.options : ['']);
+    const [qCorrectIndices, setQCorrectIndices] = useState<Record<number, boolean>>(() => {
       const ci: Record<number, boolean> = {};
-      (question.correct_options || []).forEach(co => {
-        const idx = question.options?.findIndex(o => o === co) ?? -1;
+      (q.correct_options || []).forEach(co => {
+        const idx = q.options?.findIndex(o => o === co) ?? -1;
         if (idx >= 0) ci[idx] = true;
       });
-      setCorrectIndices(ci);
-    }
-    setAnswer(question.answer || '');
-    setShowAddForm(true);
+      return ci;
+    });
+    const [qCorrectRadioIndex, setQCorrectRadioIndex] = useState<number | null>(() => {
+      if (q.question_type === 'radiobutton' && q.correct_options && q.correct_options.length > 0) {
+        const idx = q.options?.findIndex(o => o === q.correct_options![0]) ?? -1;
+        return idx >= 0 ? idx : null;
+      }
+      return null;
+    });
+    const [qAnswer, setQAnswer] = useState(q.answer || '');
+    const [submittingLocal, setSubmittingLocal] = useState(false);
+    const [localError, setLocalError] = useState<string | null>(null);
+
+    const handleAddOptionLocal = () => setQOptions(prev => [...prev, '']);
+    const handleRemoveOptionLocal = (index: number) => {
+      setQOptions(prev => prev.filter((_, i) => i !== index));
+      const newCorrect: Record<number, boolean> = {};
+      Object.keys(qCorrectIndices).forEach(k => {
+        const idx = Number(k);
+        if (idx < index) newCorrect[idx] = qCorrectIndices[idx];
+        else if (idx > index) newCorrect[idx - 1] = qCorrectIndices[idx];
+      });
+      setQCorrectIndices(newCorrect);
+      if (qCorrectRadioIndex !== null) {
+        if (qCorrectRadioIndex === index) setQCorrectRadioIndex(null);
+        else if (qCorrectRadioIndex > index) setQCorrectRadioIndex(qCorrectRadioIndex - 1);
+      }
+    };
+
+    const handleOptionChangeLocal = (index: number, value: string) => {
+      const newOptions = [...qOptions];
+      newOptions[index] = value;
+      setQOptions(newOptions);
+    };
+
+    const toggleCorrectIndexLocal = (index: number) => {
+      setQCorrectIndices(prev => ({ ...prev, [index]: !prev[index] }));
+    };
+
+    const handleSubmitLocal = async (e?: FormEvent) => {
+      e?.preventDefault();
+      setSubmittingLocal(true);
+      setLocalError(null);
+      try {
+        const selectedCorrectOptions = qType === 'select'
+          ? Object.keys(qCorrectIndices).filter(k => qCorrectIndices[Number(k)]).map(k => qOptions[Number(k)])
+          : qType === 'radiobutton' && qCorrectRadioIndex !== null
+          ? [qOptions[qCorrectRadioIndex]]
+          : undefined;
+
+        if (qType === 'select') {
+          const nonEmptySelected = Array.isArray(selectedCorrectOptions) ? selectedCorrectOptions.filter(s => s && s.trim() !== '') : [];
+          if (nonEmptySelected.length === 0) {
+            setLocalError('Please select at least one correct option for Select questions.');
+            setSubmittingLocal(false);
+            return;
+          }
+        }
+
+        if (qType === 'radiobutton') {
+          if (!selectedCorrectOptions || selectedCorrectOptions.length === 0 || !selectedCorrectOptions[0] || selectedCorrectOptions[0].trim() === '') {
+            setLocalError('Please choose the correct option for Radio Buttons.');
+            setSubmittingLocal(false);
+            return;
+          }
+        }
+
+        const questionData: CreateQuestionDto = {
+          question_text: qText.trim(),
+          question_type: qType,
+          is_strict: qIsStrict,
+          options: (qType === 'select' || qType === 'radiobutton')
+            ? qOptions.filter(opt => opt.trim() !== '')
+            : undefined,
+          answer: qType === 'input' ? qAnswer.trim() : undefined,
+          correct_options: Array.isArray(selectedCorrectOptions) && selectedCorrectOptions.length > 0 ? selectedCorrectOptions : undefined,
+        };
+
+        await api.updateQuestion(themeId, q.id, questionData);
+        await themeStore.fetchThemes();
+        onDone();
+        setEditingId(null);
+      } catch (err) {
+        setLocalError(err instanceof Error ? err.message : 'Failed to update question');
+      } finally {
+        setSubmittingLocal(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmitLocal} className="space-y-4">
+        <textarea value={qText} onChange={(e) => setQText(e.target.value)} rows={2} className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <select value={qType} onChange={(e) => setQType(e.target.value as any)} className="rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light">
+            <option value="input">Text Input</option>
+            <option value="select">Select (multiple)</option>
+            <option value="radiobutton">Radio Buttons</option>
+          </select>
+          <div className="flex items-center gap-3">
+            <input type="checkbox" checked={qIsStrict} onChange={(e) => setQIsStrict(e.target.checked)} className="h-4 w-4" />
+            <span className="text-sm text-light">Strict matching</span>
+          </div>
+        </div>
+
+        {qType === 'input' && (
+          <input type="text" value={qAnswer} onChange={(e) => setQAnswer(e.target.value)} className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light" />
+        )}
+
+        {(qType === 'select' || qType === 'radiobutton') && (
+          <div className="space-y-2">
+            {qOptions.map((opt, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                {qType === 'radiobutton' ? (
+                  <input type="radio" name={`rb-${q.id}`} checked={qCorrectRadioIndex === idx} onChange={() => setQCorrectRadioIndex(idx)} className="h-4 w-4" />
+                ) : (
+                  <input type="checkbox" checked={!!qCorrectIndices[idx]} onChange={() => toggleCorrectIndexLocal(idx)} className="h-4 w-4" />
+                )}
+                <input type="text" value={opt} onChange={(e) => handleOptionChangeLocal(idx, e.target.value)} className="flex-1 rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light" />
+                {qOptions.length > 1 && (
+                  <button type="button" onClick={() => handleRemoveOptionLocal(idx)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-400">Remove</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={handleAddOptionLocal} className="rounded-lg border border-light/20 bg-transparent px-3 py-1 text-sm text-light">+ Add Option</button>
+          </div>
+        )}
+
+        {localError && <div className="text-sm text-red-400">{localError}</div>}
+
+        <div className="flex gap-3">
+          <button type="submit" disabled={submittingLocal} className="rounded-xl bg-light px-4 py-2 text-sm font-semibold text-dark">Save</button>
+          <button type="button" onClick={() => { setEditingId(null); }} className="rounded-xl border border-light/20 px-4 py-2 text-sm text-light">Cancel</button>
+        </div>
+      </form>
+    );
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -162,11 +284,8 @@ export default function QuestionsPage() {
         correct_options: Array.isArray(selectedCorrectOptions) && selectedCorrectOptions.length > 0 ? selectedCorrectOptions : undefined,
       };
 
-      if (editingQuestion) {
-        await api.updateQuestion(themeId, editingQuestion.id, questionData);
-      } else {
-        await api.createQuestion(themeId, questionData);
-      }
+      // Top-level form only creates new questions. Editing happens inline per question.
+      await api.createQuestion(themeId, questionData);
 
       // Refresh list of themes (counts) and reload current theme questions
       await themeStore.fetchThemes();
@@ -219,7 +338,7 @@ export default function QuestionsPage() {
       <header className="space-y-3">
         <button
           onClick={() => router.push('/user')}
-          className="text-sm text-light/60 hover:text-light/80"
+          className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-4 py-2 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5"
         >
           ← Back to Themes
         </button>
@@ -230,7 +349,20 @@ export default function QuestionsPage() {
           <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
             {theme.title}
           </h1>
-          <p className="mt-2 text-lg text-light/70">{theme.description}</p>
+          <div className="mt-2 flex items-center gap-4">
+            <p className="text-lg text-light/70">{theme.description}</p>
+            <div>
+              {theme.difficulty === 'Easy' && (
+                <span className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400">Easy</span>
+              )}
+              {theme.difficulty === 'Medium' && (
+                <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">Medium</span>
+              )}
+              {theme.difficulty === 'Hard' && (
+                <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">Hard</span>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 
@@ -411,7 +543,7 @@ export default function QuestionsPage() {
               }
               className="flex-1 rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Saving...' : editingQuestion ? 'Update Question' : 'Add Question'}
+              {submitting ? 'Saving...' : 'Add Question'}
             </button>
             <button
               type="button"
@@ -437,53 +569,57 @@ export default function QuestionsPage() {
               key={question.id}
               className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6 backdrop-blur-sm"
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="rounded-full border border-light/20 bg-light/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-light/60">
-                      {question.question_type}
-                    </span>
-                    {question.is_strict && (
-                      <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">
-                        Strict
+              {editingId === question.id ? (
+                <InlineEditForm q={question} onDone={async () => { await loadData(); setEditingId(null); }} />
+              ) : (
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-full border border-light/20 bg-light/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-light/60">
+                        {question.question_type}
                       </span>
+                      {question.is_strict && (
+                        <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">
+                          Strict
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-base font-medium text-light">{question.question_text}</p>
+                    {question.question_type === 'input' && question.answer && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-light/50">Correct Answer:</p>
+                        <p className="text-sm text-light/70 font-mono bg-dark/50 px-3 py-2 rounded border border-light/10">
+                          {question.answer}
+                        </p>
+                      </div>
+                    )}
+                    {question.options && question.options.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-light/50">Options:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-light/70">
+                          {question.options.map((option, idx) => (
+                            <li key={idx}>{option}</li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
-                  <p className="text-base font-medium text-light">{question.question_text}</p>
-                  {question.question_type === 'input' && question.answer && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-light/50">Correct Answer:</p>
-                      <p className="text-sm text-light/70 font-mono bg-dark/50 px-3 py-2 rounded border border-light/10">
-                        {question.answer}
-                      </p>
-                    </div>
-                  )}
-                  {question.options && question.options.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-light/50">Options:</p>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-light/70">
-                        {question.options.map((option, idx) => (
-                          <li key={idx}>{option}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setEditingId(question.id); setShowAddForm(false); }}
+                      className="rounded-lg border border-light/20 bg-transparent px-4 py-2 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(question.id)}
+                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/20"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(question)}
-                    className="rounded-lg border border-light/20 bg-transparent px-4 py-2 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(question.id)}
-                    className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/20"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+              )}
             </article>
           ))
         )}

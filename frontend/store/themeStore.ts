@@ -119,9 +119,9 @@ class ThemeStore {
     return this.selectedThemeIds.length > 0;
   }
 
-  resetSelection() {
-    this.selectedThemeIds = [];
-  }
+  // resetSelection() {
+  //   this.selectedThemeIds = [];
+  // }
 }
 
 export const themeStore = new ThemeStore();

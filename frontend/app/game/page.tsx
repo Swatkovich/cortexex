@@ -81,6 +81,14 @@ const PlayPage = observer(() => {
     setPassed(0);
   };
 
+  const DifficultyTag = ({ d }: { d: string }) => {
+    const base = 'rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider';
+    if (d === 'Easy') return <span className={`${base} border border-green-500/20 bg-green-500/10 text-green-400`}>Easy</span>;
+    if (d === 'Medium') return <span className={`${base} border border-yellow-500/20 bg-yellow-500/10 text-yellow-400`}>Medium</span>;
+    if (d === 'Hard') return <span className={`${base} border border-red-500/20 bg-red-500/10 text-red-400`}>Hard</span>;
+    return <span className={`${base} border border-light/20 bg-light/5 text-light/60`}>{d}</span>;
+  };
+
   const resetGame = () => {
     setPlaying(false);
     setQuestions([]);
@@ -200,11 +208,14 @@ const PlayPage = observer(() => {
                 <ul className="mt-2 space-y-2 text-sm text-light/70">
                   {selected.map((t) => (
                     <li key={t.id} className="flex items-center justify-between rounded-md bg-dark/30 px-3 py-2">
-                      <div>
-                        <div className="font-medium text-light">{t.title}</div>
-                        <div className="text-xs text-light/50">{t.questions} questions • {t.difficulty}</div>
-                      </div>
-                    </li>
+                          <div>
+                            <div className="font-medium text-light">{t.title}</div>
+                            <div className="mt-1 flex items-center gap-3">
+                              <div className="text-xs text-light/50">{t.questions} questions</div>
+                              <div><DifficultyTag d={t.difficulty} /></div>
+                            </div>
+                          </div>
+                        </li>
                   ))}
                 </ul>
               </div>
@@ -231,12 +242,6 @@ const PlayPage = observer(() => {
                     className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark disabled:opacity-50"
                   >
                     Start
-                  </button>
-                  <button
-                    onClick={() => themeStore.resetSelection()}
-                    className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light"
-                  >
-                    Clear Selection
                   </button>
                 </div>
               </div>
@@ -358,14 +363,6 @@ const PlayPage = observer(() => {
                       <div className="text-sm text-red-400">Incorrect</div>
                     ) : (
                       <div className="text-sm text-light/60">Answer recorded.</div>
-                    )}
-
-                    {/* Show correct answer/options after submission */}
-                    {current?.question_type === 'input' && current.answer && (
-                      <div className="mt-2 text-xs text-light/50">Correct answer: {current.answer}</div>
-                    )}
-                    {(current?.question_type === 'radiobutton' || current?.question_type === 'select') && current?.correct_options && current.correct_options.length > 0 && (
-                      <div className="mt-2 text-xs text-light/50">Correct options: {current.correct_options.join(', ')}</div>
                     )}
                   </div>
                 )}
