@@ -3,6 +3,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import * as api from '@/lib/api';
+import { themeStore } from '@/store/themeStore';
 import { Question, CreateQuestionDto, Theme } from '@/lib/interface';
 
 export default function QuestionsPage() {
@@ -26,6 +27,7 @@ export default function QuestionsPage() {
   const [correctRadioIndex, setCorrectRadioIndex] = useState<number | null>(null);
   const [answer, setAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -47,6 +49,7 @@ export default function QuestionsPage() {
 
   const handleAddOption = () => {
     setOptions([...options, '']);
+    setFormError(null);
   };
 
   const handleRemoveOption = (index: number) => {
@@ -63,16 +66,19 @@ export default function QuestionsPage() {
       if (correctRadioIndex === index) setCorrectRadioIndex(null);
       else if (correctRadioIndex > index) setCorrectRadioIndex(correctRadioIndex - 1);
     }
+    setFormError(null);
   };
 
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
     newOptions[index] = value;
     setOptions(newOptions);
+    setFormError(null);
   };
 
   const toggleCorrectIndex = (index: number) => {
     setCorrectIndices(prev => ({ ...prev, [index]: !prev[index] }));
+    setFormError(null);
   };
 
   const resetForm = () => {
@@ -117,8 +123,34 @@ export default function QuestionsPage() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setFormError(null);
 
     try {
+      const selectedCorrectOptions = questionType === 'select'
+        ? Object.keys(correctIndices).filter(k => correctIndices[Number(k)]).map(k => options[Number(k)])
+        : questionType === 'radiobutton' && correctRadioIndex !== null
+        ? [options[correctRadioIndex]]
+        : undefined;
+
+      // Client-side validation: ensure selects have at least one correct option,
+      // and radiobutton has exactly one selected correct option.
+      if (questionType === 'select') {
+        const nonEmptySelected = Array.isArray(selectedCorrectOptions) ? selectedCorrectOptions.filter(s => s && s.trim() !== '') : [];
+        if (nonEmptySelected.length === 0) {
+          setFormError('Please select at least one correct option for Select questions.');
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      if (questionType === 'radiobutton') {
+        if (!selectedCorrectOptions || selectedCorrectOptions.length === 0 || !selectedCorrectOptions[0] || selectedCorrectOptions[0].trim() === '') {
+          setFormError('Please choose the correct option for Radio Buttons.');
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const questionData: CreateQuestionDto = {
         question_text: questionText.trim(),
         question_type: questionType,
@@ -127,11 +159,7 @@ export default function QuestionsPage() {
           ? options.filter(opt => opt.trim() !== '')
           : undefined,
         answer: questionType === 'input' ? answer.trim() : undefined,
-        correct_options: questionType === 'select'
-          ? Object.keys(correctIndices).filter(k => correctIndices[Number(k)]).map(k => options[Number(k)])
-          : questionType === 'radiobutton' && correctRadioIndex !== null
-          ? [options[correctRadioIndex]]
-          : undefined,
+        correct_options: Array.isArray(selectedCorrectOptions) && selectedCorrectOptions.length > 0 ? selectedCorrectOptions : undefined,
       };
 
       if (editingQuestion) {
@@ -140,6 +168,8 @@ export default function QuestionsPage() {
         await api.createQuestion(themeId, questionData);
       }
 
+      // Refresh list of themes (counts) and reload current theme questions
+      await themeStore.fetchThemes();
       resetForm();
       await loadData();
     } catch (err) {
@@ -156,6 +186,8 @@ export default function QuestionsPage() {
 
     try {
       await api.deleteQuestion(themeId, questionId);
+      // Refresh theme list counts and reload this theme
+      await themeStore.fetchThemes();
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete question');
@@ -358,6 +390,11 @@ export default function QuestionsPage() {
               >
                 + Add Option
               </button>
+              {formError && (
+                <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
+                  <p className="text-sm text-red-400">{formError}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -368,7 +405,9 @@ export default function QuestionsPage() {
                 submitting || 
                 !questionText.trim() || 
                 (questionType === 'input' && !answer.trim()) ||
-                (questionType !== 'input' && options.filter(opt => opt.trim() !== '').length === 0)
+                (questionType !== 'input' && options.filter(opt => opt.trim() !== '').length === 0) ||
+                (questionType === 'select' && Object.keys(correctIndices).filter(k => correctIndices[Number(k)]).length === 0) ||
+                (questionType === 'radiobutton' && correctRadioIndex === null)
               }
               className="flex-1 rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >

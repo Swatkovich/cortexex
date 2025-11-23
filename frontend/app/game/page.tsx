@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 import { themeStore } from '@/store/themeStore';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import * as api from '@/lib/api';
 import { Question } from '@/lib/interface';
 
@@ -35,6 +36,7 @@ const PlayPage = observer(() => {
 
   const [submitted, setSubmitted] = useState(false);
   const [lastWasCorrect, setLastWasCorrect] = useState<boolean | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     // load questions from selected themes
@@ -95,7 +97,9 @@ const PlayPage = observer(() => {
     setSelectedOptions((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  const canProceed = submitted && (!current?.is_strict || lastWasCorrect === true);
+  // After the user's submission we allow proceeding for both strict and non-strict.
+  // We'll still record correctness if correct_options/answer exist and show correct answers.
+  const canProceed = submitted;
 
   const handleSubmitAnswer = () => {
     if (!current) return;
@@ -143,21 +147,8 @@ const PlayPage = observer(() => {
     // Save user's answer
     setUserAnswers((prev) => ({ ...prev, [current.id]: { answer: answerVal, isCorrect } }));
 
-    // For strict questions, only allow progression when answer is correct (if evaluation is available)
-    if (current.is_strict) {
-      if (isCorrect === false) {
-        setLastWasCorrect(false);
-        setSubmitted(true);
-        return; // allow retry
-      }
-      // if correctness unknown (null) or true, allow proceed but set lastWasCorrect accordingly
-      setLastWasCorrect(isCorrect === null ? true : isCorrect);
-      setSubmitted(true);
-      return;
-    }
-
-    // Non-strict: accept any answer for progression, but record correctness if available
-    setLastWasCorrect(true);
+    // Record correctness (if available) and accept the answer for progression regardless of strict flag.
+    setLastWasCorrect(isCorrect === null ? null : isCorrect);
     setSubmitted(true);
   };
 
@@ -253,7 +244,7 @@ const PlayPage = observer(() => {
           ) : showResults ? (
             <div className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-6">
               <h2 className="text-2xl font-bold text-light">Results</h2>
-              <p className="text-sm text-light/60">You answered {Object.values(userAnswers).filter(a => a.isCorrect === true).length} correct out of {questions.length}</p>
+              <p className="text-sm text-light/60">You answered {Object.values(userAnswers).filter(a => a.isCorrect === true).length} correct out of {questions.length} ({Math.round((Object.values(userAnswers).filter(a => a.isCorrect === true).length / Math.max(1, questions.length)) * 100)}%)</p>
               <div className="mt-4 space-y-3">
                 {questions.map((q, i) => {
                   const ua = userAnswers[q.id];
@@ -264,6 +255,9 @@ const PlayPage = observer(() => {
                       {q.answer && (
                         <div className="text-xs text-light/50 mt-1">Correct answer: {q.answer}</div>
                       )}
+                      {q.correct_options && q.correct_options.length > 0 && (
+                        <div className="text-xs text-light/50 mt-1">Correct options: {q.correct_options.join(', ')}</div>
+                      )}
                       <div className={`mt-2 text-sm ${ua?.isCorrect === true ? 'text-green-400' : ua?.isCorrect === false ? 'text-red-400' : 'text-light/60'}`}>
                         {ua?.isCorrect === true ? 'Correct' : ua?.isCorrect === false ? 'Incorrect' : 'Recorded'}
                       </div>
@@ -272,8 +266,8 @@ const PlayPage = observer(() => {
                 })}
               </div>
               <div className="mt-6 flex gap-3">
-                <button onClick={() => { setShowResults(false); startGame(); }} className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark">Play Again</button>
-                <button onClick={resetGame} className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light">Close</button>
+                <button onClick={() => { setShowResults(false); startGame(); }} className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark">Restart Game</button>
+                <button onClick={() => router.push('/user')} className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light">Back to Themes</button>
               </div>
             </div>
           ) : (
@@ -358,14 +352,20 @@ const PlayPage = observer(() => {
 
                 {submitted && (
                   <div className="mt-4 rounded-md border border-light/10 bg-dark/40 p-3">
-                    {current?.is_strict ? (
-                      lastWasCorrect === true ? (
-                        <div className="text-sm text-green-400">Correct — you may proceed.</div>
-                      ) : (
-                        <div className="text-sm text-red-400">Incorrect — try again.</div>
-                      )
+                    {lastWasCorrect === true ? (
+                      <div className="text-sm text-green-400">Correct</div>
+                    ) : lastWasCorrect === false ? (
+                      <div className="text-sm text-red-400">Incorrect</div>
                     ) : (
                       <div className="text-sm text-light/60">Answer recorded.</div>
+                    )}
+
+                    {/* Show correct answer/options after submission */}
+                    {current?.question_type === 'input' && current.answer && (
+                      <div className="mt-2 text-xs text-light/50">Correct answer: {current.answer}</div>
+                    )}
+                    {(current?.question_type === 'radiobutton' || current?.question_type === 'select') && current?.correct_options && current.correct_options.length > 0 && (
+                      <div className="mt-2 text-xs text-light/50">Correct options: {current.correct_options.join(', ')}</div>
                     )}
                   </div>
                 )}
