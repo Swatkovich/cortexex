@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { pool } from "../db";
 import { AuthRequest } from "../types/auth";
 import { CreateThemeDto, UpdateThemeDto, CreateQuestionDto, UpdateQuestionDto } from "../types/theme";
+import { safeParseJson } from "../utils/json";
 
 // Get all themes for the authenticated user
 export const getThemes = async (req: AuthRequest, res: Response) => {
@@ -66,7 +67,7 @@ export const getTheme = async (req: AuthRequest, res: Response) => {
             question_text: q.question_text,
             question_type: q.question_type,
             is_strict: q.is_strict,
-            options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : null,
+            options: safeParseJson(q.options),
             answer: q.answer || null,
         }))
     });
@@ -234,7 +235,7 @@ export const createQuestion = async (req: AuthRequest, res: Response) => {
 
     return res.status(201).json({
         ...result.rows[0],
-        options: result.rows[0].options ? JSON.parse(result.rows[0].options) : null
+        options: safeParseJson(result.rows[0].options)
     });
 };
 
@@ -317,7 +318,7 @@ export const updateQuestion = async (req: AuthRequest, res: Response) => {
 
     return res.status(200).json({
         ...result.rows[0],
-        options: result.rows[0].options ? JSON.parse(result.rows[0].options) : null
+        options: safeParseJson(result.rows[0].options)
     });
 };
 
