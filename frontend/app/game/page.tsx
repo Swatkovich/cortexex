@@ -458,12 +458,27 @@ const PlayPage = observer(() => {
 
                 {submitted && (
                   <div className="mt-4 rounded-md border border-light/10 bg-dark/40 p-3">
-                    {lastWasCorrect === true ? (
-                      <div className="text-sm text-green-400">Correct</div>
-                    ) : lastWasCorrect === false ? (
-                      <div className="text-sm text-red-400">Incorrect</div>
-                    ) : (
-                      <div className="text-sm text-light/60">Answer recorded.</div>
+                    {current?.is_strict ? (
+                      // Strict questions show correctness (green/red)
+                      lastWasCorrect === true ? (
+                        <div className="text-sm text-green-400">Correct</div>
+                      ) : lastWasCorrect === false ? (
+                        <div className="text-sm text-red-400">Incorrect</div>
+                      ) : (
+                        <div className="text-sm text-light/60">Answer recorded.</div>
+                      )
+                    ) : null}
+
+                    {/* Show correct answer/options. For non-strict show in yellow without correct/incorrect label. For strict show them normally. */}
+                    {current?.question_type === 'input' && current.answer && (
+                      <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
+                        Correct answer: {current.answer}
+                      </div>
+                    )}
+                    {(current?.question_type === 'radiobutton' || current?.question_type === 'select') && current?.correct_options && current.correct_options.length > 0 && (
+                      <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
+                        Correct options: {current.correct_options.join(', ')}
+                      </div>
                     )}
                   </div>
                 )}
