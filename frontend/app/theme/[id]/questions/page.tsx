@@ -93,7 +93,7 @@ export default function QuestionsPage() {
   };
 
   // Inline edit form component for a single question
-  const InlineEditForm = ({ q, onDone }: { q: Question; onDone: () => void }) => {
+  const InlineEditForm = ({ q, onDone }: { q: Question; onDone: (updated: Question) => void }) => {
     const [qText, setQText] = useState(q.question_text);
     const [qType, setQType] = useState<'input' | 'select' | 'radiobutton'>(q.question_type);
     const [qIsStrict, setQIsStrict] = useState(q.is_strict);
@@ -182,9 +182,9 @@ export default function QuestionsPage() {
           correct_options: Array.isArray(selectedCorrectOptions) && selectedCorrectOptions.length > 0 ? selectedCorrectOptions : undefined,
         };
 
-        await api.updateQuestion(themeId, q.id, questionData);
-        await themeStore.fetchThemes();
-        onDone();
+        const updated = await api.updateQuestion(themeId, q.id, questionData);
+        // update parent list in-place via callback to preserve order
+        onDone(updated as Question);
         setEditingId(null);
       } catch (err) {
         setLocalError(err instanceof Error ? err.message : 'Failed to update question');
@@ -570,7 +570,7 @@ export default function QuestionsPage() {
               className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6 backdrop-blur-sm"
             >
               {editingId === question.id ? (
-                <InlineEditForm q={question} onDone={async () => { await loadData(); setEditingId(null); }} />
+                <InlineEditForm q={question} onDone={(updated) => { setQuestions(prev => prev.map(p => p.id === updated.id ? updated : p)); setEditingId(null); }} />
               ) : (
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 space-y-3">

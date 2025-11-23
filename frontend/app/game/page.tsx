@@ -280,7 +280,6 @@ const PlayPage = observer(() => {
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <div className="text-sm text-light/50">Question {index + 1} / {questions.length}</div>
-                  <div className="text-xs text-light/50">Passed: {passed}/{questions.length}</div>
                   <div className="text-lg font-semibold text-light">{current?.question_text}</div>
                 </div>
                 <div>
