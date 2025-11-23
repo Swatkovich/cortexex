@@ -22,6 +22,8 @@ function shuffle<T>(arr: T[]) {
 
 const PlayPage = observer(() => {
   const selected = themeStore.selectedThemes;
+  const selectedIds = themeStore.selectedThemeIds;
+  const [isClient, setIsClient] = useState(false);
 
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [count, setCount] = useState<number>(5);
@@ -45,23 +47,61 @@ const PlayPage = observer(() => {
   const router = useRouter();
 
   useEffect(() => {
-    // load questions from selected themes
-    const load = async () => {
-      if (selected.length === 0) {
-        setAvailableQuestions([]);
-        return;
+    // mark client-side hydration
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    // If we have persisted selected ids but no theme objects loaded yet,
+    // fetch themes so `selectedThemes` is populated and the UI can show titles.
+    try {
+      if (isClient && selectedIds && selectedIds.length > 0 && selected.length === 0) {
+        // fetchThemes will populate themeStore.themes and make selectedThemes non-empty
+        if ((themeStore as any).fetchThemes) {
+          (themeStore as any).fetchThemes().catch(() => {});
+        }
       }
+    } catch (err) {
+      // ignore
+    }
+  }, [isClient, selectedIds, selected.length]);
+
+  useEffect(() => {
+    // load questions from selected themes. During initial server render we rely on `selected` (theme objects)
+    // and after hydration we prefer `selectedIds` (persisted ids) to avoid mismatch between server and client.
+    const load = async () => {
+      const useIds = isClient;
+      if (useIds) {
+        if (!selectedIds || selectedIds.length === 0) {
+          setAvailableQuestions([]);
+          return;
+        }
+      } else {
+        if (!selected || selected.length === 0) {
+          setAvailableQuestions([]);
+          return;
+        }
+      }
+
       setLoading(true);
       try {
         const all: Question[] = [];
-        for (const t of selected) {
-          const data = await api.fetchTheme(t.id);
-          if (data.questions && Array.isArray(data.questions)) {
-            all.push(...data.questions);
+        if (useIds) {
+          for (const id of selectedIds) {
+            const data = await api.fetchTheme(id);
+            if (data.questions && Array.isArray(data.questions)) {
+              all.push(...data.questions);
+            }
+          }
+        } else {
+          for (const t of selected) {
+            const data = await api.fetchTheme(t.id);
+            if (data.questions && Array.isArray(data.questions)) {
+              all.push(...data.questions);
+            }
           }
         }
         setAvailableQuestions(all);
-        // default count should be the max available so user sees e.g. "86/86"
         setCount(all.length || 1);
       } catch (err) {
         setAvailableQuestions([]);
@@ -70,7 +110,8 @@ const PlayPage = observer(() => {
       }
     };
     load();
-  }, [selected]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient, selectedIds, selected]);
 
   // Persist game state to sessionStorage so a reload doesn't kill the session
   const STORAGE_KEY = 'cortexex_gameState';
@@ -257,7 +298,7 @@ const PlayPage = observer(() => {
         <p className="text-sm font-semibold uppercase tracking-wider text-light/60">Play Mode</p>
         <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
           {(() => {
-            const hasSelection = selected.length > 0 || questions.length > 0;
+            const hasSelection = (isClient && selectedIds && selectedIds.length > 0) || questions.length > 0 || selected.length > 0;
             if (!hasSelection) return 'No themes selected';
             if (showResults) return 'Results';
             if (playing) return 'Playing';
@@ -266,7 +307,7 @@ const PlayPage = observer(() => {
         </h1>
         <p className="max-w-2xl text-lg text-light/70">
           {(() => {
-            const hasSelection = selected.length > 0 || questions.length > 0;
+            const hasSelection = (isClient && selectedIds && selectedIds.length > 0) || selected.length > 0 || questions.length > 0;
             if (!hasSelection) return 'Head back and choose at least one theme to unlock play mode.';
             if (showResults) return 'Your session finished — review results or restart the game.';
             if (playing) return 'Answer questions and progress through the session.';
@@ -275,7 +316,7 @@ const PlayPage = observer(() => {
         </p>
       </header>
 
-      {((selected.length === 0) && questions.length === 0) ? (
+      {((selected.length === 0 && (!isClient || selectedIds.length === 0)) && questions.length === 0) ? (
         <section className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
           <p className="text-sm font-medium text-light/50">Nothing to load yet — add themes first.</p>
         </section>

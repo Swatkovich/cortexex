@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from 'mobx';
+import { makeAutoObservable, runInAction, autorun } from 'mobx';
 import * as api from '@/lib/api';
 import { CreateThemeDto, UpdateThemeDto } from '@/lib/interface';
 
@@ -19,6 +19,29 @@ class ThemeStore {
 
   constructor() {
     makeAutoObservable(this);
+    // Load persisted selected theme ids from localStorage (client-only)
+    try {
+      if (typeof window !== 'undefined') {
+        const raw = localStorage.getItem('cortexex_selectedThemes');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            this.selectedThemeIds = parsed;
+          }
+        }
+
+        // Persist changes to selectedThemeIds
+        autorun(() => {
+          try {
+            localStorage.setItem('cortexex_selectedThemes', JSON.stringify(this.selectedThemeIds || []));
+          } catch (err) {
+            // ignore storage errors
+          }
+        });
+      }
+    } catch (err) {
+      // ignore any parsing/storage errors
+    }
   }
 
   async fetchThemes() {
