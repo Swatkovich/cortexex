@@ -7,6 +7,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import * as api from '@/lib/api';
 import { Question } from '@/lib/interface';
+import CircularDiagram from '@/components/CircularDiagram';
+import DifficultyTag from '@/components/DifficultyTag';
+import Button from '@/components/Button';
+import TextInput from '@/components/TextInput';
+import Card from '@/components/Card';
 
 function shuffle<T>(arr: T[]) {
   return arr
@@ -145,80 +150,7 @@ const PlayPage = observer(() => {
     setPassed(0);
   };
 
-  const DifficultyTag = ({ d }: { d: string }) => {
-    const base = 'rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider';
-    if (d === 'Easy') return <span className={`${base} border border-green-500/20 bg-green-500/10 text-green-400`}>Easy</span>;
-    if (d === 'Medium') return <span className={`${base} border border-yellow-500/20 bg-yellow-500/10 text-yellow-400`}>Medium</span>;
-    if (d === 'Hard') return <span className={`${base} border border-red-500/20 bg-red-500/10 text-red-400`}>Hard</span>;
-    return <span className={`${base} border border-light/20 bg-light/5 text-light/60`}>{d}</span>;
-  };
-
-  const ResultDonut = ({ questions, userAnswers }: { questions: Question[]; userAnswers: Record<string, { answer: string | string[] | null; isCorrect: boolean | null }> }) => {
-    const green = questions.filter((q) => q.is_strict && userAnswers[q.id]?.isCorrect === true).length;
-    const red = questions.filter((q) => q.is_strict && userAnswers[q.id]?.isCorrect !== true).length;
-    const yellow = questions.filter((q) => !q.is_strict).length;
-    const total = green + red + yellow;
-
-    // SVG ring parameters
-    const size = 96;
-    const stroke = 12;
-    const radius = (size - stroke) / 2;
-    const circumference = 2 * Math.PI * radius;
-
-    // compute dash lengths for each segment
-    const makeDash = (count: number) => (total === 0 ? 0 : (count / total) * circumference);
-    const dashG = makeDash(green);
-    const dashR = makeDash(red);
-    const dashY = makeDash(yellow);
-
-    // helper to render a segment with offset (cumulative)
-    let cumulative = 0;
-    const segment = (dash: number, color: string, key: string) => {
-      const dashArray = `${dash} ${Math.max(0, circumference - dash)}`;
-      const offset = circumference - cumulative;
-      cumulative += dash;
-      return (
-        <circle
-          key={key}
-          r={radius}
-          cx={size / 2}
-          cy={size / 2}
-          fill="transparent"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeDasharray={dashArray}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-        />
-      );
-    };
-
-    return (
-      <div className="flex items-center gap-6">
-        <div style={{ width: size, height: size, position: 'relative' }} className="relative">
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="block">
-            <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
-              {/* background track (light transparent) */}
-              <circle r={radius} cx={size / 2} cy={size / 2} fill="transparent" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
-              {segment(dashG, '#34d399', 'g')}
-              {segment(dashR, '#f87171', 'r')}
-              {segment(dashY, '#f59e0b', 'y')}
-            </g>
-          </svg>
-
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-dark/50 flex items-center justify-center text-sm font-semibold text-light">
-            {total === 0 ? '—' : `${Math.round(((green + yellow) / Math.max(1, total)) * 100)}%`}
-          </div>
-        </div>
-
-        <div className="text-sm text-light/70">
-          <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />Strict correct: {green}</div>
-          <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-red-400 mr-2 align-middle" />Strict incorrect: {red}</div>
-          <div><span className="inline-block w-3 h-3 rounded-full bg-yellow-300 mr-2 align-middle" />Non-strict: {yellow}</div>
-        </div>
-      </div>
-    );
-  };
+  // DifficultyTag and the circular results visualization were extracted to components
 
   const resetGame = () => {
     setPlaying(false);
@@ -345,7 +277,7 @@ const PlayPage = observer(() => {
         <section className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm">
           {showResults ? (
             <div className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-6">
-              <ResultDonut questions={questions} userAnswers={userAnswers} />
+              <CircularDiagram questions={questions} userAnswers={userAnswers} />
               <h2 className="text-2xl font-bold text-light">Results</h2>
               <p className="text-sm text-light/60">You answered {Object.values(userAnswers).filter(a => a.isCorrect === true).length} correct out of {questions.length} ({Math.round((Object.values(userAnswers).filter(a => a.isCorrect === true).length / Math.max(1, questions.length)) * 100)}%)</p>
               <div className="mt-4 space-y-3">
@@ -369,8 +301,8 @@ const PlayPage = observer(() => {
                 })}
               </div>
               <div className="mt-6 flex gap-3">
-                <button onClick={() => { setShowResults(false); startGame(); }} className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark">Restart Game</button>
-                <button onClick={() => { sessionStorage.removeItem('cortexex_gameState'); router.push('/user'); }} className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light">Back to Themes</button>
+                <Button onClick={() => { setShowResults(false); startGame(); }} className="px-6 py-3 text-base">Restart Game</Button>
+                <Button variant="ghost" onClick={() => { sessionStorage.removeItem('cortexex_gameState'); router.push('/user'); }} className="px-6 py-3 text-base">Back to Themes</Button>
               </div>
             </div>
           ) : !playing ? (
@@ -395,32 +327,26 @@ const PlayPage = observer(() => {
               <div>
                 <label className="block text-sm font-medium text-light">Questions per session</label>
                 <div className="mt-6 flex gap-3">
-                  <input
+                  <TextInput
                     type="number"
                     min={1}
                     max={totalAvailable}
                     value={count}
                     onChange={(e) => setCount(Number(e.target.value))}
-                    className="w-32 rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light"
+                    className="w-32"
                   />
                   <div className="text-sm text-light/50">{count}/{totalAvailable}</div>
                 </div>
                 <p className="mt-2 text-xs text-light/50">Total available questions: {totalAvailable}{loading ? ' (loading...)' : ''}</p>
 
                 <div className="mt-4 flex gap-3">
-                  <button
-                    onClick={startGame}
-                    disabled={totalAvailable === 0}
-                    className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark disabled:opacity-50"
-                  >
-                    Start
-                  </button>
+                  <Button onClick={startGame} disabled={totalAvailable === 0} className="px-6 py-3 text-base">Start</Button>
                 </div>
               </div>
             </div>
           ) : showResults ? (
             <div className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-6">
-              <ResultDonut questions={questions} userAnswers={userAnswers} />
+              <CircularDiagram questions={questions} userAnswers={userAnswers} />
               <h2 className="text-2xl font-bold text-light">Results</h2>
               <p className="text-sm text-light/60">You answered {Object.values(userAnswers).filter(a => a.isCorrect === true).length} correct out of {questions.length} ({Math.round((Object.values(userAnswers).filter(a => a.isCorrect === true).length / Math.max(1, questions.length)) * 100)}%)</p>
               <div className="mt-4 space-y-3">
@@ -444,8 +370,8 @@ const PlayPage = observer(() => {
                 })}
               </div>
               <div className="mt-6 flex gap-3">
-                <button onClick={() => { setShowResults(false); startGame(); }} className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark">Restart Game</button>
-                <button onClick={() => router.push('/user')} className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light">Back to Themes</button>
+                <Button onClick={() => { setShowResults(false); startGame(); }} className="px-6 py-3 text-base">Restart Game</Button>
+                <Button variant="ghost" onClick={() => router.push('/user')} className="px-6 py-3 text-base">Back to Themes</Button>
               </div>
             </div>
           ) : (
@@ -456,22 +382,21 @@ const PlayPage = observer(() => {
                   <div className="text-lg font-semibold text-light">{current?.question_text}</div>
                 </div>
                 <div>
-                  <button onClick={resetGame} className="rounded-lg border border-light/20 bg-transparent px-4 py-2 text-sm text-light">End</button>
+                  <Button variant="ghost" onClick={resetGame} className="px-4 py-2 text-sm">End</Button>
                 </div>
               </div>
 
               <div className="space-y-4">
                 {current?.question_type === 'input' && (
-                  <div>
-                    <input
-                      type="text"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light"
-                      placeholder="Type your answer here..."
-                      disabled={canProceed}
-                    />
-                  </div>
+                    <div>
+                      <TextInput
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Type your answer here..."
+                        disabled={canProceed}
+                      />
+                    </div>
                 )}
 
                 {current?.question_type === 'radiobutton' && (
@@ -510,21 +435,9 @@ const PlayPage = observer(() => {
                 )}
 
                 <div className="mt-6 flex gap-3">
-                  <button
-                    onClick={handleSubmitAnswer}
-                    disabled={canProceed}
-                    className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark disabled:opacity-50"
-                  >
-                    Submit
-                  </button>
+                  <Button onClick={handleSubmitAnswer} disabled={canProceed} className="px-6 py-3 text-base">Submit</Button>
 
-                  <button
-                    onClick={handleNext}
-                    disabled={!canProceed}
-                    className="rounded-xl border border-light/20 bg-transparent px-6 py-3 text-base font-semibold text-light disabled:opacity-50"
-                  >
-                    Next
-                  </button>
+                  <Button variant="ghost" onClick={handleNext} disabled={!canProceed} className="px-6 py-3 text-base">Next</Button>
                 </div>
 
                 {submitted && (

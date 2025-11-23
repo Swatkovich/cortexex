@@ -5,6 +5,11 @@ import { useRouter, useParams } from 'next/navigation';
 import * as api from '@/lib/api';
 import { themeStore } from '@/store/themeStore';
 import { Question, CreateQuestionDto, Theme } from '@/lib/interface';
+import Button from '@/components/Button';
+import TextInput from '@/components/TextInput';
+import TextArea from '@/components/TextArea';
+import Card from '@/components/Card';
+import DifficultyTag from '@/components/DifficultyTag';
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -195,7 +200,7 @@ export default function QuestionsPage() {
 
     return (
       <form onSubmit={handleSubmitLocal} className="space-y-4">
-        <textarea value={qText} onChange={(e) => setQText(e.target.value)} rows={2} className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light" />
+        <TextArea value={qText} onChange={(e) => setQText(e.target.value)} rows={2} />
         <div className="grid gap-3 sm:grid-cols-2">
           <select value={qType} onChange={(e) => setQType(e.target.value as any)} className="rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light">
             <option value="input">Text Input</option>
@@ -209,7 +214,7 @@ export default function QuestionsPage() {
         </div>
 
         {qType === 'input' && (
-          <input type="text" value={qAnswer} onChange={(e) => setQAnswer(e.target.value)} className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light" />
+          <TextInput type="text" value={qAnswer} onChange={(e) => setQAnswer(e.target.value)} className="" />
         )}
 
         {(qType === 'select' || qType === 'radiobutton') && (
@@ -221,21 +226,21 @@ export default function QuestionsPage() {
                 ) : (
                   <input type="checkbox" checked={!!qCorrectIndices[idx]} onChange={() => toggleCorrectIndexLocal(idx)} className="h-4 w-4" />
                 )}
-                <input type="text" value={opt} onChange={(e) => handleOptionChangeLocal(idx, e.target.value)} className="flex-1 rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light" />
+                <TextInput value={opt} onChange={(e) => handleOptionChangeLocal(idx, e.target.value)} className="flex-1" />
                 {qOptions.length > 1 && (
-                  <button type="button" onClick={() => handleRemoveOptionLocal(idx)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-400">Remove</button>
+                  <Button variant="ghost" onClick={() => handleRemoveOptionLocal(idx)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-400">Remove</Button>
                 )}
               </div>
             ))}
-            <button type="button" onClick={handleAddOptionLocal} className="rounded-lg border border-light/20 bg-transparent px-3 py-1 text-sm text-light">+ Add Option</button>
+            <Button variant="ghost" onClick={handleAddOptionLocal} className="rounded-lg border border-light/20 px-3 py-1 text-sm">+ Add Option</Button>
           </div>
         )}
 
         {localError && <div className="text-sm text-red-400">{localError}</div>}
 
         <div className="flex gap-3">
-          <button type="submit" disabled={submittingLocal} className="rounded-xl bg-light px-4 py-2 text-sm font-semibold text-dark">Save</button>
-          <button type="button" onClick={() => { setEditingId(null); }} className="rounded-xl border border-light/20 px-4 py-2 text-sm text-light">Cancel</button>
+          <Button type="submit" disabled={submittingLocal} className="px-4 py-2 text-sm">Save</Button>
+          <Button variant="ghost" onClick={() => { setEditingId(null); }} className="px-4 py-2 text-sm">Cancel</Button>
         </div>
       </form>
     );
@@ -336,12 +341,7 @@ export default function QuestionsPage() {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
       <header className="space-y-3">
-        <button
-          onClick={() => router.push('/user')}
-          className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-4 py-2 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5"
-        >
-          ← Back to Themes
-        </button>
+        <Button variant="ghost" onClick={() => router.push('/user')} className="inline-flex items-center justify-center px-4 py-2 text-sm">← Back to Themes</Button>
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
             Manage Questions
@@ -352,15 +352,7 @@ export default function QuestionsPage() {
           <div className="mt-2 flex items-center gap-4">
             <p className="text-lg text-light/70">{theme.description}</p>
             <div>
-              {theme.difficulty === 'Easy' && (
-                <span className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400">Easy</span>
-              )}
-              {theme.difficulty === 'Medium' && (
-                <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">Medium</span>
-              )}
-              {theme.difficulty === 'Hard' && (
-                <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">Hard</span>
-              )}
+              <DifficultyTag d={theme.difficulty} />
             </div>
           </div>
         </div>
@@ -377,12 +369,7 @@ export default function QuestionsPage() {
           {questions.length} {questions.length === 1 ? 'question' : 'questions'}
         </p>
         {!showAddForm && (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="rounded-xl bg-light px-6 py-3 text-base font-semibold text-dark hover:bg-light-hover"
-          >
-            Add Question
-          </button>
+          <Button onClick={() => setShowAddForm(true)} className="px-6 py-3 text-base">Add Question</Button>
         )}
       </div>
 
@@ -395,12 +382,11 @@ export default function QuestionsPage() {
             <label className="block text-sm font-medium text-light">
               Question Text
             </label>
-            <textarea
+            <TextArea
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
               required
               rows={3}
-              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
               placeholder="Enter your question here..."
             />
           </div>
@@ -457,12 +443,11 @@ export default function QuestionsPage() {
               <label className="block text-sm font-medium text-light">
                 Correct Answer
               </label>
-              <input
+              <TextInput
                 type="text"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 required={questionType === 'input'}
-                className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
                 placeholder="Enter the correct answer..."
               />
               <p className="text-xs text-light/50">
@@ -495,33 +480,20 @@ export default function QuestionsPage() {
                     />
                   ) : null}
 
-                  <input
-                    type="text"
+                  <TextInput
                     value={option}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
                     required={questionType === 'select' || questionType === 'radiobutton'}
-                    className="flex-1 rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+                    className="flex-1"
                     placeholder={`Option ${index + 1}`}
                   />
 
                   {options.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveOption(index)}
-                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/20"
-                    >
-                      Remove
-                    </button>
+                    <Button variant="ghost" onClick={() => handleRemoveOption(index)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">Remove</Button>
                   )}
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={handleAddOption}
-                className="rounded-lg border border-light/20 bg-transparent px-4 py-2 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5"
-              >
-                + Add Option
-              </button>
+              <Button variant="ghost" onClick={handleAddOption} className="rounded-lg border border-light/20 px-4 py-2 text-sm">+ Add Option</Button>
               {formError && (
                 <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
                   <p className="text-sm text-red-400">{formError}</p>
@@ -531,7 +503,7 @@ export default function QuestionsPage() {
           )}
 
           <div className="flex flex-col gap-4 pt-4 sm:flex-row">
-            <button
+            <Button
               type="submit"
               disabled={
                 submitting || 
@@ -541,17 +513,11 @@ export default function QuestionsPage() {
                 (questionType === 'select' && Object.keys(correctIndices).filter(k => correctIndices[Number(k)]).length === 0) ||
                 (questionType === 'radiobutton' && correctRadioIndex === null)
               }
-              className="flex-1 rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-8 py-4 text-base"
             >
               {submitting ? 'Saving...' : 'Add Question'}
-            </button>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="flex-1 rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
-            >
-              Cancel
-            </button>
+            </Button>
+            <Button variant="ghost" onClick={resetForm} className="flex-1 px-8 py-4 text-base">Cancel</Button>
           </div>
         </form>
       )}
@@ -565,10 +531,7 @@ export default function QuestionsPage() {
           </div>
         ) : (
           questions.map((question) => (
-            <article
-              key={question.id}
-              className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6 backdrop-blur-sm"
-            >
+            <Card key={question.id} className="bg-dark-hover/50 p-6">
               {editingId === question.id ? (
                 <InlineEditForm q={question} onDone={(updated) => { setQuestions(prev => prev.map(p => p.id === updated.id ? updated : p)); setEditingId(null); }} />
               ) : (
@@ -605,22 +568,12 @@ export default function QuestionsPage() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => { setEditingId(question.id); setShowAddForm(false); }}
-                      className="rounded-lg border border-light/20 bg-transparent px-4 py-2 text-sm font-semibold text-light hover:border-light/40 hover:bg-light/5"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(question.id)}
-                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/20"
-                    >
-                      Delete
-                    </button>
+                    <Button variant="ghost" onClick={() => { setEditingId(question.id); setShowAddForm(false); }} className="px-4 py-2 text-sm">Edit</Button>
+                    <Button variant="ghost" onClick={() => handleDelete(question.id)} className="px-4 py-2 text-sm text-red-400 border-red-500/20">Delete</Button>
                   </div>
                 </div>
               )}
-            </article>
+            </Card>
           ))
         )}
       </section>

@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authStore } from '@/store/authStore';
 import { register } from '@/lib/api';
+import Button from '@/components/Button';
+import TextInput from '@/components/TextInput';
+import Card from '@/components/Card';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -68,7 +71,7 @@ export default function AuthPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-dark px-6 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-light/10 bg-dark-hover/50 p-10 backdrop-blur-sm">
+      <Card className="w-full max-w-md p-10 backdrop-blur-sm">
         <div className="mb-8">
           <h1 className="mb-6 text-3xl font-bold tracking-tight text-light text-center">
             {isRegister ? 'Register' : 'Log In'}
@@ -121,13 +124,12 @@ export default function AuthPage() {
             >
               Name
             </label>
-            <input
+            <TextInput
               id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
               placeholder="Enter your name"
             />
           </div>
@@ -139,13 +141,12 @@ export default function AuthPage() {
             >
               Password
             </label>
-            <input
+            <TextInput
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
               placeholder={isRegister ? 'Create a password' : 'Enter your password'}
             />
           </div>
@@ -158,30 +159,24 @@ export default function AuthPage() {
               >
                 Confirm Password
               </label>
-              <input
+              <TextInput
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
                 placeholder="Confirm your password"
               />
             </div>
           )}
-
-          <button
-            type="submit"
-            disabled={formLoading}
-            className="w-full rounded-lg bg-light px-6 py-3 text-base font-semibold text-dark hover:bg-light-hover hover:scale-[1.02 focus:outline-none focus:ring-2 focus:ring-light/50 disabled:opacity-50 cursor-pointer"
-          >
+          <Button type="submit" disabled={formLoading} className="w-full">
             {formLoading
               ? (isRegister ? 'Creating account...' : 'Logging in...')
               : (isRegister ? 'Register' : 'Log In')}
-          </button>
+          </Button>
         </form>
 
-      </div>
+      </Card>
     </div>
   );
 }

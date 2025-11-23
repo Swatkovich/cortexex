@@ -4,6 +4,10 @@ import { FormEvent, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
 import * as api from '@/lib/api';
+import Button from '@/components/Button';
+import TextInput from '@/components/TextInput';
+import TextArea from '@/components/TextArea';
+import Card from '@/components/Card';
 
 export default function CreateThemePage() {
   const router = useRouter();
@@ -90,35 +94,20 @@ export default function CreateThemePage() {
           <p className="text-lg text-light/70">Loading theme...</p>
         </div>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm"
-        >
-        <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Card className="p-8">
+            <div className="space-y-2">
           <label className="block text-sm font-medium text-light">
             Theme title
           </label>
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            required
-            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
-            placeholder="Neuro Linguistics"
-          />
+              <TextInput value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Neuro Linguistics" />
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-light">
             Description
           </label>
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            required
-            rows={4}
-            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light placeholder:text-light/40 focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
-            placeholder="Outline why this topic matters and what to expect."
-          />
+              <TextArea value={description} onChange={(event) => setDescription(event.target.value)} required rows={4} placeholder="Outline why this topic matters and what to expect." />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
@@ -139,23 +128,14 @@ export default function CreateThemePage() {
 
         </div>
 
-        <div className="flex flex-col gap-4 pt-4 sm:flex-row">
-          <button
-            type="submit"
-            className="flex-1 rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            disabled={!title.trim() || !description.trim() || loading}
-          >
-            {loading ? 'Saving...' : isEditMode ? 'Update theme' : 'Save theme'}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push('/user')}
-            className="flex-1 rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
+            <div className="flex flex-col gap-4 pt-4 sm:flex-row">
+              <Button type="submit" disabled={!title.trim() || !description.trim() || loading} className="flex-1 px-8 py-4 text-base">
+                {loading ? 'Saving...' : isEditMode ? 'Update theme' : 'Save theme'}
+              </Button>
+              <Button variant="ghost" onClick={() => router.push('/user')} className="flex-1 px-8 py-4 text-base">Cancel</Button>
+            </div>
+          </Card>
+        </form>
       )}
     </main>
   );
