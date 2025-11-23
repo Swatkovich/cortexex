@@ -254,6 +254,7 @@ const PlayPage = observer(() => {
           {(() => {
             const hasSelection = selected.length > 0 || questions.length > 0;
             if (!hasSelection) return 'No themes selected';
+            if (showResults) return 'Results';
             if (playing) return 'Playing';
             return 'Get ready!';
           })()}
@@ -262,6 +263,7 @@ const PlayPage = observer(() => {
           {(() => {
             const hasSelection = selected.length > 0 || questions.length > 0;
             if (!hasSelection) return 'Head back and choose at least one theme to unlock play mode.';
+            if (showResults) return 'Your session finished — review results or restart the game.';
             if (playing) return 'Answer questions and progress through the session.';
             return 'Choose how many questions and start the session.';
           })()}
