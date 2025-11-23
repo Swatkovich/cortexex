@@ -488,14 +488,16 @@ const PlayPage = observer(() => {
         </section>
       )}
 
-      <div className="mt-auto flex items-center justify-between">
-        <Link
-          href="/user"
-          className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
-        >
-          Back to Themes
-        </Link>
-      </div>
+      {!playing && !showResults && (
+        <div className="mt-auto flex items-center justify-between">
+          <Link
+            href="/user"
+            className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
+          >
+            Back to Themes
+          </Link>
+        </div>
+      )}
     </main>
   );
 });
