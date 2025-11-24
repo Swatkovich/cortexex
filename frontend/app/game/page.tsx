@@ -12,6 +12,9 @@ import DifficultyTag from '@/components/DifficultyTag';
 import Button from '@/components/Button';
 import TextInput from '@/components/TextInput';
 import Card from '@/components/Card';
+import GameSetup from '@/components/game/GameSetup';
+import QuestionView from '@/components/game/QuestionView';
+import ResultsView from '@/components/game/ResultsView';
 
 function shuffle<T>(arr: T[]) {
   return arr
@@ -323,217 +326,49 @@ const PlayPage = observer(() => {
       ) : (
         <section className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm">
           {showResults ? (
-            <div className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-6">
-              <CircularDiagram questions={questions} userAnswers={userAnswers} />
-              <h2 className="text-2xl font-bold text-light">Results</h2>
-              <p className="text-sm text-light/60">You answered {Object.values(userAnswers).filter(a => a.isCorrect === true).length} correct out of {questions.length} ({Math.round((Object.values(userAnswers).filter(a => a.isCorrect === true).length / Math.max(1, questions.length)) * 100)}%)</p>
-              <div className="mt-4 space-y-3">
-                {questions.map((q, i) => {
-                  const ua = userAnswers[q.id];
-                  return (
-                    <div key={q.id} className="rounded-md border border-light/10 bg-dark/30 p-3">
-                      <div className="font-medium text-light">{i + 1}. {q.question_text}</div>
-                      <div className="text-xs text-light/50 mt-1">Your answer: {Array.isArray(ua?.answer) ? ua?.answer.join(', ') : ua?.answer ?? '—'}</div>
-                      {q.answer && (
-                        <div className="text-xs text-light/50 mt-1">Correct answer: {q.answer}</div>
-                      )}
-                      {q.correct_options && q.correct_options.length > 0 && (
-                        <div className="text-xs text-light/50 mt-1">Correct options: {q.correct_options.join(', ')}</div>
-                      )}
-                      <div className={`mt-2 text-sm ${ua?.isCorrect === true ? 'text-green-400' : ua?.isCorrect === false ? 'text-red-400' : 'text-light/60'}`}>
-                        {ua?.isCorrect === true ? 'Correct' : ua?.isCorrect === false ? 'Incorrect' : 'Recorded'}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-6 flex gap-3">
-                <Button onClick={() => { setShowResults(false); startGame(); }} className="px-6 py-3 text-base">Restart Game</Button>
-                <Button variant="ghost" onClick={() => { sessionStorage.removeItem('cortexex_gameState'); router.push('/user'); }} className="px-6 py-3 text-base">Back to Themes</Button>
-              </div>
-            </div>
+            <ResultsView
+              questions={questions}
+              userAnswers={userAnswers}
+              onRestart={() => { setShowResults(false); startGame(); }}
+              onBack={() => { try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {} ; router.push('/user'); }}
+            />
           ) : !playing ? (
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-light">Selected Themes</label>
-                <ul className="mt-2 space-y-2 text-sm text-light/70">
-                  {selected.map((t) => (
-                    <li key={t.id} className="flex items-center justify-between rounded-md bg-dark/30 px-3 py-2">
-                          <div>
-                            <div className="font-medium text-light">{t.title}</div>
-                            <div className="mt-1 flex items-center gap-3">
-                              <div className="text-xs text-light/50">{t.questions} questions</div>
-                              <div><DifficultyTag d={t.difficulty} /></div>
-                            </div>
-                          </div>
-                        </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-light">Questions per session</label>
-                <div className="mt-6 flex gap-3">
-                  <TextInput
-                    type="number"
-                    min={1}
-                    max={effectiveAvailable}
-                    value={count}
-                    onChange={(e) => setCount(Number(e.target.value))}
-                    className="w-32"
-                  />
-                  <div className="text-sm text-light/50">{count}/{effectiveAvailable}</div>
-                </div>
-                <p className="mt-2 text-xs text-light/50">Total available questions: {totalAvailable} ({strictAvailable} strict){loading ? ' (loading...)' : ''}</p>
-
-                <div className="mt-4">
-                  <label className="inline-flex items-center gap-2 text-sm text-light/80">
-                    <input
-                      type="checkbox"
-                      checked={includeNonStrict}
-                      onChange={() => {
-                        const next = !includeNonStrict;
-                        setIncludeNonStrict(next);
-                        if (!next) {
-                          const strictCount = availableQuestions.filter((q) => q.is_strict).length || 1;
-                          setCount((c) => Math.min(c, strictCount));
-                        }
-                      }}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-light">Include non-strict questions</span>
-                  </label>
-                </div>
-
-                <div className="mt-4 flex gap-3">
-                  <Button onClick={startGame} disabled={effectiveAvailable === 0} className="px-6 py-3 text-base">Start</Button>
-                </div>
-              </div>
-            </div>
-          ) : showResults ? (
-            <div className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-6">
-              <CircularDiagram questions={questions} userAnswers={userAnswers} />
-              <h2 className="text-2xl font-bold text-light">Results</h2>
-              <p className="text-sm text-light/60">You answered {Object.values(userAnswers).filter(a => a.isCorrect === true).length} correct out of {questions.length} ({Math.round((Object.values(userAnswers).filter(a => a.isCorrect === true).length / Math.max(1, questions.length)) * 100)}%)</p>
-              <div className="mt-4 space-y-3">
-                {questions.map((q, i) => {
-                  const ua = userAnswers[q.id];
-                  return (
-                    <div key={q.id} className="rounded-md border border-light/10 bg-dark/30 p-3">
-                      <div className="font-medium text-light">{i + 1}. {q.question_text}</div>
-                      <div className="text-xs text-light/50 mt-1">Your answer: {Array.isArray(ua?.answer) ? ua?.answer.join(', ') : ua?.answer ?? '—'}</div>
-                      {q.answer && (
-                        <div className="text-xs text-light/50 mt-1">Correct answer: {q.answer}</div>
-                      )}
-                      {q.correct_options && q.correct_options.length > 0 && (
-                        <div className="text-xs text-light/50 mt-1">Correct options: {q.correct_options.join(', ')}</div>
-                      )}
-                      <div className={`mt-2 text-sm ${ua?.isCorrect === true ? 'text-green-400' : ua?.isCorrect === false ? 'text-red-400' : 'text-light/60'}`}>
-                        {ua?.isCorrect === true ? 'Correct' : ua?.isCorrect === false ? 'Incorrect' : 'Recorded'}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-6 flex gap-3">
-                <Button onClick={() => { setShowResults(false); startGame(); }} className="px-6 py-3 text-base">Restart Game</Button>
-                <Button variant="ghost" onClick={() => router.push('/user')} className="px-6 py-3 text-base">Back to Themes</Button>
-              </div>
-            </div>
+            <GameSetup
+              selected={selected}
+              count={count}
+              setCount={setCount}
+              includeNonStrict={includeNonStrict}
+              setIncludeNonStrict={(v) => {
+                setIncludeNonStrict(v);
+                if (!v) {
+                  const strictCount = availableQuestions.filter((q) => q.is_strict).length || 1;
+                  setCount((c) => Math.min(c, strictCount));
+                }
+              }}
+              effectiveAvailable={effectiveAvailable}
+              totalAvailable={totalAvailable}
+              strictAvailable={strictAvailable}
+              loading={loading}
+              startGame={startGame}
+            />
           ) : (
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-light/50">Question {index + 1} / {questions.length}</div>
-                  <div className="text-lg font-semibold text-light">{current?.question_text}</div>
-                </div>
-                <div>
-                  <Button variant="ghost" onClick={resetGame} className="px-4 py-2 text-sm">End</Button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {current?.question_type === 'input' && (
-                    <div>
-                      <TextInput
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Type your answer here..."
-                        disabled={canProceed}
-                      />
-                    </div>
-                )}
-
-                {current?.question_type === 'radiobutton' && (
-                  <div className="space-y-2">
-                    {current.options?.map((opt, i) => (
-                      <label key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
-                        <input
-                          type="radio"
-                          name="rb"
-                          checked={selectedOption === opt}
-                          onChange={() => setSelectedOption(opt)}
-                          className="h-4 w-4"
-                          disabled={canProceed}
-                        />
-                        <span className="text-light">{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {current?.question_type === 'select' && (
-                  <div className="space-y-2">
-                    {current.options?.map((opt, i) => (
-                      <label key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
-                        <input
-                          type="checkbox"
-                          checked={!!selectedOptions[i]}
-                          onChange={() => handleToggleCheckbox(i)}
-                          className="h-4 w-4"
-                          disabled={canProceed}
-                        />
-                        <span className="text-light">{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-6 flex gap-3">
-                  <Button onClick={handleSubmitAnswer} disabled={canProceed} className="px-6 py-3 text-base">Submit</Button>
-
-                  <Button variant="ghost" onClick={handleNext} disabled={!canProceed} className="px-6 py-3 text-base">Next</Button>
-                </div>
-
-                {submitted && (
-                  <div className="mt-4 rounded-md border border-light/10 bg-dark/40 p-3">
-                    {current?.is_strict ? (
-                      // Strict questions show correctness (green/red)
-                      lastWasCorrect === true ? (
-                        <div className="text-sm text-green-400">Correct</div>
-                      ) : lastWasCorrect === false ? (
-                        <div className="text-sm text-red-400">Incorrect</div>
-                      ) : (
-                        <div className="text-sm text-light/60">Answer recorded.</div>
-                      )
-                    ) : null}
-
-                    {/* Show correct answer/options. For non-strict show in yellow without correct/incorrect label. For strict show them normally. */}
-                    {current?.question_type === 'input' && current.answer && (
-                      <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
-                        Correct answer: {current.answer}
-                      </div>
-                    )}
-                    {(current?.question_type === 'radiobutton' || current?.question_type === 'select') && current?.correct_options && current.correct_options.length > 0 && (
-                      <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
-                        Correct options: {current.correct_options.join(', ')}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            <QuestionView
+              current={current}
+              index={index}
+              total={questions.length}
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              selectedOption={selectedOption}
+              setSelectedOption={setSelectedOption}
+              selectedOptions={selectedOptions}
+              handleToggleCheckbox={handleToggleCheckbox}
+              submitted={submitted}
+              lastWasCorrect={lastWasCorrect}
+              canProceed={canProceed}
+              handleSubmitAnswer={handleSubmitAnswer}
+              handleNext={handleNext}
+              resetGame={resetGame}
+            />
           )}
         </section>
       )}
