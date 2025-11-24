@@ -9,6 +9,7 @@ import DifficultyTag from '@/components/DifficultyTag';
 import Card from '@/components/Card';
 import { authStore } from '@/store/authStore';
 import ProfileDiagram from '@/components/ProfileDiagram';
+import { useT } from '@/lib/i18n';
 import { fetchThemeStats } from '@/lib/api';
 
 const UserPage = observer(() => {
@@ -36,6 +37,7 @@ const UserPage = observer(() => {
   }, [isAuthenticated]);
 
   const [statsMap, setStatsMap] = useState<Record<string, any>>({});
+  const t = useT();
 
   useEffect(() => {
     // when themes are loaded, fetch stats for each theme
@@ -75,7 +77,7 @@ const UserPage = observer(() => {
   if (!initialized || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-dark">
-        <p className="text-lg text-light/70">Checking your session...</p>
+        <p className="text-lg text-light/70">{t('dashboard.loadingThemes')}</p>
       </div>
     );
   }
@@ -84,14 +86,13 @@ const UserPage = observer(() => {
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-12 px-6 py-12 sm:px-8 lg:px-12">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
-          Dashboard
+          {t('dashboard.title')}
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
-          Choose your next challenge
+          {t('dashboard.title')}
         </h1>
         <p className="max-w-2xl text-lg text-light/70">
-          Pick one or multiple themes to activate the play mode. You can also craft a
-          custom theme that fits your session.
+          {t('dashboard.subtitle')}
         </p>
       </section>
 
@@ -106,7 +107,7 @@ const UserPage = observer(() => {
       ) : themeStore.themes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
           <p className="text-sm font-medium text-light/50">
-            No themes yet. Create your first theme to get started.
+            {t('dashboard.noThemes')}
           </p>
         </div>
       ) : (
@@ -126,7 +127,7 @@ const UserPage = observer(() => {
                       {theme.description}
                     </p>
                     <p className="text-xs font-medium text-light/50">
-                      {theme.questions} curated questions
+                      {theme.questions} {t('theme.questions')}
                     </p>
                   </div>
 
@@ -142,10 +143,10 @@ const UserPage = observer(() => {
                     onClick={() => themeStore.toggleTheme(theme.id)}
                     className="flex-1 px-5 py-2.5 text-sm"
                   >
-                    {themeStore.isSelected(theme.id) ? 'Selected' : 'Select'}
+                    {themeStore.isSelected(theme.id) ? t('theme.selected') : t('theme.select')}
                   </Button>
-                  <Button variant="ghost" onClick={() => handleEditTheme(theme.id)} className="px-5 py-2.5 text-sm">Edit</Button>
-                  <Button variant="ghost" onClick={() => handleManageQuestions(theme.id)} className="px-5 py-2.5 text-sm">Questions</Button>
+                  <Button variant="ghost" onClick={() => handleEditTheme(theme.id)} className="px-5 py-2.5 text-sm">{t('theme.edit')}</Button>
+                  <Button variant="ghost" onClick={() => handleManageQuestions(theme.id)} className="px-5 py-2.5 text-sm">{t('theme.questions')}</Button>
                 </div>
               </div>
             </Card>
@@ -154,8 +155,8 @@ const UserPage = observer(() => {
       )}
 
       <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-        <Button onClick={handlePlay} disabled={!themeStore.canPlay} className="flex-1 px-8 py-4 text-base">Play</Button>
-        <Button variant="ghost" onClick={handleCreateTheme} className="flex-1 px-8 py-4 text-base">Create Theme</Button>
+        <Button onClick={handlePlay} disabled={!themeStore.canPlay} className="flex-1 px-8 py-4 text-base">{t('dashboard.play')}</Button>
+        <Button variant="ghost" onClick={handleCreateTheme} className="flex-1 px-8 py-4 text-base">{t('dashboard.createTheme')}</Button>
       </section>
     </main>
   );

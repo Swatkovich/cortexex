@@ -7,12 +7,14 @@ import Button from '@/components/Button';
 import { authStore } from '@/store/authStore';
 import { fetchProfileStats } from '@/lib/api';
 import ProfileDiagram from '@/components/ProfileDiagram';
+import { useT } from '@/lib/i18n';
 
 export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null);
+  const t = useT();
 
   useEffect(() => {
     if (!authStore.initialized) {
@@ -41,41 +43,41 @@ export default function ProfilePage() {
     })();
   }, [authStore.isAuthenticated]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen bg-dark"><p className="text-light/70">Loading profile...</p></div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen bg-dark"><p className="text-light/70">{t('profile.loading')}</p></div>;
   if (error) return <div className="p-12 text-center text-red-400">Error: {error}</div>;
 
   return (
     <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-4xl px-6 py-12">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-light">Profile</h1>
+        <h1 className="text-3xl font-bold text-light">{t('profile.title')}</h1>
         <Link href="/user" className="ml-4">
-          <Button variant="ghost" className="px-4 py-2 text-sm">Back to Themes</Button>
+          <Button variant="ghost" className="px-4 py-2 text-sm">{t('profile.backToThemes')}</Button>
         </Link>
       </div>
 
       <section className="mb-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">Games played</h3>
+            <h3 className="text-sm font-semibold text-light/70">{t('profile.gamesPlayed')}</h3>
             <p className="text-2xl font-bold text-light">{stats.totalGames}</p>
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">Questions answered</h3>
+            <h3 className="text-sm font-semibold text-light/70">{t('profile.questionsAnswered')}</h3>
             <p className="text-2xl font-bold text-light">{stats.totalQuestionsAnswered}</p>
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">Best correct in a row</h3>
+            <h3 className="text-sm font-semibold text-light/70">{t('profile.bestStreak')}</h3>
             <p className="text-2xl font-bold text-light">{stats.bestCorrectInRow}</p>
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">Your questions</h3>
+            <h3 className="text-sm font-semibold text-light/70">{t('profile.yourQuestions')}</h3>
             <p className="text-2xl font-bold text-light">{stats.questionsCounts.strict + stats.questionsCounts.nonStrict} total: {stats.questionsCounts.strict} strict / {stats.questionsCounts.nonStrict} non-strict</p>
           </div>
         </div>
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-light mb-4">Knowledge distribution (strict questions)</h2>
+        <h2 className="text-lg font-semibold text-light mb-4">{t('profile.knowledgeDistribution.title')}</h2>
         <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
           <ProfileDiagram counts={stats.knowledgeDistribution} />
         </div>

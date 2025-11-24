@@ -8,8 +8,10 @@ import Button from '@/components/Button';
 import TextInput from '@/components/TextInput';
 import TextArea from '@/components/TextArea';
 import Card from '@/components/Card';
+import { useT } from '@/lib/i18n';
 
 export default function CreateThemePage() {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const themeId = searchParams.get('id');
@@ -71,15 +73,13 @@ export default function CreateThemePage() {
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
       <header className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
-          {isEditMode ? 'Edit Theme' : 'Create Theme'}
+          {isEditMode ? t('createTheme.header.edit') : t('createTheme.header.create')}
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
-          {isEditMode ? 'Update your learning track' : 'Design a new learning track'}
+          {isEditMode ? t('createTheme.title.edit') : t('createTheme.title.create')}
         </h1>
         <p className="max-w-2xl text-lg text-light/70">
-          {isEditMode
-            ? 'Modify the theme details and save your changes.'
-            : 'Define the essentials and immediately make it available on your dashboard.'}
+          {isEditMode ? t('createTheme.subtitle.edit') : t('createTheme.subtitle.create')}
         </p>
       </header>
 
@@ -91,38 +91,38 @@ export default function CreateThemePage() {
 
       {loading && isEditMode && !title ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-lg text-light/70">Loading theme...</p>
+          <p className="text-lg text-light/70">{t('createTheme.loading')}</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-8">
             <div className="space-y-2">
           <label className="block text-sm font-medium text-light">
-            Theme title
+            {t('createTheme.label.title')}
           </label>
-              <TextInput value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Neuro Linguistics" />
+              <TextInput value={title} onChange={(event) => setTitle(event.target.value)} required placeholder={t('createTheme.placeholder.title')} />
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-light">
-            Description
+            {t('createTheme.label.description')}
           </label>
-              <TextArea value={description} onChange={(event) => setDescription(event.target.value)} required rows={4} placeholder="Outline why this topic matters and what to expect." />
+              <TextArea value={description} onChange={(event) => setDescription(event.target.value)} required rows={4} placeholder={t('createTheme.placeholder.description')} />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-light">
-              Difficulty
+              {t('createTheme.label.difficulty')}
             </label>
             <select
               value={difficulty}
               onChange={(event) => setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')}
               className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
             >
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
+              <option value="Easy">{t('createTheme.diff.easy')}</option>
+              <option value="Medium">{t('createTheme.diff.medium')}</option>
+              <option value="Hard">{t('createTheme.diff.hard')}</option>
             </select>
           </div>
 
@@ -130,9 +130,9 @@ export default function CreateThemePage() {
 
             <div className="flex flex-col gap-4 pt-4 sm:flex-row">
               <Button type="submit" disabled={!title.trim() || !description.trim() || loading} className="flex-1 px-8 py-4 text-base">
-                {loading ? 'Saving...' : isEditMode ? 'Update theme' : 'Save theme'}
+                {loading ? t('createTheme.save.saving') : isEditMode ? t('createTheme.save.update') : t('createTheme.save.create')}
               </Button>
-              <Button variant="ghost" onClick={() => router.push('/user')} className="flex-1 px-8 py-4 text-base">Cancel</Button>
+              <Button variant="ghost" onClick={() => router.push('/user')} className="flex-1 px-8 py-4 text-base">{t('createTheme.cancel')}</Button>
             </div>
           </Card>
         </form>

@@ -10,6 +10,7 @@ import TextInput from '@/components/TextInput';
 import TextArea from '@/components/TextArea';
 import Card from '@/components/Card';
 import DifficultyTag from '@/components/DifficultyTag';
+import { useT } from '@/lib/i18n';
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function QuestionsPage() {
   const [answer, setAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const t = useT();
 
   useEffect(() => {
     loadData();
@@ -46,7 +48,7 @@ export default function QuestionsPage() {
       setTheme(themeData);
       setQuestions(themeData.questions || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load theme and questions');
+      setError(err instanceof Error ? err.message : t('questions.notFound'));
     } finally {
       setLoading(false);
     }
@@ -162,7 +164,7 @@ export default function QuestionsPage() {
         if (qType === 'select') {
           const nonEmptySelected = Array.isArray(selectedCorrectOptions) ? selectedCorrectOptions.filter(s => s && s.trim() !== '') : [];
           if (nonEmptySelected.length === 0) {
-            setLocalError('Please select at least one correct option for Select questions.');
+            setLocalError(t('questions.form.validation.select.mustChoose'));
             setSubmittingLocal(false);
             return;
           }
@@ -170,7 +172,7 @@ export default function QuestionsPage() {
 
         if (qType === 'radiobutton') {
           if (!selectedCorrectOptions || selectedCorrectOptions.length === 0 || !selectedCorrectOptions[0] || selectedCorrectOptions[0].trim() === '') {
-            setLocalError('Please choose the correct option for Radio Buttons.');
+            setLocalError(t('questions.form.validation.radio.mustChoose'));
             setSubmittingLocal(false);
             return;
           }
@@ -203,13 +205,13 @@ export default function QuestionsPage() {
         <TextArea value={qText} onChange={(e) => setQText(e.target.value)} rows={2} />
         <div className="grid gap-3 sm:grid-cols-2">
           <select value={qType} onChange={(e) => setQType(e.target.value as any)} className="rounded-lg border border-light/20 bg-dark/50 px-4 py-2 text-base text-light">
-            <option value="input">Text Input</option>
-            <option value="select">Select (multiple)</option>
-            <option value="radiobutton">Radio Buttons</option>
-          </select>
+              <option value="input">{t('questions.form.type.input')}</option>
+              <option value="select">{t('questions.form.type.select')}</option>
+              <option value="radiobutton">{t('questions.form.type.radiobutton')}</option>
+            </select>
           <div className="flex items-center gap-3">
             <input type="checkbox" checked={qIsStrict} onChange={(e) => setQIsStrict(e.target.checked)} className="h-4 w-4" />
-            <span className="text-sm text-light">Strict matching</span>
+            <span className="text-sm text-light">{t('questions.tag.strict')}</span>
           </div>
         </div>
 
@@ -219,7 +221,7 @@ export default function QuestionsPage() {
 
         {(qType === 'select' || qType === 'radiobutton') && (
           <div className="space-y-2">
-            {qOptions.map((opt, idx) => (
+                {qOptions.map((opt, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 {qType === 'radiobutton' ? (
                   <input type="radio" name={`rb-${q.id}`} checked={qCorrectRadioIndex === idx} onChange={() => setQCorrectRadioIndex(idx)} className="h-4 w-4" />
@@ -228,19 +230,19 @@ export default function QuestionsPage() {
                 )}
                 <TextInput value={opt} onChange={(e) => handleOptionChangeLocal(idx, e.target.value)} className="flex-1" />
                 {qOptions.length > 1 && (
-                  <Button variant="ghost" onClick={() => handleRemoveOptionLocal(idx)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-400">Remove</Button>
+                  <Button variant="ghost" onClick={() => handleRemoveOptionLocal(idx)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-400">{t('questions.form.remove')}</Button>
                 )}
               </div>
             ))}
-            <Button variant="ghost" onClick={handleAddOptionLocal} className="rounded-lg border border-light/20 px-3 py-1 text-sm">+ Add Option</Button>
+            <Button variant="ghost" onClick={handleAddOptionLocal} className="rounded-lg border border-light/20 px-3 py-1 text-sm">{t('questions.form.addOption')}</Button>
           </div>
         )}
 
         {localError && <div className="text-sm text-red-400">{localError}</div>}
 
         <div className="flex gap-3">
-          <Button type="submit" disabled={submittingLocal} className="px-4 py-2 text-sm">Save</Button>
-          <Button variant="ghost" onClick={() => { setEditingId(null); }} className="px-4 py-2 text-sm">Cancel</Button>
+          <Button type="submit" disabled={submittingLocal} className="px-4 py-2 text-sm">{t('questions.form.save.save')}</Button>
+          <Button variant="ghost" onClick={() => { setEditingId(null); }} className="px-4 py-2 text-sm">{t('questions.form.cancel')}</Button>
         </div>
       </form>
     );
@@ -264,7 +266,7 @@ export default function QuestionsPage() {
       if (questionType === 'select') {
         const nonEmptySelected = Array.isArray(selectedCorrectOptions) ? selectedCorrectOptions.filter(s => s && s.trim() !== '') : [];
         if (nonEmptySelected.length === 0) {
-          setFormError('Please select at least one correct option for Select questions.');
+          setFormError(t('questions.form.validation.select.mustChoose'));
           setSubmitting(false);
           return;
         }
@@ -272,7 +274,7 @@ export default function QuestionsPage() {
 
       if (questionType === 'radiobutton') {
         if (!selectedCorrectOptions || selectedCorrectOptions.length === 0 || !selectedCorrectOptions[0] || selectedCorrectOptions[0].trim() === '') {
-          setFormError('Please choose the correct option for Radio Buttons.');
+          setFormError(t('questions.form.validation.radio.mustChoose'));
           setSubmitting(false);
           return;
         }
@@ -304,7 +306,7 @@ export default function QuestionsPage() {
   };
 
   const handleDelete = async (questionId: string) => {
-    if (!confirm('Are you sure you want to delete this question?')) {
+    if (!confirm(t('questions.delete.confirm'))) {
       return;
     }
 
@@ -322,7 +324,7 @@ export default function QuestionsPage() {
     return (
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
         <div className="flex items-center justify-center py-12">
-          <p className="text-lg text-light/70">Loading questions...</p>
+          <p className="text-lg text-light/70">{t('questions.loading')}</p>
         </div>
       </main>
     );
@@ -332,7 +334,7 @@ export default function QuestionsPage() {
     return (
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
-          <p className="text-red-400">Theme not found</p>
+          <p className="text-red-400">{t('questions.notFound')}</p>
         </div>
       </main>
     );
@@ -341,10 +343,10 @@ export default function QuestionsPage() {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
       <header className="space-y-3">
-        <Button variant="ghost" onClick={() => router.push('/user')} className="inline-flex items-center justify-center px-4 py-2 text-sm">← Back to Themes</Button>
+        <Button variant="ghost" onClick={() => router.push('/user')} className="inline-flex items-center justify-center px-4 py-2 text-sm">{t('questions.backToThemes')}</Button>
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
-            Manage Questions
+            {t('questions.manage.header')}
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
             {theme.title}
@@ -364,12 +366,12 @@ export default function QuestionsPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
         <p className="text-sm text-light/60">
-          {questions.length} {questions.length === 1 ? 'question' : 'questions'}
+          {questions.length} {questions.length === 1 ? t('questions.count.single') : t('questions.count.plural')}
         </p>
         {!showAddForm && (
-          <Button onClick={() => setShowAddForm(true)} className="px-6 py-3 text-base">Add Question</Button>
+          <Button onClick={() => setShowAddForm(true)} className="px-6 py-3 text-base">{t('questions.add')}</Button>
         )}
       </div>
 
@@ -380,21 +382,21 @@ export default function QuestionsPage() {
         >
           <div className="space-y-2">
             <label className="block text-sm font-medium text-light">
-              Question Text
+              {t('questions.form.label.text')}
             </label>
             <TextArea
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
               required
               rows={3}
-              placeholder="Enter your question here..."
+              placeholder={t('questions.form.placeholder.text')}
             />
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-light">
-                Question Type
+                {t('questions.form.label.type')}
               </label>
               <select
                 value={questionType}
@@ -413,15 +415,15 @@ export default function QuestionsPage() {
                 }}
                 className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
               >
-                <option value="input">Text Input</option>
-                <option value="select">Select (multiple)</option>
-                <option value="radiobutton">Radio Buttons</option>
+                <option value="input">{t('questions.form.type.input')}</option>
+                <option value="select">{t('questions.form.type.select')}</option>
+                <option value="radiobutton">{t('questions.form.type.radiobutton')}</option>
               </select>
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-light">
-                Answer Validation
+                {t('questions.form.label.validation')}
               </label>
               <div className="flex items-center gap-3 pt-3">
                 <input
@@ -432,7 +434,7 @@ export default function QuestionsPage() {
                   className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
                 />
                 <label htmlFor="isStrict" className="text-sm text-light">
-                  Strict matching (exact answer required. Casing is ignored.)
+                  {t('questions.form.strict')}
                 </label>
               </div>
             </div>
@@ -441,17 +443,17 @@ export default function QuestionsPage() {
           {questionType === 'input' && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-light">
-                Correct Answer
+                {t('questions.form.label.correctAnswer')}
               </label>
               <TextInput
                 type="text"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 required={questionType === 'input'}
-                placeholder="Enter the correct answer..."
+                placeholder={t('questions.form.placeholder.answer')}
               />
               <p className="text-xs text-light/50">
-                This is the expected answer for this question.
+                {t('questions.form.label.correctAnswer')}
               </p>
             </div>
           )}
@@ -459,7 +461,7 @@ export default function QuestionsPage() {
           {(questionType === 'select' || questionType === 'radiobutton') && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-light">
-                Options {questionType === 'select' ? '(for select / multi-select)' : '(for radio buttons)'}
+                {t('questions.form.options.label')} {questionType === 'select' ? `(${t('questions.form.type.select')})` : `(${t('questions.form.type.radiobutton')})`}
               </label>
               {options.map((option, index) => (
                 <div key={index} className="flex items-center gap-3">
@@ -485,15 +487,15 @@ export default function QuestionsPage() {
                     onChange={(e) => handleOptionChange(index, e.target.value)}
                     required={questionType === 'select' || questionType === 'radiobutton'}
                     className="flex-1"
-                    placeholder={`Option ${index + 1}`}
+                    placeholder={`${t('questions.form.options.placeholder')} ${index + 1}`}
                   />
 
                   {options.length > 1 && (
-                    <Button variant="ghost" onClick={() => handleRemoveOption(index)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">Remove</Button>
+                    <Button variant="ghost" onClick={() => handleRemoveOption(index)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{t('questions.form.remove')}</Button>
                   )}
                 </div>
               ))}
-              <Button variant="ghost" onClick={handleAddOption} className="rounded-lg border border-light/20 px-4 py-2 text-sm">+ Add Option</Button>
+              <Button variant="ghost" onClick={handleAddOption} className="rounded-lg border border-light/20 px-4 py-2 text-sm">{t('questions.form.addOption')}</Button>
               {formError && (
                 <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
                   <p className="text-sm text-red-400">{formError}</p>
@@ -502,7 +504,7 @@ export default function QuestionsPage() {
             </div>
           )}
 
-          <div className="flex flex-col gap-4 pt-4 sm:flex-row">
+            <div className="flex flex-col gap-4 pt-4 sm:flex-row">
             <Button
               type="submit"
               disabled={
@@ -515,9 +517,9 @@ export default function QuestionsPage() {
               }
               className="flex-1 px-8 py-4 text-base"
             >
-              {submitting ? 'Saving...' : 'Add Question'}
+              {submitting ? t('questions.form.save.saving') : t('questions.form.save.add')}
             </Button>
-            <Button variant="ghost" onClick={resetForm} className="flex-1 px-8 py-4 text-base">Cancel</Button>
+            <Button variant="ghost" onClick={resetForm} className="flex-1 px-8 py-4 text-base">{t('questions.form.cancel')}</Button>
           </div>
         </form>
       )}
@@ -526,7 +528,7 @@ export default function QuestionsPage() {
         {questions.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
             <p className="text-sm font-medium text-light/50">
-              No questions yet. Add your first question to get started.
+              {t('questions.empty')}
             </p>
           </div>
         ) : (
@@ -543,22 +545,22 @@ export default function QuestionsPage() {
                       </span>
                       {question.is_strict && (
                         <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">
-                          Strict
+                          {t('questions.tag.strict')}
                         </span>
                       )}
                     </div>
                     <p className="text-base font-medium text-light">{question.question_text}</p>
                     {question.question_type === 'input' && question.answer && (
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-light/50">Correct Answer:</p>
-                        <p className="text-sm text-light/70 font-mono bg-dark/50 px-3 py-2 rounded border border-light/10">
-                          {question.answer}
-                        </p>
-                      </div>
+                            <p className="text-xs font-medium text-light/50">{t('questions.form.label.correctAnswer')}:</p>
+                            <p className="text-sm text-light/70 font-mono bg-dark/50 px-3 py-2 rounded border border-light/10">
+                              {question.answer}
+                            </p>
+                          </div>
                     )}
                     {question.options && question.options.length > 0 && (
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-light/50">Options:</p>
+                        <p className="text-xs font-medium text-light/50">{t('questions.form.options.label')}:</p>
                         <ul className="list-disc list-inside space-y-1 text-sm text-light/70">
                           {question.options.map((option, idx) => (
                             <li key={idx}>{option}</li>
@@ -568,8 +570,8 @@ export default function QuestionsPage() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" onClick={() => { setEditingId(question.id); setShowAddForm(false); }} className="px-4 py-2 text-sm">Edit</Button>
-                    <Button variant="ghost" onClick={() => handleDelete(question.id)} className="px-4 py-2 text-sm text-red-400 border-red-500/20">Delete</Button>
+                    <Button variant="ghost" onClick={() => { setEditingId(question.id); setShowAddForm(false); }} className="px-4 py-2 text-sm">{t('questions.button.edit')}</Button>
+                    <Button variant="ghost" onClick={() => handleDelete(question.id)} className="px-4 py-2 text-sm text-red-400 border-red-500/20">{t('questions.button.delete')}</Button>
                   </div>
                 </div>
               )}

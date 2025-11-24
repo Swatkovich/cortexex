@@ -1,10 +1,12 @@
 "use client"
 
+import { useT } from '@/lib/i18n';
 import React from 'react';
 
 export default function ProfileDiagram({ counts }: { counts: { dontKnow: number; know: number; wellKnow: number; perfectlyKnow: number } }) {
   const { dontKnow, know, wellKnow, perfectlyKnow } = counts;
   const total = dontKnow + know + wellKnow + perfectlyKnow;
+  const t = useT();
 
   const size = 128;
   const stroke = 16;
@@ -52,15 +54,15 @@ export default function ProfileDiagram({ counts }: { counts: { dontKnow: number;
         </svg>
 
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-dark/50 flex items-center justify-center text-sm font-semibold text-light">
-          {total === 0 ? '—' : `${Math.round((perfectlyKnow / total) * 100)}%`}
+          {total === 0 ? '—' : `${Math.round(((perfectlyKnow) / Math.max(1, total)) * 100)}%`}
         </div>
       </div>
 
       <div className="text-sm text-light/70">
-        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-gray-400 mr-2 align-middle" />Don't know: {dontKnow}</div>
-        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-orange-400 mr-2 align-middle" />Know: {know}</div>
-        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-yellow-300 mr-2 align-middle" />Well know: {wellKnow}</div>
-        <div><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />Perfectly know: {perfectlyKnow}</div>
+        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-gray-400 mr-2 align-middle" />{t('diagram.dont')}:  {dontKnow}</div>
+        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-orange-400 mr-2 align-middle" />{t('diagram.know')}: {know}</div>
+        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-yellow-300 mr-2 align-middle" />{t('diagram.well')}: {wellKnow}</div>
+        <div><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />{t('diagram.perfectly')}: {perfectlyKnow}</div>
       </div>
     </div>
   );
