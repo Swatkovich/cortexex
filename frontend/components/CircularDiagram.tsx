@@ -50,7 +50,7 @@ export default function CircularDiagram({ questions, userAnswers }: { questions:
             <circle r={radius} cx={size / 2} cy={size / 2} fill="transparent" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
             {segment(dashG, '#34d399', 'g')}
             {segment(dashR, '#f87171', 'r')}
-            {segment(dashY, '#f59e0b', 'y')}
+            {segment(dashY, '#fbbf24', 'y')}
           </g>
         </svg>
 

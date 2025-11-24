@@ -43,9 +43,9 @@ const Navigation = observer(() => {
           </Link>
           {authStore.isAuthenticated ? (
             <div className="flex items-center gap-6">
-              <span className="text-base font-bold text-light/90">
+              <Link href="/user/profile" className="text-base font-bold text-light/90 hover:underline">
                 {authStore.user?.name}
-              </span>
+              </Link>
               <button
                 type="button"
                 onClick={() => authStore.logout()}

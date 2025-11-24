@@ -53,6 +53,21 @@ export async function fetchProfile() {
   }
 }
 
+export async function fetchProfileStats() {
+  try {
+    const response = await apiClient.get('/auth/profile/stats');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        throw new Error('Unauthorized');
+      }
+    }
+    handleError(error, 'Failed to load profile stats');
+  }
+}
+
 export async function logout() {
   try {
     const response = await apiClient.post('/auth/logout');
