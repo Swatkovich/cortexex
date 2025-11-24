@@ -47,6 +47,7 @@ const PlayPage = observer(() => {
 
   const [submitted, setSubmitted] = useState(false);
   const [lastWasCorrect, setLastWasCorrect] = useState<boolean | null>(null);
+  const [resultSent, setResultSent] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -198,6 +199,7 @@ const PlayPage = observer(() => {
     setSelectedOption(null);
     setSelectedOptions({});
     setPassed(0);
+    setResultSent(false);
   };
 
   // DifficultyTag and the circular results visualization were extracted to components
@@ -213,6 +215,7 @@ const PlayPage = observer(() => {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch (err) {}
+    setResultSent(false);
   };
 
   const current = questions[index];
@@ -294,6 +297,35 @@ const PlayPage = observer(() => {
     setSelectedOption(null);
     setSelectedOptions({});
   };
+
+  // When results view opens, send the session summary to backend once.
+  useEffect(() => {
+    if (!showResults || resultSent) return;
+
+    const questionsAnswered = questions.length;
+    const correctAnswers = Object.values(userAnswers).filter(a => a.isCorrect === true).length;
+
+    // compute max correct-in-row based on question order
+    let maxStreak = 0;
+    let cur = 0;
+    for (const q of questions) {
+      const ua = userAnswers[q.id];
+      if (ua?.isCorrect === true) {
+        cur += 1;
+        if (cur > maxStreak) maxStreak = cur;
+      } else {
+        cur = 0;
+      }
+    }
+
+    const perQuestion = questions.map(q => ({ questionId: q.id, isCorrect: userAnswers[q.id]?.isCorrect ?? null }));
+
+    // fire-and-forget, don't block UI; mark sent whether it succeeds to avoid duplicates
+    api.postGameResult({ questionsAnswered, correctAnswers, maxCorrectInRow: maxStreak, perQuestion })
+      .catch(() => {})
+      .finally(() => setResultSent(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showResults]);
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-4xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">

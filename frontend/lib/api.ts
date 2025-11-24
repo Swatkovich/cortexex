@@ -68,6 +68,15 @@ export async function fetchProfileStats() {
   }
 }
 
+export async function postGameResult(data: { questionsAnswered: number; correctAnswers: number; maxCorrectInRow: number; perQuestion: Array<{ questionId: string; isCorrect: boolean | null }> }) {
+  try {
+    const response = await apiClient.post('/auth/profile/stats', data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to post game result');
+  }
+}
+
 export async function logout() {
   try {
     const response = await apiClient.post('/auth/logout');
