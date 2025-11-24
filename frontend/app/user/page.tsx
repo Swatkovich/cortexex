@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
@@ -8,6 +8,8 @@ import Button from '@/components/Button';
 import DifficultyTag from '@/components/DifficultyTag';
 import Card from '@/components/Card';
 import { authStore } from '@/store/authStore';
+import ProfileDiagram from '@/components/ProfileDiagram';
+import { fetchThemeStats } from '@/lib/api';
 
 const UserPage = observer(() => {
   const router = useRouter();
@@ -32,6 +34,24 @@ const UserPage = observer(() => {
       themeStore.fetchThemes();
     }
   }, [isAuthenticated]);
+
+  const [statsMap, setStatsMap] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    // when themes are loaded, fetch stats for each theme
+    if (themeStore.initialized && themeStore.themes.length > 0) {
+      const ids = themeStore.themes.map(t => t.id);
+      Promise.allSettled(ids.map(id => fetchThemeStats(id))).then(results => {
+        const map: Record<string, any> = {};
+        results.forEach((r, idx) => {
+          if (r.status === 'fulfilled' && r.value) {
+            map[ids[idx]] = r.value;
+          }
+        });
+        setStatsMap(map);
+      });
+    }
+  }, [themeStore.initialized, themeStore.themes]);
 
   const handlePlay = () => {
     if (!themeStore.canPlay) {
@@ -94,19 +114,26 @@ const UserPage = observer(() => {
           {themeStore.themes.map((theme) => (
             <Card key={theme.id} className="group bg-dark-hover/50 p-6 hover:border-light/50">
               <div className="flex flex-col gap-5">
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <DifficultyTag d={theme.difficulty} />
+                <div className="flex items-start justify-between gap-5">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <DifficultyTag d={theme.difficulty} />
+                    </div>
+                    <h2 className="text-xl font-bold text-light">
+                      {theme.title}
+                    </h2>
+                    <p className="text-sm leading-relaxed text-light/70">
+                      {theme.description}
+                    </p>
+                    <p className="text-xs font-medium text-light/50">
+                      {theme.questions} curated questions
+                    </p>
                   </div>
-                  <h2 className="text-xl font-bold text-light">
-                    {theme.title}
-                  </h2>
-                  <p className="text-sm leading-relaxed text-light/70">
-                    {theme.description}
-                  </p>
-                  <p className="text-xs font-medium text-light/50">
-                    {theme.questions} curated questions
-                  </p>
+
+                  <div className="shrink-0">
+                    {/* Per-theme diagram */}
+                    <ProfileDiagram counts={statsMap[theme.id]?.knowledgeDistribution || { dontKnow: 0, know: 0, wellKnow: 0, perfectlyKnow: 0 }} />
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3">

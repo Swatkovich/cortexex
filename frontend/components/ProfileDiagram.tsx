@@ -52,7 +52,7 @@ export default function ProfileDiagram({ counts }: { counts: { dontKnow: number;
         </svg>
 
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-dark/50 flex items-center justify-center text-sm font-semibold text-light">
-          {total === 0 ? '—' : `${Math.round(((perfectlyKnow + wellKnow + know) / Math.max(1, total)) * 100)}%`}
+          {total === 0 ? '—' : `${Math.round((perfectlyKnow / total) * 100)}%`}
         </div>
       </div>
 

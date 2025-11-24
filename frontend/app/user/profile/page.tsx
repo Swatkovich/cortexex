@@ -69,7 +69,7 @@ export default function ProfilePage() {
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
             <h3 className="text-sm font-semibold text-light/70">Your questions</h3>
-            <p className="text-2xl font-bold text-light">{stats.questionsCounts.strict} strict / {stats.questionsCounts.nonStrict} non-strict</p>
+            <p className="text-2xl font-bold text-light">{stats.questionsCounts.strict + stats.questionsCounts.nonStrict} total: {stats.questionsCounts.strict} strict / {stats.questionsCounts.nonStrict} non-strict</p>
           </div>
         </div>
       </section>

@@ -105,6 +105,15 @@ export async function fetchTheme(id: string): Promise<Theme & { questions?: Ques
   }
 }
 
+export async function fetchThemeStats(themeId: string) {
+  try {
+    const response = await apiClient.get(`/auth/theme/${themeId}/stats`);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to fetch theme stats');
+  }
+}
+
 export async function createTheme(data: CreateThemeDto): Promise<Theme> {
   try {
     const response = await apiClient.post('/themes', data);

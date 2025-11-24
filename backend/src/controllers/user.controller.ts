@@ -97,3 +97,58 @@ export const postGameResult = async (req: AuthRequest, res: Response) => {
 
     return res.status(201).json({ message: 'Game result recorded' });
 }
+
+// Returns knowledge distribution and question counts for a single theme for the authenticated user
+export const getThemeStats = async (req: AuthRequest, res: Response) => {
+    const userId = req.userId!;
+    const themeId = req.params.id;
+
+    if (!themeId) return res.status(400).json({ message: 'Missing theme id' });
+
+    // Count questions in the theme
+    const qCountsRes = await pool.query(
+        `SELECT
+            COUNT(*) FILTER (WHERE q.is_strict) AS strict_questions,
+            COUNT(*) FILTER (WHERE NOT q.is_strict) AS non_strict_questions
+         FROM questions q
+         WHERE q.theme_id = $1`,
+        [themeId]
+    );
+    const qCounts = qCountsRes.rows[0] || { strict_questions: 0, non_strict_questions: 0 };
+
+    // Knowledge distribution for strict questions in this theme.
+    // We include only strict questions and treat missing user_question_stats entries as 'dontKnow'.
+    const distRes = await pool.query(
+        `SELECT uqs.knowledge_level::int AS level, COUNT(*)::int AS cnt
+         FROM user_question_stats uqs
+         JOIN questions q ON q.id = uqs.question_id
+         WHERE uqs.user_id = $1 AND q.theme_id = $2 AND q.is_strict = true
+         GROUP BY uqs.knowledge_level`,
+        [userId, themeId]
+    );
+
+    const distribution = { 0: 0, 1: 0, 2: 0, 3: 0 } as Record<number, number>;
+    for (const row of distRes.rows) {
+        const lvl = Number(row.level);
+        distribution[lvl] = Number(row.cnt);
+    }
+
+    const totalStrict = Number(qCounts.strict_questions || 0);
+    const counted = (distribution[0] || 0) + (distribution[1] || 0) + (distribution[2] || 0) + (distribution[3] || 0);
+    const missing = Math.max(0, totalStrict - counted);
+    // Treat missing (no stats) as dontKnow
+    distribution[0] = (distribution[0] || 0) + missing;
+
+    return res.status(200).json({
+        questionsCounts: {
+            strict: totalStrict,
+            nonStrict: Number(qCounts.non_strict_questions || 0),
+        },
+        knowledgeDistribution: {
+            dontKnow: distribution[0] || 0,
+            know: distribution[1] || 0,
+            wellKnow: distribution[2] || 0,
+            perfectlyKnow: distribution[3] || 0,
+        }
+    });
+}
