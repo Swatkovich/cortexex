@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Button from '@/components/Button';
 import { authStore } from '@/store/authStore';
 import { fetchProfileStats } from '@/lib/api';
 import ProfileDiagram from '@/components/ProfileDiagram';
@@ -44,7 +46,12 @@ export default function ProfilePage() {
 
   return (
     <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-4xl px-6 py-12">
-      <h1 className="text-3xl font-bold text-light mb-6">Profile</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-light">Profile</h1>
+        <Link href="/user" className="ml-4">
+          <Button variant="ghost" className="px-4 py-2 text-sm">Back to Themes</Button>
+        </Link>
+      </div>
 
       <section className="mb-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

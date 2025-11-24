@@ -190,7 +190,14 @@ const PlayPage = observer(() => {
   const startGame = () => {
     const source = includeNonStrict ? availableQuestions : availableQuestions.filter((q) => q.is_strict);
     const pool = shuffle(source).slice(0, Math.min(count, source.length));
-    setQuestions(pool);
+    // For questions that have options (radiobutton/select), randomize option order per question
+    const poolWithShuffledOptions = pool.map((q) => {
+      if (q.options && Array.isArray(q.options) && q.options.length > 1) {
+        return { ...q, options: shuffle([...q.options]) };
+      }
+      return q;
+    });
+    setQuestions(poolWithShuffledOptions);
     setIndex(0);
     setPlaying(true);
     setSubmitted(false);
@@ -382,6 +389,7 @@ const PlayPage = observer(() => {
               strictAvailable={strictAvailable}
               loading={loading}
               startGame={startGame}
+              onBack={() => { try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {} ; router.push('/user'); }}
             />
           ) : (
             <QuestionView
@@ -403,17 +411,6 @@ const PlayPage = observer(() => {
             />
           )}
         </section>
-      )}
-
-      {!playing && !showResults && (
-        <div className="mt-auto flex items-center justify-between">
-          <Link
-            href="/user"
-            className="inline-flex items-center justify-center rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5"
-          >
-            Back to Themes
-          </Link>
-        </div>
       )}
     </main>
   );
