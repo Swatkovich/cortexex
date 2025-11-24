@@ -256,8 +256,8 @@ const PlayPage = observer(() => {
 
     if (current.question_type === 'input' && current.answer) {
       const user = (answerVal as string) || '';
-      const correct = current.answer.trim();
-      isCorrect = user.toLowerCase() === correct.toLowerCase();
+      const normalize = (s: string) => s.trim().toLowerCase();
+      isCorrect = normalize(user) === normalize(current.answer);
     } else if ((current.question_type === 'radiobutton' || current.question_type === 'select') && current.correct_options && current.correct_options.length > 0) {
       // grade based on correct_options
       if (current.question_type === 'radiobutton') {

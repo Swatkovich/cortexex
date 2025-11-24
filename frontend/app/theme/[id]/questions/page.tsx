@@ -26,7 +26,7 @@ export default function QuestionsPage() {
   // Form state
   const [questionText, setQuestionText] = useState('');
   const [questionType, setQuestionType] = useState<'input' | 'select' | 'radiobutton'>('input');
-  const [isStrict, setIsStrict] = useState(false);
+  const [isStrict, setIsStrict] = useState(true);
   const [options, setOptions] = useState<string[]>(['']);
   const [correctIndices, setCorrectIndices] = useState<Record<number, boolean>>({});
   const [correctRadioIndex, setCorrectRadioIndex] = useState<number | null>(null);
@@ -432,7 +432,7 @@ export default function QuestionsPage() {
                   className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
                 />
                 <label htmlFor="isStrict" className="text-sm text-light">
-                  Strict matching (exact answer required)
+                  Strict matching (exact answer required. Casing is ignored.)
                 </label>
               </div>
             </div>
