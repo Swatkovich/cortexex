@@ -42,9 +42,25 @@ export default function ResultsView(props: {
               {q.correct_options && q.correct_options.length > 0 && (
                 <div className="text-xs text-light/50 mt-1">Correct options: {q.correct_options.join(', ')}</div>
               )}
-              <div className={`mt-2 text-sm ${ua?.isCorrect === true ? 'text-green-400' : ua?.isCorrect === false ? 'text-red-400' : 'text-light/60'}`}>
-                {ua?.isCorrect === true ? 'Correct' : ua?.isCorrect === false ? 'Incorrect' : 'Recorded'}
-              </div>
+              <div
+  className={`mt-2 text-sm ${
+    ua?.isCorrect === true
+      ? q.is_strict
+        ? 'text-green-400'  // strict + correct
+        : 'text-yellow-400' // non-strict + correct
+      : ua?.isCorrect === false
+        ? 'text-red-400'    // incorrect
+        : 'text-light/60'   // unanswered
+  }`}
+>
+  {ua?.isCorrect === true
+    ? q.is_strict
+      ? 'Correct'
+      : 'Non-strict'
+    : ua?.isCorrect === false
+      ? 'Incorrect'
+      : 'Recorded'}
+</div>
             </div>
           );
         })}
