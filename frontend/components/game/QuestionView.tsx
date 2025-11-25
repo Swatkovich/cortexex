@@ -26,6 +26,58 @@ export default function QuestionView(props: {
   const { current, index, total, inputValue, setInputValue, selectedOption, setSelectedOption, selectedOptions, handleToggleCheckbox, submitted, lastWasCorrect, canProceed, handleSubmitAnswer, handleNext, resetGame } = props;
   const t = useT();
 
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const firstSelectRef = React.useRef<HTMLInputElement | null>(null);
+  const nextButtonRef = React.useRef<HTMLButtonElement | null>(null);
+
+  const hasAnswer = React.useMemo(() => {
+    if (!current) return false;
+    if (current.question_type === 'input') {
+      return inputValue.trim().length > 0;
+    }
+    if (current.question_type === 'radiobutton') {
+      return Boolean(selectedOption);
+    }
+    if (current.question_type === 'select') {
+      return Object.values(selectedOptions).some(Boolean);
+    }
+    return false;
+  }, [current, inputValue, selectedOption, selectedOptions]);
+
+  const handleKeyboardFlow = React.useCallback(
+    (event: React.KeyboardEvent<HTMLElement>) => {
+      if (event.key !== 'Enter') return;
+
+      if (canProceed) {
+        event.preventDefault();
+        handleNext();
+        return;
+      }
+
+      if (hasAnswer) {
+        event.preventDefault();
+        handleSubmitAnswer();
+      }
+    },
+    [canProceed, handleNext, hasAnswer, handleSubmitAnswer]
+  );
+
+  React.useEffect(() => {
+    if (canProceed || !current) return;
+
+    if (current.question_type === 'input') {
+      inputRef.current?.focus();
+    } else if (current.question_type === 'select') {
+      firstSelectRef.current?.focus();
+    }
+  }, [current?.id, current?.question_type, canProceed]);
+
+  React.useEffect(() => {
+    if (canProceed) {
+      nextButtonRef.current?.focus();
+    }
+  }, [canProceed]);
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
@@ -42,11 +94,13 @@ export default function QuestionView(props: {
         {current?.question_type === 'input' && (
           <div>
             <TextInput
+              ref={inputRef}
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={t('game.question.inputPlaceholder')}
               disabled={canProceed}
+              onKeyDown={handleKeyboardFlow}
             />
           </div>
         )}
@@ -62,6 +116,7 @@ export default function QuestionView(props: {
                   onChange={() => setSelectedOption(opt)}
                   className="h-4 w-4"
                   disabled={canProceed}
+                  onKeyDown={handleKeyboardFlow}
                 />
                 <span className="text-light">{opt}</span>
               </label>
@@ -74,11 +129,13 @@ export default function QuestionView(props: {
             {current.options?.map((opt, i) => (
               <label key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
                 <input
+                  ref={i === 0 ? firstSelectRef : undefined}
                   type="checkbox"
                   checked={!!selectedOptions[i]}
                   onChange={() => handleToggleCheckbox(i)}
                   className="h-4 w-4"
                   disabled={canProceed}
+                  onKeyDown={handleKeyboardFlow}
                 />
                 <span className="text-light">{opt}</span>
               </label>
@@ -89,7 +146,16 @@ export default function QuestionView(props: {
         <div className="mt-6 flex gap-3">
           <Button onClick={handleSubmitAnswer} disabled={canProceed} className="px-6 py-3 text-base">{t('game.question.submit')}</Button>
 
-          <Button variant="ghost" onClick={handleNext} disabled={!canProceed} className="px-6 py-3 text-base">{t('game.question.next')}</Button>
+          <Button
+            ref={nextButtonRef}
+            variant="ghost"
+            onClick={handleNext}
+            disabled={!canProceed}
+            className="px-6 py-3 text-base"
+            onKeyDown={handleKeyboardFlow}
+          >
+            {t('game.question.next')}
+          </Button>
         </div>
 
         {submitted && (

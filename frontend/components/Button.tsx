@@ -4,7 +4,7 @@ import React from 'react';
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'ghost' | 'danger' };
 
-export default function Button({ variant = 'primary', className = '', children, ...rest }: Props) {
+const Button = React.forwardRef<HTMLButtonElement, Props>(({ variant = 'primary', className = '', children, ...rest }, ref) => {
   const base = 'rounded-xl px-6 py-3 font-semibold disabled:opacity-50';
   const variants: Record<string, string> = {
     primary: 'bg-light text-dark',
@@ -13,8 +13,12 @@ export default function Button({ variant = 'primary', className = '', children, 
   };
 
   return (
-    <button className={`${base} ${variants[variant] ?? variants.primary} ${className}`} {...rest}>
+    <button ref={ref} className={`${base} ${variants[variant] ?? variants.primary} ${className}`} {...rest}>
       {children}
     </button>
   );
-}
+});
+
+Button.displayName = 'Button';
+
+export default Button;
