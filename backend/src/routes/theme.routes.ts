@@ -7,7 +7,10 @@ import {
     deleteTheme,
     createQuestion,
     updateQuestion,
-    deleteQuestion
+    deleteQuestion,
+    createLanguageEntry,
+    updateLanguageEntry,
+    deleteLanguageEntry
 } from "../controllers/theme.controller";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { authMiddleware } from "../middleware/authMiddleware";
@@ -28,6 +31,11 @@ router.delete("/:id", asyncHandler(deleteTheme));
 router.post("/:themeId/questions", asyncHandler(createQuestion));
 router.put("/:themeId/questions/:questionId", asyncHandler(updateQuestion));
 router.delete("/:themeId/questions/:questionId", asyncHandler(deleteQuestion));
+
+// Language entries routes
+router.post("/:themeId/language-entries", asyncHandler(createLanguageEntry));
+router.put("/:themeId/language-entries/:entryId", asyncHandler(updateLanguageEntry));
+router.delete("/:themeId/language-entries/:entryId", asyncHandler(deleteLanguageEntry));
 
 export default router;
 

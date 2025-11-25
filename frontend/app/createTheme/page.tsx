@@ -23,6 +23,7 @@ export default function CreateThemePage() {
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Easy');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLanguageTopic, setIsLanguageTopic] = useState(false);
   const ERROR_MAP: Record<string, string> = {
     'Failed to fetch theme': 'createTheme.error.load',
     'Failed to load theme': 'createTheme.error.load',
@@ -43,6 +44,7 @@ export default function CreateThemePage() {
           setTitle(theme.title);
           setDescription(theme.description);
           setDifficulty(theme.difficulty);
+          setIsLanguageTopic(!!theme.is_language_topic);
         } catch (err) {
           setError(err instanceof Error ? err.message : 'createTheme.error.load');
         } finally {
@@ -64,12 +66,14 @@ export default function CreateThemePage() {
           title: title.trim(),
           description: description.trim(),
           difficulty,
+          is_language_topic: isLanguageTopic,
         });
       } else {
         await themeStore.addTheme({
           title: title.trim(),
           description: description.trim(),
           difficulty,
+          is_language_topic: isLanguageTopic,
         });
       }
       router.push('/user');
@@ -135,7 +139,26 @@ export default function CreateThemePage() {
               <option value="Hard">{t('createTheme.diff.hard')}</option>
             </select>
           </div>
-
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-light">
+              {t('createTheme.label.languageTopic')}
+            </label>
+            <div className="flex items-center gap-3 rounded-lg border border-light/20 bg-dark/40 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={isLanguageTopic}
+                onChange={(event) => setIsLanguageTopic(event.target.checked)}
+                className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
+                id="languageTopicToggle"
+              />
+              <label htmlFor="languageTopicToggle" className="text-sm text-light/80">
+                {t('createTheme.languageTopic.toggle')}
+              </label>
+            </div>
+            <p className="text-xs text-light/50">
+              {t('createTheme.languageTopic.helper')}
+            </p>
+          </div>
         </div>
 
             <div className="flex flex-col gap-4 pt-4 sm:flex-row">

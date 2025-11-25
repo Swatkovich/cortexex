@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import * as api from '@/lib/api';
 import { themeStore } from '@/store/themeStore';
-import { Question, CreateQuestionDto, Theme } from '@/lib/interface';
+import { Question, CreateQuestionDto, Theme, LanguageEntry } from '@/lib/interface';
 import Button from '@/components/Button';
 import TextInput from '@/components/TextInput';
 import TextArea from '@/components/TextArea';
@@ -20,6 +20,7 @@ export default function QuestionsPage() {
 
   const [theme, setTheme] = useState<Theme | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [languageEntries, setLanguageEntries] = useState<LanguageEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -35,6 +36,12 @@ export default function QuestionsPage() {
   const [answer, setAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [entryWord, setEntryWord] = useState('');
+  const [entryDescription, setEntryDescription] = useState('');
+  const [entryTranslation, setEntryTranslation] = useState('');
+  const [languageSubmitting, setLanguageSubmitting] = useState(false);
+  const [languageError, setLanguageError] = useState<string | null>(null);
+  const [languageEditingId, setLanguageEditingId] = useState<string | null>(null);
   const t = useT();
   const QUESTION_ERROR_MAP: Record<string, string> = {
     'Failed to save question': 'questions.error.save',
@@ -46,6 +53,12 @@ export default function QuestionsPage() {
     'questions.error.update': 'questions.error.update',
     'questions.error.delete': 'questions.error.delete',
     'questions.notFound': 'questions.notFound',
+    'Failed to create language entry': 'questions.language.error.save',
+    'Failed to update language entry': 'questions.language.error.update',
+    'Failed to delete language entry': 'questions.language.error.delete',
+    'questions.language.error.save': 'questions.language.error.save',
+    'questions.language.error.update': 'questions.language.error.update',
+    'questions.language.error.delete': 'questions.language.error.delete',
   };
   const getQuestionTypeLabel = (type: string) => {
     if (type === 'input') return t('questions.form.type.input');
@@ -65,6 +78,7 @@ export default function QuestionsPage() {
       const themeData = await api.fetchTheme(themeId);
       setTheme(themeData);
       setQuestions(themeData.questions || []);
+      setLanguageEntries(themeData.language_entries || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'questions.notFound');
     } finally {
@@ -114,6 +128,14 @@ export default function QuestionsPage() {
     setCorrectIndices({});
     setCorrectRadioIndex(null);
     setAnswer('');
+    setShowAddForm(false);
+  };
+
+  const resetLanguageForm = () => {
+    setEntryWord('');
+    setEntryDescription('');
+    setEntryTranslation('');
+    setLanguageError(null);
     setShowAddForm(false);
   };
 
@@ -266,6 +288,104 @@ export default function QuestionsPage() {
     );
   };
 
+  const InlineLanguageEntryForm = ({ entry, onDone }: { entry: LanguageEntry; onDone: (updated: LanguageEntry) => void }) => {
+    const [wordValue, setWordValue] = useState(entry.word);
+    const [descriptionValue, setDescriptionValue] = useState(entry.description || '');
+    const [translationValue, setTranslationValue] = useState(entry.translation);
+    const [submittingLocal, setSubmittingLocal] = useState(false);
+    const [localError, setLocalError] = useState<string | null>(null);
+
+    const handleSubmitLocal = async (e?: FormEvent) => {
+      e?.preventDefault();
+      setSubmittingLocal(true);
+      setLocalError(null);
+      try {
+        if (!wordValue.trim() || !translationValue.trim()) {
+          setLocalError(t('questions.language.validation.required'));
+          setSubmittingLocal(false);
+          return;
+        }
+        const payload = {
+          word: wordValue.trim(),
+          translation: translationValue.trim(),
+          description: descriptionValue.trim() ? descriptionValue.trim() : undefined,
+        };
+        const updated = await api.updateLanguageEntry(themeId, entry.id, payload);
+        onDone(updated as LanguageEntry);
+        setLanguageEditingId(null);
+      } catch (err) {
+        setLocalError(err instanceof Error ? err.message : 'questions.language.error.update');
+      } finally {
+        setSubmittingLocal(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmitLocal} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-light/60">{t('questions.language.wordLabel')}</label>
+            <TextInput value={wordValue} onChange={(e) => setWordValue(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-light/60">{t('questions.language.translationLabel')}</label>
+            <TextInput value={translationValue} onChange={(e) => setTranslationValue(e.target.value)} required />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-light/60">{t('questions.language.descriptionLabel')}</label>
+          <TextArea value={descriptionValue} onChange={(e) => setDescriptionValue(e.target.value)} rows={2} />
+        </div>
+        {localError && <div className="text-sm text-red-400">{resolveErrorMessage(localError, QUESTION_ERROR_MAP, t) ?? localError}</div>}
+        <div className="flex gap-3">
+          <Button type="submit" disabled={submittingLocal} className="px-4 py-2 text-sm">{t('questions.form.save.save')}</Button>
+          <Button variant="ghost" onClick={() => { setLanguageEditingId(null); }} className="px-4 py-2 text-sm">{t('questions.form.cancel')}</Button>
+        </div>
+      </form>
+    );
+  };
+
+  const handleLanguageSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLanguageSubmitting(true);
+    setLanguageError(null);
+
+    if (!entryWord.trim() || !entryTranslation.trim()) {
+      setLanguageError(t('questions.language.validation.required'));
+      setLanguageSubmitting(false);
+      return;
+    }
+
+    try {
+      const payload = {
+        word: entryWord.trim(),
+        translation: entryTranslation.trim(),
+        description: entryDescription.trim() ? entryDescription.trim() : undefined,
+      };
+      await api.createLanguageEntry(themeId, payload);
+      await themeStore.fetchThemes();
+      resetLanguageForm();
+      await loadData();
+    } catch (err) {
+      setLanguageError(err instanceof Error ? err.message : 'questions.language.error.save');
+    } finally {
+      setLanguageSubmitting(false);
+    }
+  };
+
+  const handleDeleteLanguageEntry = async (entryId: string) => {
+    if (!confirm(t('questions.language.deleteConfirm'))) {
+      return;
+    }
+    try {
+      await api.deleteLanguageEntry(themeId, entryId);
+      await themeStore.fetchThemes();
+      await loadData();
+    } catch (err) {
+      setLanguageError(err instanceof Error ? err.message : 'questions.language.error.delete');
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -358,6 +478,12 @@ export default function QuestionsPage() {
     );
   }
 
+  const isLanguageTopic = Boolean(theme?.is_language_topic);
+  const listCount = isLanguageTopic ? languageEntries.length : questions.length;
+  const countLabel = isLanguageTopic
+    ? (listCount === 1 ? t('questions.language.count.single') : t('questions.language.count.plural'))
+    : (listCount === 1 ? t('questions.count.single') : t('questions.count.plural'));
+
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
       <header className="space-y-3">
@@ -369,11 +495,16 @@ export default function QuestionsPage() {
           <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
             {theme.title}
           </h1>
-          <div className="mt-2 flex items-center gap-4">
+          <div className="mt-2 flex flex-wrap items-center gap-4">
             <p className="text-lg text-light/70">{theme.description}</p>
             <div>
               <DifficultyTag d={theme.difficulty} />
             </div>
+            {isLanguageTopic && (
+              <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-300">
+                {t('questions.language.tag')}
+              </span>
+            )}
           </div>
         </div>
       </header>
@@ -384,166 +515,264 @@ export default function QuestionsPage() {
         </div>
       )}
 
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <p className="text-sm text-light/60">
-          {questions.length} {questions.length === 1 ? t('questions.count.single') : t('questions.count.plural')}
+          {listCount} {countLabel}
         </p>
         {!showAddForm && (
-          <Button onClick={() => setShowAddForm(true)} className="px-6 py-3 text-base">{t('questions.add')}</Button>
+          <Button onClick={() => setShowAddForm(true)} className="px-6 py-3 text-base">
+            {isLanguageTopic ? t('questions.language.add') : t('questions.add')}
+          </Button>
         )}
       </div>
 
       {showAddForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm"
-        >
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-light">
-              {t('questions.form.label.text')}
-            </label>
-            <TextArea
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              required
-              rows={3}
-              placeholder={t('questions.form.placeholder.text')}
-            />
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-light">
-                {t('questions.form.label.type')}
-              </label>
-              <select
-                value={questionType}
-                onChange={(e) => {
-                  const newType = e.target.value as 'input' | 'select' | 'radiobutton';
-                  setQuestionType(newType);
-                  if (newType === 'input') {
-                    setOptions(['']);
-                    // Keep answer field for input type
-                  } else {
-                    setAnswer('');
-                    if (options.length === 0 || (options.length === 1 && options[0] === '')) {
-                      setOptions(['']);
-                    }
-                  }
-                }}
-                className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
-              >
-                <option value="input">{t('questions.form.type.input')}</option>
-                <option value="select">{t('questions.form.type.select')}</option>
-                <option value="radiobutton">{t('questions.form.type.radiobutton')}</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-light">
-                {t('questions.form.label.validation')}
-              </label>
-              <div className="flex items-center gap-3 pt-3">
-                <input
-                  type="checkbox"
-                  id="isStrict"
-                  checked={isStrict}
-                  onChange={(e) => setIsStrict(e.target.checked)}
-                  className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
-                />
-                <label htmlFor="isStrict" className="text-sm text-light">
-                  {t('questions.form.strict')}
+        isLanguageTopic ? (
+          <form
+            onSubmit={handleLanguageSubmit}
+            className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm"
+          >
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-light">
+                  {t('questions.language.wordLabel')}
                 </label>
+                <TextInput
+                  value={entryWord}
+                  onChange={(e) => setEntryWord(e.target.value)}
+                  required
+                  placeholder={t('questions.language.wordPlaceholder')}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-light">
+                  {t('questions.language.translationLabel')}
+                </label>
+                <TextInput
+                  value={entryTranslation}
+                  onChange={(e) => setEntryTranslation(e.target.value)}
+                  required
+                  placeholder={t('questions.language.translationPlaceholder')}
+                />
               </div>
             </div>
-          </div>
-
-          {questionType === 'input' && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-light">
-                {t('questions.form.label.correctAnswer')}
+                {t('questions.language.descriptionLabel')}
               </label>
-              <TextInput
-                type="text"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                required={questionType === 'input'}
-                placeholder={t('questions.form.placeholder.answer')}
+              <TextArea
+                value={entryDescription}
+                onChange={(e) => setEntryDescription(e.target.value)}
+                rows={3}
+                placeholder={t('questions.language.descriptionPlaceholder')}
               />
               <p className="text-xs text-light/50">
-                {t('questions.form.label.correctAnswer')}
+                {t('questions.language.descriptionHelper')}
               </p>
             </div>
-          )}
-
-          {(questionType === 'select' || questionType === 'radiobutton') && (
+            {languageError && (
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+                <p className="text-red-400 text-sm">{resolveErrorMessage(languageError, QUESTION_ERROR_MAP, t) ?? languageError}</p>
+              </div>
+            )}
+            <div className="flex flex-col gap-4 pt-4 sm:flex-row">
+              <Button
+                type="submit"
+                disabled={languageSubmitting || !entryWord.trim() || !entryTranslation.trim()}
+                className="flex-1 px-8 py-4 text-base"
+              >
+                {languageSubmitting ? t('questions.language.form.saving') : t('questions.language.form.add')}
+              </Button>
+              <Button type="button" variant="ghost" onClick={resetLanguageForm} className="flex-1 px-8 py-4 text-base">{t('questions.form.cancel')}</Button>
+            </div>
+          </form>
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm"
+          >
             <div className="space-y-2">
               <label className="block text-sm font-medium text-light">
-                {t('questions.form.options.label')} {questionType === 'select' ? `(${t('questions.form.type.select')})` : `(${t('questions.form.type.radiobutton')})`}
+                {t('questions.form.label.text')}
               </label>
-              {options.map((option, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  {questionType === 'radiobutton' ? (
-                    <input
-                      type="radio"
-                      name="correctRadio"
-                      checked={correctRadioIndex === index}
-                      onChange={() => setCorrectRadioIndex(index)}
-                      className="h-4 w-4"
-                    />
-                  ) : questionType === 'select' ? (
-                    <input
-                      type="checkbox"
-                      checked={!!correctIndices[index]}
-                      onChange={() => toggleCorrectIndex(index)}
-                      className="h-4 w-4"
-                    />
-                  ) : null}
-
-                  <TextInput
-                    value={option}
-                    onChange={(e) => handleOptionChange(index, e.target.value)}
-                    required={questionType === 'select' || questionType === 'radiobutton'}
-                    className="flex-1"
-                    placeholder={`${t('questions.form.options.placeholder')} ${index + 1}`}
-                  />
-
-                  {options.length > 1 && (
-                    <Button variant="ghost" onClick={() => handleRemoveOption(index)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{t('questions.form.remove')}</Button>
-                  )}
-                </div>
-              ))}
-              <Button variant="ghost" onClick={handleAddOption} className="rounded-lg border border-light/20 px-4 py-2 text-sm">{t('questions.form.addOption')}</Button>
-              {formError && (
-                <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
-                  <p className="text-sm text-red-400">{formError}</p>
-                </div>
-              )}
+              <TextArea
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
+                required
+                rows={3}
+                placeholder={t('questions.form.placeholder.text')}
+              />
             </div>
-          )}
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-light">
+                  {t('questions.form.label.type')}
+                </label>
+                <select
+                  value={questionType}
+                  onChange={(e) => {
+                    const newType = e.target.value as 'input' | 'select' | 'radiobutton';
+                    setQuestionType(newType);
+                    if (newType === 'input') {
+                      setOptions(['']);
+                    } else {
+                      setAnswer('');
+                      if (options.length === 0 || (options.length === 1 && options[0] === '')) {
+                        setOptions(['']);
+                      }
+                    }
+                  }}
+                  className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+                >
+                  <option value="input">{t('questions.form.type.input')}</option>
+                  <option value="select">{t('questions.form.type.select')}</option>
+                  <option value="radiobutton">{t('questions.form.type.radiobutton')}</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-light">
+                  {t('questions.form.label.validation')}
+                </label>
+                <div className="flex items-center gap-3 pt-3">
+                  <input
+                    type="checkbox"
+                    id="isStrict"
+                    checked={isStrict}
+                    onChange={(e) => setIsStrict(e.target.checked)}
+                    className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
+                  />
+                  <label htmlFor="isStrict" className="text-sm text-light">
+                    {t('questions.form.strict')}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {questionType === 'input' && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-light">
+                  {t('questions.form.label.correctAnswer')}
+                </label>
+                <TextInput
+                  type="text"
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  required={questionType === 'input'}
+                  placeholder={t('questions.form.placeholder.answer')}
+                />
+                <p className="text-xs text-light/50">
+                  {t('questions.form.label.correctAnswer')}
+                </p>
+              </div>
+            )}
+
+            {(questionType === 'select' || questionType === 'radiobutton') && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-light">
+                  {t('questions.form.options.label')} {questionType === 'select' ? `(${t('questions.form.type.select')})` : `(${t('questions.form.type.radiobutton')})`}
+                </label>
+                {options.map((option, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    {questionType === 'radiobutton' ? (
+                      <input
+                        type="radio"
+                        name="correctRadio"
+                        checked={correctRadioIndex === index}
+                        onChange={() => setCorrectRadioIndex(index)}
+                        className="h-4 w-4"
+                      />
+                    ) : questionType === 'select' ? (
+                      <input
+                        type="checkbox"
+                        checked={!!correctIndices[index]}
+                        onChange={() => toggleCorrectIndex(index)}
+                        className="h-4 w-4"
+                      />
+                    ) : null}
+
+                    <TextInput
+                      value={option}
+                      onChange={(e) => handleOptionChange(index, e.target.value)}
+                      required={questionType === 'select' || questionType === 'radiobutton'}
+                      className="flex-1"
+                      placeholder={`${t('questions.form.options.placeholder')} ${index + 1}`}
+                    />
+
+                    {options.length > 1 && (
+                      <Button variant="ghost" onClick={() => handleRemoveOption(index)} className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{t('questions.form.remove')}</Button>
+                    )}
+                  </div>
+                ))}
+                <Button variant="ghost" onClick={handleAddOption} className="rounded-lg border border-light/20 px-4 py-2 text-sm">{t('questions.form.addOption')}</Button>
+                {formError && (
+                  <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
+                    <p className="text-sm text-red-400">{formError}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col gap-4 pt-4 sm:flex-row">
-            <Button
-              type="submit"
-              disabled={
-                submitting || 
-                !questionText.trim() || 
-                (questionType === 'input' && !answer.trim()) ||
-                (questionType !== 'input' && options.filter(opt => opt.trim() !== '').length === 0) ||
-                (questionType === 'select' && Object.keys(correctIndices).filter(k => correctIndices[Number(k)]).length === 0) ||
-                (questionType === 'radiobutton' && correctRadioIndex === null)
-              }
-              className="flex-1 px-8 py-4 text-base"
-            >
-              {submitting ? t('questions.form.save.saving') : t('questions.form.save.add')}
-            </Button>
-            <Button variant="ghost" onClick={resetForm} className="flex-1 px-8 py-4 text-base">{t('questions.form.cancel')}</Button>
-          </div>
-        </form>
+              <Button
+                type="submit"
+                disabled={
+                  submitting || 
+                  !questionText.trim() || 
+                  (questionType === 'input' && !answer.trim()) ||
+                  (questionType !== 'input' && options.filter(opt => opt.trim() !== '').length === 0) ||
+                  (questionType === 'select' && Object.keys(correctIndices).filter(k => correctIndices[Number(k)]).length === 0) ||
+                  (questionType === 'radiobutton' && correctRadioIndex === null)
+                }
+                className="flex-1 px-8 py-4 text-base"
+              >
+                {submitting ? t('questions.form.save.saving') : t('questions.form.save.add')}
+              </Button>
+              <Button variant="ghost" onClick={resetForm} className="flex-1 px-8 py-4 text-base">{t('questions.form.cancel')}</Button>
+            </div>
+          </form>
+        )
       )}
 
       <section className="space-y-4">
-        {questions.length === 0 ? (
+        {isLanguageTopic ? (
+          languageEntries.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
+              <p className="text-sm font-medium text-light/50">
+                {t('questions.language.empty')}
+              </p>
+            </div>
+          ) : (
+            languageEntries.map((entry) => (
+              <Card key={entry.id} className="bg-dark-hover/50 p-6">
+                {languageEditingId === entry.id ? (
+                  <InlineLanguageEntryForm
+                    entry={entry}
+                    onDone={(updated) => {
+                      setLanguageEntries(prev => prev.map(item => item.id === updated.id ? updated : item));
+                      setLanguageEditingId(null);
+                    }}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1 space-y-2">
+                      <div className="text-lg font-semibold text-light">{entry.word}</div>
+                      <div className="text-sm text-light/70">{entry.translation}</div>
+                      {entry.description && (
+                        <p className="text-xs text-light/50">{entry.description}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" onClick={() => { setLanguageEditingId(entry.id); setShowAddForm(false); }} className="px-4 py-2 text-sm">{t('questions.button.edit')}</Button>
+                      <Button variant="ghost" onClick={() => handleDeleteLanguageEntry(entry.id)} className="px-4 py-2 text-sm text-red-400 border-red-500/20">{t('questions.button.delete')}</Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))
+          )
+        ) : questions.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
             <p className="text-sm font-medium text-light/50">
               {t('questions.empty')}
@@ -570,11 +799,11 @@ export default function QuestionsPage() {
                     <p className="text-base font-medium text-light">{question.question_text}</p>
                     {question.question_type === 'input' && question.answer && (
                       <div className="space-y-1">
-                            <p className="text-xs font-medium text-light/50">{t('questions.form.label.correctAnswer')}:</p>
-                            <p className="text-sm text-light/70 font-mono bg-dark/50 px-3 py-2 rounded border border-light/10">
-                              {question.answer}
-                            </p>
-                          </div>
+                        <p className="text-xs font-medium text-light/50">{t('questions.form.label.correctAnswer')}:</p>
+                        <p className="text-sm text-light/70 font-mono bg-dark/50 px-3 py-2 rounded border border-light/10">
+                          {question.answer}
+                        </p>
+                      </div>
                     )}
                     {question.options && question.options.length > 0 && (
                       <div className="space-y-1">

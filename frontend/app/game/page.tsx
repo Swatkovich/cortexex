@@ -5,7 +5,7 @@ import { themeStore } from '@/store/themeStore';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import * as api from '@/lib/api';
-import { Question } from '@/lib/interface';
+import { Question, LanguageEntry } from '@/lib/interface';
 import GameSetup from '@/components/game/GameSetup';
 import QuestionView from '@/components/game/QuestionView';
 import ResultsView from '@/components/game/ResultsView';
@@ -18,17 +18,84 @@ function shuffle<T>(arr: T[]) {
     .map((a) => a.value);
 }
 
+const clamp = (value: number, min: number, max: number) => {
+  if (Number.isNaN(value)) return min;
+  return Math.max(min, Math.min(value, max));
+};
+
+const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
+  const sanitized = entries.filter((entry) => entry.word?.trim() && entry.translation?.trim());
+  if (sanitized.length === 0) {
+    return [];
+  }
+  const words = sanitized.map((entry) => entry.word);
+
+  const questions: Question[] = [];
+
+  sanitized.forEach((entry) => {
+    const displayWord = entry.description ? `${entry.word} (${entry.description})` : entry.word;
+    questions.push({
+      id: `${entry.id}-word`,
+      theme_id: entry.theme_id,
+      question_text: displayWord,
+      question_type: 'input',
+      is_strict: true,
+      options: null,
+      answer: entry.translation,
+      correct_options: null,
+    });
+
+    if (words.length > 1) {
+      const distractors = shuffle(words.filter((word) => word !== entry.word)).slice(0, Math.min(3, words.length - 1));
+      const options = shuffle([entry.word, ...distractors]);
+      questions.push({
+        id: `${entry.id}-choice`,
+        theme_id: entry.theme_id,
+        question_text: entry.translation,
+        question_type: 'radiobutton',
+        is_strict: true,
+        options,
+        answer: null,
+        correct_options: [entry.word],
+      });
+    } else {
+      questions.push({
+        id: `${entry.id}-reverse`,
+        theme_id: entry.theme_id,
+        question_text: entry.translation,
+        question_type: 'input',
+        is_strict: true,
+        options: null,
+        answer: entry.word,
+        correct_options: null,
+      });
+    }
+  });
+
+  return questions;
+};
+
+const estimateLanguageQuestionCount = (entries: LanguageEntry[]) => {
+  if (!entries.length) return 0;
+  return entries.length * 2;
+};
+
 const PlayPage = observer(() => {
   const selected = themeStore.selectedThemes;
   const selectedIds = themeStore.selectedThemeIds;
   const [isClient, setIsClient] = useState(false);
   const t = useT();
 
-  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
-  const [count, setCount] = useState<number>(5);
+  const [classicQuestions, setClassicQuestions] = useState<Question[]>([]);
+  const [languageEntries, setLanguageEntries] = useState<LanguageEntry[]>([]);
+  const [classicCount, setClassicCount] = useState<number>(5);
+  const [languageCount, setLanguageCount] = useState<number>(5);
   const [loading, setLoading] = useState(false);
   const [includeNonStrict, setIncludeNonStrict] = useState<boolean>(true);
   const [blindMode, setBlindMode] = useState<boolean>(false);
+  const [mode, setMode] = useState<'classic' | 'language'>('classic');
+  const [sessionMode, setSessionMode] = useState<'classic' | 'language'>('classic');
+  const [languageModeEligible, setLanguageModeEligible] = useState(false);
 
   const [playing, setPlaying] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -92,40 +159,41 @@ const PlayPage = observer(() => {
     // and after hydration we prefer `selectedIds` (persisted ids) to avoid mismatch between server and client.
     const load = async () => {
       const useIds = isClient;
-      if (useIds) {
-        if (!selectedIds || selectedIds.length === 0) {
-          setAvailableQuestions([]);
-          return;
-        }
-      } else {
-        if (!selected || selected.length === 0) {
-          setAvailableQuestions([]);
-          return;
-        }
+      const idsToLoad = useIds ? selectedIds : selected.map((t) => t.id);
+      if (!idsToLoad || idsToLoad.length === 0) {
+        setClassicQuestions([]);
+        setLanguageEntries([]);
+        setLanguageModeEligible(false);
+        return;
       }
 
       setLoading(true);
       try {
-        const all: Question[] = [];
-        if (useIds) {
-          for (const id of selectedIds) {
-            const data = await api.fetchTheme(id);
-            if (data.questions && Array.isArray(data.questions)) {
-              all.push(...data.questions);
-            }
-          }
-        } else {
-          for (const t of selected) {
-            const data = await api.fetchTheme(t.id);
-            if (data.questions && Array.isArray(data.questions)) {
-              all.push(...data.questions);
-            }
-          }
-        }
-        setAvailableQuestions(all);
-        setCount(all.length || 1);
+        const payloads = await Promise.all(idsToLoad.map((id) => api.fetchTheme(id)));
+        const allQuestions = payloads.flatMap((data) => (Array.isArray(data.questions) ? data.questions : []));
+        setClassicQuestions(allQuestions);
+
+        const maxClassic = Math.max(1, allQuestions.length || 1);
+        setClassicCount((prev) => {
+          const base = prev && prev > 0 ? prev : Math.min(5, maxClassic);
+          return clamp(base, 1, maxClassic);
+        });
+
+        const allLanguage = payloads.length > 0 && payloads.every((data) => data.is_language_topic);
+        setLanguageModeEligible(allLanguage);
+        const entries = payloads.flatMap((data) => (Array.isArray(data.language_entries) ? data.language_entries : []));
+        const usableEntries = allLanguage ? entries : [];
+        setLanguageEntries(usableEntries);
+        const languageMax = estimateLanguageQuestionCount(usableEntries);
+        setLanguageCount((prev) => {
+          if (languageMax === 0) return 1;
+          const base = prev && prev > 0 ? prev : Math.min(5, languageMax);
+          return clamp(base, 1, Math.max(1, languageMax));
+        });
       } catch (err) {
-        setAvailableQuestions([]);
+        setClassicQuestions([]);
+        setLanguageEntries([]);
+        setLanguageModeEligible(false);
       } finally {
         setLoading(false);
       }
@@ -133,6 +201,19 @@ const PlayPage = observer(() => {
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient, selectedIds, selected]);
+
+  useEffect(() => {
+    if (includeNonStrict) return;
+    const strictOnly = classicQuestions.filter((q) => q.is_strict).length;
+    const maxStrict = Math.max(1, strictOnly || 1);
+    setClassicCount((prev) => clamp(prev, 1, maxStrict));
+  }, [includeNonStrict, classicQuestions]);
+
+  useEffect(() => {
+    if (!languageModeEligible && mode === 'language') {
+      setMode('classic');
+    }
+  }, [languageModeEligible, mode]);
 
   // Persist game state to sessionStorage so a reload doesn't kill the session
   const STORAGE_KEY = 'cortexex_gameState';
@@ -145,6 +226,22 @@ const PlayPage = observer(() => {
         const s = JSON.parse(raw);
         if (s && typeof s === 'object') {
           // Basic validation
+          if (typeof s.mode === 'string' && (s.mode === 'classic' || s.mode === 'language')) {
+            setMode(s.mode);
+          }
+          if (typeof s.sessionMode === 'string' && (s.sessionMode === 'classic' || s.sessionMode === 'language')) {
+            setSessionMode(s.sessionMode);
+          } else if (typeof s.mode === 'string' && (s.mode === 'classic' || s.mode === 'language')) {
+            setSessionMode(s.mode);
+          }
+          if (typeof s.classicCount === 'number') {
+            setClassicCount(s.classicCount);
+          } else if (typeof s.count === 'number') {
+            setClassicCount(s.count);
+          }
+          if (typeof s.languageCount === 'number') {
+            setLanguageCount(s.languageCount);
+          }
           if (Array.isArray(s.questions) && s.questions.length > 0) {
             setQuestions(s.questions);
             setIndex(typeof s.index === 'number' ? s.index : 0);
@@ -195,6 +292,11 @@ const PlayPage = observer(() => {
         selectedThemeIds: (themeStore as any).selectedThemeIds || [],
         includeNonStrict,
         blindMode,
+        count: classicCount,
+        mode,
+        classicCount,
+        sessionMode,
+        languageCount,
       };
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (err) {
@@ -202,21 +304,38 @@ const PlayPage = observer(() => {
     }
   }, [playing, questions, index, submitted, inputValue, selectedOption, selectedOptions, userAnswers, passed, showResults, lastWasCorrect, includeNonStrict, blindMode]);
 
-  const totalAvailable = availableQuestions.length;
-  const strictAvailable = availableQuestions.filter((q) => q.is_strict).length;
-  const effectiveAvailable = includeNonStrict ? totalAvailable : strictAvailable;
+  const totalClassicAvailable = classicQuestions.length;
+  const strictClassicAvailable = classicQuestions.filter((q) => q.is_strict).length;
+  const effectiveClassicAvailable = includeNonStrict ? totalClassicAvailable : strictClassicAvailable;
+  const languageAvailable = estimateLanguageQuestionCount(languageEntries);
+  const activeCount = mode === 'classic' ? classicCount : languageCount;
 
-  const startGame = () => {
-    const source = includeNonStrict ? availableQuestions : availableQuestions.filter((q) => q.is_strict);
-    const pool = shuffle(source).slice(0, Math.min(count, source.length));
-    // For questions that have options (radiobutton/select), randomize option order per question
-    const poolWithShuffledOptions = pool.map((q) => {
+  const shuffleQuestionOptions = (list: Question[]) =>
+    list.map((q) => {
       if (q.options && Array.isArray(q.options) && q.options.length > 1) {
         return { ...q, options: shuffle([...q.options]) };
       }
       return q;
     });
-    setQuestions(poolWithShuffledOptions);
+
+  const startGame = () => {
+    let prepared: Question[] = [];
+
+    if (mode === 'language') {
+      if (!languageModeEligible) return;
+      const pool = buildLanguageQuestionPool(languageEntries);
+      if (pool.length === 0) return;
+      const limited = shuffle(pool).slice(0, Math.min(languageCount, pool.length));
+      prepared = shuffleQuestionOptions(limited);
+    } else {
+      const source = includeNonStrict ? classicQuestions : classicQuestions.filter((q) => q.is_strict);
+      if (source.length === 0) return;
+      const limited = shuffle(source).slice(0, Math.min(classicCount, source.length));
+      prepared = shuffleQuestionOptions(limited);
+    }
+
+    setQuestions(prepared);
+    setSessionMode(mode);
     setIndex(0);
     setPlaying(true);
     setSubmitted(false);
@@ -344,7 +463,9 @@ const PlayPage = observer(() => {
       }
     }
 
-    const perQuestion = questions.map(q => ({ questionId: q.id, isCorrect: userAnswers[q.id]?.isCorrect ?? null }));
+    const perQuestion = sessionMode === 'language'
+      ? []
+      : questions.map(q => ({ questionId: q.id, isCorrect: userAnswers[q.id]?.isCorrect ?? null }));
 
     // fire-and-forget, don't block UI; mark sent whether it succeeds to avoid duplicates
     api.postGameResult({ questionsAnswered, correctAnswers, maxCorrectInRow: maxStreak, perQuestion })
@@ -381,21 +502,31 @@ const PlayPage = observer(() => {
           ) : !playing ? (
             <GameSetup
               selected={selected}
-              count={count}
-              setCount={setCount}
+              count={activeCount}
+              setCount={(value) => {
+                if (mode === 'classic') {
+                  setClassicCount(value);
+                } else {
+                  setLanguageCount(value);
+                }
+              }}
               includeNonStrict={includeNonStrict}
               setIncludeNonStrict={(v) => {
                 setIncludeNonStrict(v);
                 if (!v) {
-                  const strictCount = availableQuestions.filter((q) => q.is_strict).length || 1;
-                  setCount((c) => Math.min(c, strictCount));
+                  const strictCount = classicQuestions.filter((q) => q.is_strict).length || 1;
+                  setClassicCount((c) => Math.min(c, strictCount));
                 }
               }}
               blindMode={blindMode}
               setBlindMode={setBlindMode}
-              effectiveAvailable={effectiveAvailable}
-              totalAvailable={totalAvailable}
-              strictAvailable={strictAvailable}
+              effectiveAvailable={effectiveClassicAvailable}
+              totalAvailable={totalClassicAvailable}
+              strictAvailable={strictClassicAvailable}
+              mode={mode}
+              setMode={setMode}
+              languageModeEnabled={languageModeEligible}
+              languageAvailable={languageAvailable}
               loading={loading}
               startGame={startGame}
               onBack={() => { try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {} ; router.push('/user'); }}

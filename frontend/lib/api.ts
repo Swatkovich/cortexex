@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { CreateThemeDto, Theme, UpdateThemeDto, Question, CreateQuestionDto, UpdateQuestionDto, GlobalStats } from './interface';
+import { CreateThemeDto, Theme, UpdateThemeDto, Question, CreateQuestionDto, UpdateQuestionDto, GlobalStats, LanguageEntry, CreateLanguageEntryDto, UpdateLanguageEntryDto } from './interface';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -105,7 +105,7 @@ export async function fetchThemes(): Promise<Theme[]> {
   }
 }
 
-export async function fetchTheme(id: string): Promise<Theme & { questions?: Question[] }> {
+export async function fetchTheme(id: string): Promise<Theme & { questions?: Question[]; language_entries?: LanguageEntry[] }> {
   try {
     const response = await apiClient.get(`/themes/${id}`);
     return response.data;
@@ -173,5 +173,31 @@ export async function deleteQuestion(themeId: string, questionId: string): Promi
     await apiClient.delete(`/themes/${themeId}/questions/${questionId}`);
   } catch (error) {
     handleError(error, 'Failed to delete question');
+  }
+}
+
+export async function createLanguageEntry(themeId: string, data: CreateLanguageEntryDto): Promise<LanguageEntry> {
+  try {
+    const response = await apiClient.post(`/themes/${themeId}/language-entries`, data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to create language entry');
+  }
+}
+
+export async function updateLanguageEntry(themeId: string, entryId: string, data: UpdateLanguageEntryDto): Promise<LanguageEntry> {
+  try {
+    const response = await apiClient.put(`/themes/${themeId}/language-entries/${entryId}`, data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to update language entry');
+  }
+}
+
+export async function deleteLanguageEntry(themeId: string, entryId: string): Promise<void> {
+  try {
+    await apiClient.delete(`/themes/${themeId}/language-entries/${entryId}`);
+  } catch (error) {
+    handleError(error, 'Failed to delete language entry');
   }
 }

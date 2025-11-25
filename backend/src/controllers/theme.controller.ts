@@ -2,7 +2,7 @@ import { Response } from "express";
 import { randomUUID } from "crypto";
 import { pool } from "../db";
 import { AuthRequest } from "../types/auth";
-import { CreateThemeDto, UpdateThemeDto, CreateQuestionDto, UpdateQuestionDto } from "../types/theme";
+import { CreateThemeDto, UpdateThemeDto, CreateQuestionDto, UpdateQuestionDto, CreateLanguageEntryDto, UpdateLanguageEntryDto } from "../types/theme";
 import { safeParseJson } from "../utils/json";
 
 // Get all themes for the authenticated user
@@ -16,9 +16,12 @@ export const getThemes = async (req: AuthRequest, res: Response) => {
             t.title,
             t.description,
             t.difficulty,
-            COUNT(q.id) as questions_count
+            t.is_language_topic,
+            COUNT(DISTINCT q.id) as questions_count,
+            COUNT(DISTINCT le.id) as language_entries_count
         FROM themes t
         LEFT JOIN questions q ON t.id = q.theme_id
+        LEFT JOIN language_entries le ON t.id = le.theme_id
         WHERE t.user_id = $1
         GROUP BY t.id`,
         [userId]
@@ -30,7 +33,9 @@ export const getThemes = async (req: AuthRequest, res: Response) => {
         title: row.title,
         description: row.description,
         difficulty: row.difficulty,
-        questions: parseInt(row.questions_count) || 0
+        is_language_topic: row.is_language_topic,
+        language_entries_count: parseInt(row.language_entries_count) || 0,
+        questions: row.is_language_topic ? (parseInt(row.language_entries_count) || 0) : (parseInt(row.questions_count) || 0)
     }));
 
     return res.status(200).json(themes);
@@ -59,6 +64,14 @@ export const getTheme = async (req: AuthRequest, res: Response) => {
         [id]
     );
 
+    const languageEntriesResult = await pool.query(
+        `SELECT id, theme_id, word, description, translation
+         FROM language_entries
+         WHERE theme_id = $1
+         ORDER BY created_at ASC`,
+        [id]
+    );
+
     return res.status(200).json({
         ...theme,
         questions: questionsResult.rows.map(q => ({
@@ -70,6 +83,13 @@ export const getTheme = async (req: AuthRequest, res: Response) => {
             options: safeParseJson(q.options),
             answer: q.answer || null,
             correct_options: safeParseJson(q.correct_options),
+        })),
+        language_entries: languageEntriesResult.rows.map(entry => ({
+            id: entry.id,
+            theme_id: entry.theme_id,
+            word: entry.word,
+            description: entry.description,
+            translation: entry.translation
         }))
     });
 };
@@ -77,7 +97,7 @@ export const getTheme = async (req: AuthRequest, res: Response) => {
 // Create a new theme
 export const createTheme = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
-    const { title, description, difficulty }: CreateThemeDto = req.body;
+    const { title, description, difficulty, is_language_topic }: CreateThemeDto = req.body;
 
     if (!title || !description || !difficulty) {
         return res.status(400).json({ message: "Title, description, and difficulty are required" });
@@ -87,18 +107,22 @@ export const createTheme = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: "Difficulty must be Easy, Medium, or Hard" });
     }
 
+    const isLanguageTopic = typeof is_language_topic === 'boolean' ? is_language_topic : false;
+
     const id = randomUUID();
 
     const result = await pool.query(
-        `INSERT INTO themes (id, user_id, title, description, difficulty)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO themes (id, user_id, title, description, difficulty, is_language_topic)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [id, userId, title, description, difficulty]
+        [id, userId, title, description, difficulty, isLanguageTopic]
     );
 
     return res.status(201).json({
         ...result.rows[0],
-        questions: 0
+        questions: 0,
+        language_entries: [],
+        language_entries_count: 0
     });
 };
 
@@ -106,7 +130,7 @@ export const createTheme = async (req: AuthRequest, res: Response) => {
 export const updateTheme = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { id } = req.params;
-    const { title, description, difficulty }: UpdateThemeDto = req.body;
+    const { title, description, difficulty, is_language_topic }: UpdateThemeDto = req.body;
 
     // Check if theme exists and belongs to user
     const existingResult = await pool.query(
@@ -138,6 +162,10 @@ export const updateTheme = async (req: AuthRequest, res: Response) => {
         updates.push(`difficulty = $${paramCount++}`);
         values.push(difficulty);
     }
+    if (is_language_topic !== undefined) {
+        updates.push(`is_language_topic = $${paramCount++}`);
+        values.push(!!is_language_topic);
+    }
 
     if (updates.length === 0) {
         return res.status(400).json({ message: "No fields to update" });
@@ -153,15 +181,25 @@ export const updateTheme = async (req: AuthRequest, res: Response) => {
         values
     );
 
-    // Get questions count
-    const questionsResult = await pool.query(
-        "SELECT COUNT(*) as count FROM questions WHERE theme_id = $1",
-        [id]
-    );
+    const isLanguageTopic = result.rows[0].is_language_topic;
+    let itemsCount = 0;
+    if (isLanguageTopic) {
+        const languageCountResult = await pool.query(
+            "SELECT COUNT(*) as count FROM language_entries WHERE theme_id = $1",
+            [id]
+        );
+        itemsCount = parseInt(languageCountResult.rows[0].count) || 0;
+    } else {
+        const questionsResult = await pool.query(
+            "SELECT COUNT(*) as count FROM questions WHERE theme_id = $1",
+            [id]
+        );
+        itemsCount = parseInt(questionsResult.rows[0].count) || 0;
+    }
 
     return res.status(200).json({
         ...result.rows[0],
-        questions: parseInt(questionsResult.rows[0].count) || 0
+        questions: itemsCount
     });
 };
 
@@ -211,6 +249,10 @@ export const createQuestion = async (req: AuthRequest, res: Response) => {
 
     if (themeResult.rows.length === 0) {
         return res.status(404).json({ message: "Theme not found" });
+    }
+
+    if (themeResult.rows[0].is_language_topic) {
+        return res.status(400).json({ message: "Language topic themes use language entries instead of classic questions" });
     }
 
     // Validate options for select/radiobutton types
@@ -396,5 +438,144 @@ export const deleteQuestion = async (req: AuthRequest, res: Response) => {
     );
 
     return res.status(200).json({ message: "Question deleted successfully" });
+};
+
+// Language entry CRUD
+export const createLanguageEntry = async (req: AuthRequest, res: Response) => {
+    const userId = req.userId!;
+    const { themeId } = req.params;
+    const { word, description, translation }: CreateLanguageEntryDto = req.body;
+
+    if (!word || !translation) {
+        return res.status(400).json({ message: "Word and translation are required" });
+    }
+
+    const themeResult = await pool.query(
+        "SELECT * FROM themes WHERE id = $1 AND user_id = $2",
+        [themeId, userId]
+    );
+
+    if (themeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Theme not found" });
+    }
+
+    if (!themeResult.rows[0].is_language_topic) {
+        return res.status(400).json({ message: "This theme is not configured as a language topic" });
+    }
+
+    const id = randomUUID();
+    const result = await pool.query(
+        `INSERT INTO language_entries (id, theme_id, word, description, translation)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, theme_id, word, description, translation`,
+        [id, themeId, word.trim(), description?.trim() || null, translation.trim()]
+    );
+
+    return res.status(201).json(result.rows[0]);
+};
+
+export const updateLanguageEntry = async (req: AuthRequest, res: Response) => {
+    const userId = req.userId!;
+    const { themeId, entryId } = req.params;
+    const { word, description, translation }: UpdateLanguageEntryDto = req.body;
+
+    const themeResult = await pool.query(
+        "SELECT * FROM themes WHERE id = $1 AND user_id = $2",
+        [themeId, userId]
+    );
+
+    if (themeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Theme not found" });
+    }
+
+    if (!themeResult.rows[0].is_language_topic) {
+        return res.status(400).json({ message: "This theme is not configured as a language topic" });
+    }
+
+    const entryResult = await pool.query(
+        "SELECT * FROM language_entries WHERE id = $1 AND theme_id = $2",
+        [entryId, themeId]
+    );
+
+    if (entryResult.rows.length === 0) {
+        return res.status(404).json({ message: "Language entry not found" });
+    }
+
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
+
+    if (word !== undefined) {
+        if (!word.trim()) {
+            return res.status(400).json({ message: "Word cannot be empty" });
+        }
+        updates.push(`word = $${paramCount++}`);
+        values.push(word.trim());
+    }
+
+    if (description !== undefined) {
+        updates.push(`description = $${paramCount++}`);
+        values.push(description ? description.trim() : null);
+    }
+
+    if (translation !== undefined) {
+        if (!translation.trim()) {
+            return res.status(400).json({ message: "Translation cannot be empty" });
+        }
+        updates.push(`translation = $${paramCount++}`);
+        values.push(translation.trim());
+    }
+
+    if (updates.length === 0) {
+        return res.status(400).json({ message: "No fields to update" });
+    }
+
+    updates.push(`updated_at = now()`);
+
+    values.push(entryId);
+
+    const result = await pool.query(
+        `UPDATE language_entries
+         SET ${updates.join(', ')}
+         WHERE id = $${paramCount}
+         RETURNING id, theme_id, word, description, translation`,
+        values
+    );
+
+    return res.status(200).json(result.rows[0]);
+};
+
+export const deleteLanguageEntry = async (req: AuthRequest, res: Response) => {
+    const userId = req.userId!;
+    const { themeId, entryId } = req.params;
+
+    const themeResult = await pool.query(
+        "SELECT * FROM themes WHERE id = $1 AND user_id = $2",
+        [themeId, userId]
+    );
+
+    if (themeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Theme not found" });
+    }
+
+    if (!themeResult.rows[0].is_language_topic) {
+        return res.status(400).json({ message: "This theme is not configured as a language topic" });
+    }
+
+    const entryResult = await pool.query(
+        "SELECT * FROM language_entries WHERE id = $1 AND theme_id = $2",
+        [entryId, themeId]
+    );
+
+    if (entryResult.rows.length === 0) {
+        return res.status(404).json({ message: "Language entry not found" });
+    }
+
+    await pool.query(
+        "DELETE FROM language_entries WHERE id = $1",
+        [entryId]
+    );
+
+    return res.status(200).json({ message: "Language entry deleted successfully" });
 };
 

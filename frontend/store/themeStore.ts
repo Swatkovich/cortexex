@@ -8,6 +8,8 @@ export type Theme = {
   description: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   questions: number;
+  is_language_topic?: boolean;
+  language_entries_count?: number;
 };
 
 class ThemeStore {

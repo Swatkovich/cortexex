@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS themes (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     difficulty VARCHAR(20) NOT NULL CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
+    is_language_topic BOOLEAN NOT NULL DEFAULT false
 );
 
 -- Questions table
@@ -21,6 +22,17 @@ CREATE TABLE IF NOT EXISTS questions (
     correct_options JSONB -- For select/radiobutton: array of correct option values (nullable)
 );
 
+CREATE TABLE IF NOT EXISTS language_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    theme_id UUID NOT NULL REFERENCES themes(id) ON DELETE CASCADE,
+    word TEXT NOT NULL,
+    description TEXT,
+    translation TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_themes_user_id ON themes(user_id);
 CREATE INDEX IF NOT EXISTS idx_questions_theme_id ON questions(theme_id);
+CREATE INDEX IF NOT EXISTS idx_language_entries_theme_id ON language_entries(theme_id);

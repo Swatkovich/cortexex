@@ -9,18 +9,31 @@ export interface Theme {
     description: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
     questions: number;
+    is_language_topic?: boolean;
+    language_entries_count?: number;
+    language_entries?: LanguageEntry[];
+}
+
+export interface LanguageEntry {
+    id: string;
+    theme_id: string;
+    word: string;
+    description: string | null;
+    translation: string;
 }
 
 export interface CreateThemeDto {
     title: string;
     description: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
+    is_language_topic?: boolean;
 }
 
 export interface UpdateThemeDto {
     title?: string;
     description?: string;
     difficulty?: 'Easy' | 'Medium' | 'Hard';
+    is_language_topic?: boolean;
 }
 
 export interface Question {
@@ -50,6 +63,18 @@ export interface UpdateQuestionDto {
     options?: string[];
     answer?: string;
     correct_options?: string[] | null;
+}
+
+export interface CreateLanguageEntryDto {
+    word: string;
+    description?: string;
+    translation: string;
+}
+
+export interface UpdateLanguageEntryDto {
+    word?: string;
+    description?: string | null;
+    translation?: string;
 }
 
 export interface GlobalStats {

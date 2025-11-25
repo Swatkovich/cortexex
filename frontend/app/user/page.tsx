@@ -130,8 +130,13 @@ const UserPage = observer(() => {
               <div className="flex flex-col gap-5">
                 <div className="flex items-start justify-between gap-5">
                   <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <DifficultyTag d={theme.difficulty} />
+                      {theme.is_language_topic && (
+                        <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-blue-200">
+                          {t('theme.languageTopicTag')}
+                        </span>
+                      )}
                     </div>
                     <h2 className="text-xl font-bold text-light">
                       {theme.title}
@@ -140,7 +145,7 @@ const UserPage = observer(() => {
                       {theme.description}
                     </p>
                     <p className="text-xs font-medium text-light/50">
-                      {theme.questions} {t('theme.questions')}
+                      {theme.questions} {theme.is_language_topic ? t('theme.languageEntries') : t('theme.questions')}
                     </p>
                   </div>
 
