@@ -5,6 +5,7 @@ import {
   logout as logoutRequest,
 } from '@/lib/api';
 import {User} from '../lib/interface'
+import { themeStore } from './themeStore';
 
 class AuthStore {
   user: User | null = null;
@@ -67,6 +68,8 @@ class AuthStore {
         this.user = null;
         this.initialized = true;
       });
+      // Clear themeStore to prevent showing previous account's data
+      themeStore.clear();
     }
   }
 }

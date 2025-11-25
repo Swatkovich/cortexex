@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/Button';
@@ -10,7 +11,7 @@ import ProfileDiagram from '@/components/ProfileDiagram';
 import { useT } from '@/lib/i18n';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 
-export default function ProfilePage() {
+const ProfilePage = observer(() => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +24,10 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    if (!authStore.initialized) {
+    if (!authStore.initialized && !authStore.loading) {
       authStore.hydrate();
     }
-  }, []);
+  }, [authStore.initialized, authStore.loading]);
 
   useEffect(() => {
     if (authStore.initialized && !authStore.isAuthenticated) {
@@ -35,7 +36,11 @@ export default function ProfilePage() {
   }, [authStore.initialized, authStore.isAuthenticated, router]);
 
   useEffect(() => {
-    if (!authStore.isAuthenticated) return;
+    // Wait for auth to be initialized and authenticated before loading profile stats
+    if (!authStore.initialized || !authStore.isAuthenticated) {
+      setLoading(true);
+      return;
+    }
     (async () => {
       try {
         setLoading(true);
@@ -47,7 +52,7 @@ export default function ProfilePage() {
         setLoading(false);
       }
     })();
-  }, [authStore.isAuthenticated]);
+  }, [authStore.initialized, authStore.isAuthenticated]);
 
   if (loading) return <div className="flex items-center justify-center min-h-screen bg-dark"><p className="text-light/70">{t('profile.loading')}</p></div>;
   if (error) return <div className="p-12 text-center text-red-400">{t('generic.errorPrefix')}: {resolveErrorMessage(error, ERROR_MAP, t) ?? error}</div>;
@@ -99,4 +104,6 @@ export default function ProfilePage() {
       </section>
     </main>
   );
-}
+});
+
+export default ProfilePage;

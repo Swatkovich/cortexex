@@ -144,6 +144,24 @@ class ThemeStore {
     return this.selectedThemeIds.length > 0;
   }
 
+  clear() {
+    runInAction(() => {
+      this.themes = [];
+      this.selectedThemeIds = [];
+      this.initialized = false;
+      this.error = null;
+      this.loading = false;
+    });
+    // Clear localStorage
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('cortexex_selectedThemes');
+      }
+    } catch (err) {
+      // ignore storage errors
+    }
+  }
+
 }
 
 export const themeStore = new ThemeStore();

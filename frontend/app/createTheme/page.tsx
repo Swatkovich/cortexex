@@ -113,8 +113,11 @@ export default function CreateThemePage() {
       // Import the theme directly
       const importedTheme = await api.importTheme(importData);
       
-      // Redirect to the theme questions page
-      router.push(`/theme/${importedTheme.id}/questions`);
+      // Refresh themeStore to show the new imported theme
+      await themeStore.fetchThemes();
+      
+      // Redirect to the user page to see the updated state
+      router.push('/user');
     } catch (err) {
       setImportError(err instanceof Error ? err.message : 'createTheme.import.error');
       setImporting(false);

@@ -35,7 +35,7 @@ const UserPage = observer(() => {
     if (isAuthenticated && !themeStore.initialized && !themeStore.loading) {
       themeStore.fetchThemes();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, authStore.user?.name]);
 
   const [statsMap, setStatsMap] = useState<Record<string, any>>({});
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
