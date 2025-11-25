@@ -152,3 +152,25 @@ export const getThemeStats = async (req: AuthRequest, res: Response) => {
         }
     });
 }
+
+// Returns aggregated statistics across all users for the public landing page
+export const getGlobalStats = async (_req: Request, res: Response) => {
+    const result = await pool.query(`
+        SELECT
+            (SELECT COUNT(*)::int FROM users) AS total_users,
+            (SELECT COUNT(*)::int FROM themes) AS total_themes,
+            (SELECT COUNT(*)::int FROM questions) AS total_questions,
+            (SELECT COUNT(*)::int FROM user_games) AS total_games,
+            (SELECT COALESCE(SUM(questions_answered), 0)::int FROM user_games) AS total_questions_answered
+    `);
+
+    const row = result.rows[0] || {};
+
+    return res.status(200).json({
+        totalUsers: Number(row.total_users || 0),
+        totalThemes: Number(row.total_themes || 0),
+        totalQuestions: Number(row.total_questions || 0),
+        totalGamesPlayed: Number(row.total_games || 0),
+        totalQuestionsAnswered: Number(row.total_questions_answered || 0),
+    });
+}

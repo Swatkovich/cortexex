@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { CreateThemeDto, Theme, UpdateThemeDto, Question, CreateQuestionDto, UpdateQuestionDto } from './interface';
+import { CreateThemeDto, Theme, UpdateThemeDto, Question, CreateQuestionDto, UpdateQuestionDto, GlobalStats } from './interface';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -65,6 +65,15 @@ export async function fetchProfileStats() {
       }
     }
     handleError(error, 'Failed to load profile stats');
+  }
+}
+
+export async function fetchGlobalStats(): Promise<GlobalStats> {
+  try {
+    const response = await apiClient.get('/auth/stats/global');
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to load global stats');
   }
 }
 

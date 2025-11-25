@@ -1,13 +1,58 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 import { authStore } from '@/store/authStore';
 import { useT } from '@/lib/i18n';
+import { fetchGlobalStats } from '@/lib/api';
+import type { GlobalStats } from '@/lib/interface';
 
 const HomePage = observer(() => {
   const isAuthenticated = authStore.isAuthenticated;
   const t = useT();
+  const [stats, setStats] = useState<GlobalStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadStats = async () => {
+      try {
+        const data = await fetchGlobalStats();
+        if (!isMounted) return;
+        setStats(data);
+        setStatsError(null);
+      } catch (error) {
+        if (!isMounted) return;
+        const message = error instanceof Error ? error.message : 'unknown-error';
+        setStatsError(message);
+      } finally {
+        if (isMounted) {
+          setIsStatsLoading(false);
+        }
+      }
+    };
+
+    loadStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const formatNumber = (value: number) => new Intl.NumberFormat().format(value);
+
+  const statsItems = stats
+    ? [
+        { label: t('home.stats.users'), value: stats.totalUsers },
+        { label: t('home.stats.themes'), value: stats.totalThemes },
+        { label: t('home.stats.questions'), value: stats.totalQuestions },
+        { label: t('home.stats.games'), value: stats.totalGamesPlayed },
+        { label: t('home.stats.questionsAnswered'), value: stats.totalQuestionsAnswered },
+      ]
+    : [];
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-dark font-sans">
@@ -50,9 +95,33 @@ const HomePage = observer(() => {
             </>
           )}
         </div>
-        <p className="mt-12 text-sm text-light/50">
-         {t('home.developing')}
-        </p>
+        <div className="mt-16 rounded-3xl border border-light/10 bg-light/5 p-6 text-left shadow-2xl shadow-black/20">
+          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.35em] text-light/60">
+            {t('home.stats.title')}
+          </p>
+          {isStatsLoading ? (
+            <p className="text-sm text-light/70">{t('home.stats.loading')}</p>
+          ) : statsError ? (
+            <p className="text-sm text-red-300">{t('home.stats.error')}</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {statsItems.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-light/5 bg-dark/40 p-4 text-center shadow-inner shadow-black/30"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-widest text-light/60">
+                    {item.label}
+                  </p>
+                  <p className="mt-2 text-3xl font-bold text-light">
+                    {formatNumber(item.value)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <p className="mt-12 text-sm text-light/50">{t('home.developing')}</p>
       </div>
     </div>
   );

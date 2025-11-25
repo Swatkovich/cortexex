@@ -51,4 +51,12 @@ export interface UpdateQuestionDto {
     answer?: string;
     correct_options?: string[] | null;
 }
+
+export interface GlobalStats {
+    totalUsers: number;
+    totalThemes: number;
+    totalQuestions: number;
+    totalGamesPlayed: number;
+    totalQuestionsAnswered: number;
+}
   
