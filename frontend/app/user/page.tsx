@@ -1,18 +1,18 @@
-"use client"
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
-import Button from '@/components/Button';
+import { Button, Card } from '@/components/ui';
 import DifficultyTag from '@/components/DifficultyTag';
-import Card from '@/components/Card';
 import { authStore } from '@/store/authStore';
 import ProfileDiagram from '@/components/ProfileDiagram';
 import { useT } from '@/lib/i18n';
 import { fetchThemeStats, exportTheme } from '@/lib/api';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
+import { PageContainer } from '@/components/layout';
 
 const UserPage = observer(() => {
   const router = useRouter();
@@ -56,8 +56,8 @@ const UserPage = observer(() => {
   useEffect(() => {
     // when themes are loaded, fetch stats for each theme
     if (themeStore.initialized && themeStore.themes.length > 0) {
-      const ids = themeStore.themes.map(t => t.id);
-      Promise.allSettled(ids.map(id => fetchThemeStats(id))).then(results => {
+      const ids = themeStore.themes.map((t) => t.id);
+      Promise.allSettled(ids.map((id) => fetchThemeStats(id))).then((results) => {
         const map: Record<string, any> = {};
         results.forEach((r, idx) => {
           if (r.status === 'fulfilled' && r.value) {
@@ -117,10 +117,10 @@ const UserPage = observer(() => {
       // Convert to UTF-8 bytes, then to base64
       const encodedData = btoa(unescape(encodeURIComponent(jsonString)));
       const shareableUrl = `${window.location.origin}/createTheme?import=${encodeURIComponent(encodedData)}`;
-      
+
       // Auto-copy to clipboard
       await navigator.clipboard.writeText(shareableUrl);
-      
+
       // Show success pop-up
       setExportSuccess(true);
     } catch (err) {
@@ -149,14 +149,14 @@ const UserPage = observer(() => {
 
   if (!canAccess || !initialized || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-dark">
+      <PageContainer fullHeight centered>
         <p className="text-lg text-light/70">{t('dashboard.loadingThemes')}</p>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-12 px-6 py-12 sm:px-8 lg:px-12">
+    <PageContainer fullHeight>
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
           {t('dashboard.title')}
@@ -164,14 +164,16 @@ const UserPage = observer(() => {
         <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
           {t('dashboard.title')}
         </h1>
-        <p className="max-w-2xl text-lg text-light/70">
-          {t('dashboard.subtitle')}
-        </p>
+        <p className="max-w-2xl text-lg text-light/70">{t('dashboard.subtitle')}</p>
       </section>
 
       <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-        <Button onClick={handlePlay} disabled={!themeStore.canPlay} className="flex-1 px-8 py-4 text-base">{t('dashboard.play')}</Button>
-        <Button variant="ghost" onClick={handleCreateTheme} className="flex-1 px-8 py-4 text-base">{t('dashboard.createTheme')}</Button>
+        <Button onClick={handlePlay} disabled={!themeStore.canPlay} size="lg" className="flex-1">
+          {t('dashboard.play')}
+        </Button>
+        <Button variant="ghost" onClick={handleCreateTheme} size="lg" className="flex-1">
+          {t('dashboard.createTheme')}
+        </Button>
       </section>
 
       {themeStore.loading && !themeStore.initialized ? (
@@ -181,14 +183,13 @@ const UserPage = observer(() => {
       ) : themeStore.error ? (
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
           <p className="text-red-400">
-            {t('generic.errorPrefix')}: {resolveErrorMessage(themeStore.error, THEME_ERROR_MAP, t) ?? themeStore.error}
+            {t('generic.errorPrefix')}:{' '}
+            {resolveErrorMessage(themeStore.error, THEME_ERROR_MAP, t) ?? themeStore.error}
           </p>
         </div>
       ) : themeStore.themes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
-          <p className="text-sm font-medium text-light/50">
-            {t('dashboard.noThemes')}
-          </p>
+          <p className="text-sm font-medium text-light/50">{t('dashboard.noThemes')}</p>
         </div>
       ) : (
         <>
@@ -216,7 +217,9 @@ const UserPage = observer(() => {
                   </svg>
                 </button>
                 <div className="pr-8">
-                  <h3 className="text-lg font-semibold text-green-400 mb-2">{t('questions.export.success')}</h3>
+                  <h3 className="text-lg font-semibold text-green-400 mb-2">
+                    {t('questions.export.success')}
+                  </h3>
                   <p className="text-sm text-light/80">{t('questions.export.shareUrl')}</p>
                 </div>
               </Card>
@@ -247,8 +250,12 @@ const UserPage = observer(() => {
                   </svg>
                 </button>
                 <div className="pr-8">
-                  <h3 className="text-lg font-semibold text-red-400 mb-2">{t('generic.errorPrefix')}</h3>
-                  <p className="text-sm text-light/80">{resolveErrorMessage(exportError, THEME_ERROR_MAP, t) ?? exportError}</p>
+                  <h3 className="text-lg font-semibold text-red-400 mb-2">
+                    {t('generic.errorPrefix')}
+                  </h3>
+                  <p className="text-sm text-light/80">
+                    {resolveErrorMessage(exportError, THEME_ERROR_MAP, t) ?? exportError}
+                  </p>
                 </div>
               </Card>
             </div>
@@ -278,8 +285,12 @@ const UserPage = observer(() => {
                   </svg>
                 </button>
                 <div className="pr-8">
-                  <h3 className="text-lg font-semibold text-red-400 mb-2">{t('generic.errorPrefix')}</h3>
-                  <p className="text-sm text-light/80">{resolveErrorMessage(deleteError, THEME_ERROR_MAP, t) ?? deleteError}</p>
+                  <h3 className="text-lg font-semibold text-red-400 mb-2">
+                    {t('generic.errorPrefix')}
+                  </h3>
+                  <p className="text-sm text-light/80">
+                    {resolveErrorMessage(deleteError, THEME_ERROR_MAP, t) ?? deleteError}
+                  </p>
                 </div>
               </Card>
             </div>
@@ -299,23 +310,36 @@ const UserPage = observer(() => {
                           </span>
                         )}
                       </div>
-                      <h2 className="text-xl font-bold text-light">
-                        {theme.title}
-                      </h2>
-                      <p className="text-sm leading-relaxed text-light/70">
-                        {theme.description}
-                      </p>
+                      <h2 className="text-xl font-bold text-light">{theme.title}</h2>
+                      <p className="text-sm leading-relaxed text-light/70">{theme.description}</p>
                       <p className="text-xs font-medium text-light/50">
-                        {theme.questions} {theme.is_language_topic ? t('theme.languageEntries') : t('theme.questions')}
+                        {theme.questions}{' '}
+                        {theme.is_language_topic
+                          ? t('theme.languageEntries')
+                          : t('theme.questions')}
                       </p>
                     </div>
 
                     <div className="flex items-start gap-3 shrink-0">
                       {/* Per-theme diagram */}
-                      <ProfileDiagram counts={statsMap[theme.id]?.knowledgeDistribution || { dontKnow: 0, know: 0, wellKnow: 0, perfectlyKnow: 0 }} />
-                      
+                      <ProfileDiagram
+                        counts={
+                          statsMap[theme.id]?.knowledgeDistribution || {
+                            dontKnow: 0,
+                            know: 0,
+                            wellKnow: 0,
+                            perfectlyKnow: 0,
+                          }
+                        }
+                      />
+
                       {/* Three-dot menu */}
-                      <div className="relative" ref={(el) => { menuRefs.current[theme.id] = el; }}>
+                      <div
+                        className="relative"
+                        ref={(el) => {
+                          menuRefs.current[theme.id] = el;
+                        }}
+                      >
                         <button
                           onClick={() => setOpenMenuId(openMenuId === theme.id ? null : theme.id)}
                           className="p-2 rounded-lg hover:bg-dark/50 transition-colors"
@@ -336,7 +360,7 @@ const UserPage = observer(() => {
                             />
                           </svg>
                         </button>
-                        
+
                         {openMenuId === theme.id && (
                           <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-light/20 bg-dark/90 backdrop-blur-sm shadow-lg z-10 py-2">
                             <button
@@ -346,9 +370,23 @@ const UserPage = observer(() => {
                               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-light hover:bg-dark/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {exporting ? (
-                                <svg className="h-5 w-5 animate-spin text-light/70" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
+                                <svg
+                                  className="h-5 w-5 animate-spin text-light/70"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"
+                                  ></path>
                                 </svg>
                               ) : (
                                 <svg
@@ -375,9 +413,23 @@ const UserPage = observer(() => {
                               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {deletingId === theme.id ? (
-                                <svg className="h-5 w-5 animate-spin text-red-400" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
+                                <svg
+                                  className="h-5 w-5 animate-spin text-red-400"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"
+                                  ></path>
                                 </svg>
                               ) : (
                                 <svg
@@ -411,8 +463,20 @@ const UserPage = observer(() => {
                     >
                       {themeStore.isSelected(theme.id) ? t('theme.selected') : t('theme.select')}
                     </Button>
-                    <Button variant="ghost" onClick={() => handleEditTheme(theme.id)} className="px-5 py-2.5 text-sm">{t('theme.edit')}</Button>
-                    <Button variant="ghost" onClick={() => handleManageQuestions(theme.id)} className="px-5 py-2.5 text-sm">{t('theme.questions')}</Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleEditTheme(theme.id)}
+                      className="px-5 py-2.5 text-sm"
+                    >
+                      {t('theme.edit')}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleManageQuestions(theme.id)}
+                      className="px-5 py-2.5 text-sm"
+                    >
+                      {t('theme.questions')}
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -420,10 +484,8 @@ const UserPage = observer(() => {
           </section>
         </>
       )}
-
-    </main>
+    </PageContainer>
   );
 });
 
 export default UserPage;
-

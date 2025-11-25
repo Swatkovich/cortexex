@@ -1,9 +1,8 @@
 "use client"
 
 import React from 'react';
-import TextInput from '@/components/TextInput';
 import DifficultyTag from '@/components/DifficultyTag';
-import Button from '@/components/Button';
+import { Button, Checkbox, FormField, Input } from '@/components/ui';
 import { useT } from '@/lib/i18n';
 
 type Theme = { id: string; title: string; questions: number; difficulty: string; is_language_topic?: boolean };
@@ -65,7 +64,9 @@ export default function GameSetup(props: {
     <div>
       <div className="mb-4 flex items-start justify-end">
         {onBack && (
-          <Button variant="ghost" onClick={onBack} className="px-4 py-2 text-sm">{t('action.backToThemes')}</Button>
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            {t('action.backToThemes')}
+          </Button>
         )}
       </div>
 
@@ -129,9 +130,9 @@ export default function GameSetup(props: {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-light">{t('game.setup.questionsPerSession')}</label>
-          <div className="mt-6 flex gap-3">
-            <TextInput
+          <FormField label={t('game.setup.questionsPerSession')} htmlFor="questionsPerSession" required>
+            <Input
+              id="questionsPerSession"
               type="number"
               min={1}
               max={maxForMode}
@@ -139,7 +140,7 @@ export default function GameSetup(props: {
               onChange={(e) => handleCountChange(Number(e.target.value))}
               className="w-32"
             />
-          </div>
+          </FormField>
           {isLanguageMode ? (
             <p className="mt-2 text-xs text-light/50">
               {t('game.mode.languageHint', { count: languageAvailable })}
@@ -152,16 +153,12 @@ export default function GameSetup(props: {
           ) : null}
 
           {showIncludeNonStrict ? (
-            <div className="mt-4">
-              <label className="inline-flex items-center gap-2 text-sm text-light/80">
-                <input
-                  type="checkbox"
-                  checked={includeNonStrict}
-                  onChange={() => setIncludeNonStrict(!includeNonStrict)}
-                  className="h-4 w-4"
-                />
-                <span className="text-light">{t('game.setup.includeNonStrict')}</span>
-              </label>
+            <div className="mt-4 max-w-md">
+              <Checkbox
+                checked={includeNonStrict}
+                onChange={() => setIncludeNonStrict(!includeNonStrict)}
+                label={t('game.setup.includeNonStrict')}
+              />
             </div>
           ) : isLanguageMode ? (
             <p className="mt-4 text-xs text-light/50">
@@ -170,23 +167,19 @@ export default function GameSetup(props: {
           ) : null}
 
           <div className="mt-4">
-            <label className="inline-flex items-center gap-2 text-sm text-light/80">
-              <input
-                type="checkbox"
-                checked={blindMode}
-                onChange={() => setBlindMode(!blindMode)}
-                className="h-4 w-4"
-              />
-              <span className="text-light">{t('game.setup.blindMode.label')}</span>
-            </label>
-            <p className="mt-1 text-xs text-light/50">{t('game.setup.blindMode.description')}</p>
+            <Checkbox
+              checked={blindMode}
+              onChange={() => setBlindMode(!blindMode)}
+              label={t('game.setup.blindMode.label')}
+              description={t('game.setup.blindMode.description')}
+            />
           </div>
 
           <div className="mt-4 flex gap-3">
             <Button
               onClick={startGame}
               disabled={isLanguageMode ? languageAvailable === 0 : effectiveAvailable === 0}
-              className="px-6 py-3 text-base"
+              size="lg"
             >
               {t('game.setup.start')}
             </Button>

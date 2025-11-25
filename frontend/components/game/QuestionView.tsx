@@ -1,8 +1,7 @@
 "use client"
 
 import React from 'react';
-import Button from '@/components/Button';
-import TextInput from '@/components/TextInput';
+import { Button, Input } from '@/components/ui';
 import { Question } from '@/lib/interface';
 import { useT } from '@/lib/i18n';
 
@@ -90,14 +89,16 @@ export default function QuestionView(props: {
           )}
         </div>
         <div>
-          <Button variant="ghost" onClick={resetGame} className="px-4 py-2 text-sm">{t('game.question.end')}</Button>
+          <Button variant="ghost" size="sm" onClick={resetGame}>
+            {t('game.question.end')}
+          </Button>
         </div>
       </div>
 
       <div className="space-y-4">
         {current?.question_type === 'input' && (
           <div>
-            <TextInput
+            <Input
               ref={inputRef}
               type="text"
               value={inputValue}
@@ -148,14 +149,16 @@ export default function QuestionView(props: {
         )}
 
         <div className="mt-6 flex gap-3">
-          <Button onClick={handleSubmitAnswer} disabled={canProceed} className="px-6 py-3 text-base">{t('game.question.submit')}</Button>
+          <Button onClick={handleSubmitAnswer} disabled={canProceed} size="lg">
+            {t('game.question.submit')}
+          </Button>
 
           <Button
             ref={nextButtonRef}
             variant="ghost"
             onClick={handleNext}
             disabled={!canProceed}
-            className="px-6 py-3 text-base"
+            size="lg"
             onKeyDown={handleKeyboardFlow}
           >
             {t('game.question.next')}

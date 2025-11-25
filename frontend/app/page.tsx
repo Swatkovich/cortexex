@@ -1,13 +1,14 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 import { authStore } from '@/store/authStore';
 import { useT } from '@/lib/i18n';
 import { fetchGlobalStats } from '@/lib/api';
 import type { GlobalStats } from '@/lib/interface';
 import ProfileDiagram from '@/components/ProfileDiagram';
+import { ButtonLink } from '@/components/ui';
+import { PageContainer } from '@/components/layout';
 
 const HomePage = observer(() => {
   const isAuthenticated = authStore.isAuthenticated;
@@ -58,47 +59,42 @@ const HomePage = observer(() => {
   const distribution = stats?.knowledgeDistribution ?? emptyDistribution;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-dark font-sans">
-      <div className="mx-auto max-w-4xl px-6 text-center">
-        <div className="mb-6 inline-block rounded-full border border-light/20 bg-light/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-light/80">
+    <PageContainer fullHeight className="max-w-4xl items-center text-center">
+      <div className="space-y-10">
+        <div className="inline-block rounded-full border border-light/20 bg-light/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.4em] text-light/80">
           {t('home.beta')}
         </div>
-        <h1 className="mb-6 text-6xl font-bold leading-tight text-light sm:text-7xl lg:text-8xl">
+
+        <h1 className="text-5xl font-bold leading-tight text-light sm:text-6xl lg:text-7xl">
           {t('home.h1.part1')}
           <br />
           <span className="bg-gradient-to-r from-light to-light/60 bg-clip-text text-transparent">
             {t('home.h1.part2')}
           </span>
         </h1>
-        <p className="mx-auto mb-12 max-w-2xl text-lg leading-relaxed text-light/70 sm:text-xl">
+
+        <p className="mx-auto max-w-2xl text-lg leading-relaxed text-light/70 sm:text-xl">
           {t('home.subtitle')}
         </p>
+
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           {isAuthenticated ? (
-            <Link
-              href="/user"
-              className="rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover"
-            >
+            <ButtonLink href="/user" size="lg">
               {t('home.getStarted')}
-            </Link>
+            </ButtonLink>
           ) : (
             <>
-              <Link
-                href="/auth?type=register"
-                className="rounded-xl bg-light px-8 py-4 text-base font-semibold text-dark hover:bg-light-hover"
-              >
+              <ButtonLink href="/auth?type=register" size="lg">
                 {t('home.register')}
-              </Link>
-              <Link
-                href="/auth?type=login"
-                className="rounded-xl border border-light/20 bg-transparent px-8 py-4 text-base font-semibold text-light  hover:border-light/40 hover:bg-light/5 hover:scale-105"
-              >
+              </ButtonLink>
+              <ButtonLink href="/auth?type=login" variant="outline" size="lg">
                 {t('home.login')}
-              </Link>
+              </ButtonLink>
             </>
           )}
         </div>
-        <div className="mt-16 rounded-3xl border border-light/10 bg-light/5 p-6 text-left shadow-2xl shadow-black/20">
+
+        <div className="rounded-3xl border border-light/10 bg-light/5 p-6 text-left shadow-2xl shadow-black/20">
           <p className="mb-6 text-xs font-semibold uppercase tracking-[0.35em] text-light/60">
             {t('home.stats.title')}
           </p>
@@ -117,9 +113,7 @@ const HomePage = observer(() => {
                     <p className="text-xs font-semibold uppercase tracking-widest text-light/60">
                       {item.label}
                     </p>
-                    <p className="mt-2 text-3xl font-bold text-light">
-                      {formatNumber(item.value)}
-                    </p>
+                    <p className="mt-2 text-3xl font-bold text-light">{formatNumber(item.value)}</p>
                   </div>
                 ))}
               </div>
@@ -133,9 +127,9 @@ const HomePage = observer(() => {
             </>
           )}
         </div>
-        <p className="mt-12 text-sm text-light/50">{t('home.developing')}</p>
       </div>
-    </div>
+      <p className="text-sm text-light/50">{t('home.developing')}</p>
+    </PageContainer>
   );
 });
 

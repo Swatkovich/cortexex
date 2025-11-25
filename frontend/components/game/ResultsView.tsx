@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react';
-import Button from '@/components/Button';
+import { Button } from '@/components/ui';
 import CircularDiagram from '@/components/CircularDiagram';
 import { Question } from '@/lib/interface';
 import { useT } from '@/lib/i18n';
@@ -28,8 +28,12 @@ export default function ResultsView(props: {
           </p>
         </div>
         <div className="ml-6 flex-shrink-0 flex flex-col items-end gap-3">
-          <Button onClick={onRestart} className="px-6 py-3 text-base">{t('game.results.restart')}</Button>
-          <Button variant="ghost" onClick={onBack} className="px-6 py-3 text-base">{t('action.backToThemes')}</Button>
+          <Button onClick={onRestart} size="lg">
+            {t('game.results.restart')}
+          </Button>
+          <Button variant="ghost" size="lg" onClick={onBack}>
+            {t('action.backToThemes')}
+          </Button>
         </div>
       </div>
 

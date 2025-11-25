@@ -1,13 +1,11 @@
-"use client";
+'use client';
 
 import { FormEvent, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
 import * as api from '@/lib/api';
-import Button from '@/components/Button';
-import TextInput from '@/components/TextInput';
-import TextArea from '@/components/TextArea';
-import Card from '@/components/Card';
+import { Button, Card, Checkbox, FormField, Input, Select, Textarea } from '@/components/ui';
+import { PageContainer } from '@/components/layout';
 import { useT } from '@/lib/i18n';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
@@ -66,13 +64,13 @@ export default function CreateThemePage() {
           // Decode the base64 data - handle Unicode characters properly
           const decodedData = decodeURIComponent(escape(atob(importParam)));
           const importData = JSON.parse(decodedData) as api.ExportThemeData;
-          
+
           // Auto-fill the form with imported data
           setTitle(importData.title);
           setDescription(importData.description);
           setDifficulty(importData.difficulty);
           setIsLanguageTopic(importData.is_language_topic);
-          
+
           // Set import URL for reference and show the form
           const shareableUrl = typeof window !== 'undefined' ? window.location.href : importParam;
           setImportUrl(shareableUrl);
@@ -86,7 +84,7 @@ export default function CreateThemePage() {
 
   const handleImport = async (importParam?: string) => {
     const paramToUse = importParam || importUrl.trim();
-    
+
     if (!paramToUse) {
       setImportError(t('createTheme.import.invalid'));
       return;
@@ -98,7 +96,7 @@ export default function CreateThemePage() {
     try {
       // Extract the import parameter from the URL
       let importDataParam = paramToUse;
-      
+
       // If it's a full URL, extract the import parameter
       try {
         const url = new URL(paramToUse);
@@ -114,10 +112,10 @@ export default function CreateThemePage() {
 
       // Import the theme directly
       const importedTheme = await api.importTheme(importData);
-      
+
       // Refresh themeStore to show the new imported theme
       await themeStore.fetchThemes();
-      
+
       // Redirect to the user page to see the updated state
       router.push('/user');
     } catch (err) {
@@ -156,14 +154,14 @@ export default function CreateThemePage() {
 
   if (!canAccess) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-dark">
+      <PageContainer fullHeight centered className="max-w-3xl">
         <p className="text-light/70">{t('createTheme.loading')}</p>
-      </main>
+      </PageContainer>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
+    <PageContainer fullHeight className="max-w-3xl">
       <header className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
           {isEditMode ? t('createTheme.header.edit') : t('createTheme.header.create')}
@@ -178,7 +176,9 @@ export default function CreateThemePage() {
 
       {error && (
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-          <p className="text-red-400 text-sm">{resolveErrorMessage(error, ERROR_MAP, t) ?? error}</p>
+          <p className="text-red-400 text-sm">
+            {resolveErrorMessage(error, ERROR_MAP, t) ?? error}
+          </p>
         </div>
       )}
 
@@ -186,40 +186,36 @@ export default function CreateThemePage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-light">{t('createTheme.import.label')}</h2>
-            <Button
-              variant="ghost"
-              onClick={() => setShowImportForm(!showImportForm)}
-              className="px-4 py-2 text-sm border border-light/20"
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowImportForm(!showImportForm)}>
               {showImportForm ? t('createTheme.cancel') : t('createTheme.import.button')}
             </Button>
           </div>
           {importError && (
             <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 mb-4">
-              <p className="text-red-400 text-sm">{resolveErrorMessage(importError, ERROR_MAP, t) ?? importError}</p>
+              <p className="text-red-400 text-sm">
+                {resolveErrorMessage(importError, ERROR_MAP, t) ?? importError}
+              </p>
             </div>
           )}
-          
+
           {showImportForm && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-light">
-                  {t('createTheme.import.placeholder')}
-                </label>
-                <TextInput
+              <FormField label={t('createTheme.import.placeholder')} required>
+                <Input
                   value={importUrl}
                   onChange={(e) => setImportUrl(e.target.value)}
                   placeholder={t('createTheme.import.placeholder')}
                   className="w-full"
                 />
-              </div>
-              
+              </FormField>
+
               <Button
                 onClick={() => handleImport()}
                 disabled={!importUrl.trim() || importing}
-                className="w-full px-6 py-3"
+                size="fluid"
+                isLoading={importing}
               >
-                {importing ? t('createTheme.save.saving') : t('createTheme.import.button')}
+                {t('createTheme.import.button')}
               </Button>
             </div>
           )}
@@ -233,71 +229,87 @@ export default function CreateThemePage() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-8">
-            <div className="space-y-2">
-          <label className="block text-sm font-medium text-light">
-            {t('createTheme.label.title')}
-          </label>
-              <TextInput value={title} onChange={(event) => setTitle(event.target.value)} required placeholder={t('createTheme.placeholder.title')} />
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-light">
-            {t('createTheme.label.description')}
-          </label>
-              <TextArea value={description} onChange={(event) => setDescription(event.target.value)} required rows={4} placeholder={t('createTheme.placeholder.description')} />
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-light">
-            {t('createTheme.label.difficulty')}
-          </label>
-          <select
-            value={difficulty}
-            onChange={(event) => setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')}
-            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
-          >
-            <option value="Easy">{t('createTheme.diff.easy')}</option>
-            <option value="Medium">{t('createTheme.diff.medium')}</option>
-            <option value="Hard">{t('createTheme.diff.hard')}</option>
-          </select>
-        </div>
-
-        {!isEditMode && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-light">
-              {t('createTheme.label.languageTopic')}
-            </label>
-            <div className="flex items-center gap-3 rounded-lg border border-light/20 bg-dark/40 px-4 py-3">
-              <input
-                type="checkbox"
-                checked={isLanguageTopic}
-                onChange={(event) => setIsLanguageTopic(event.target.checked)}
-                className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
-                id="languageTopicToggle"
+            <FormField label={t('createTheme.label.title')} htmlFor="themeTitle" required>
+              <Input
+                id="themeTitle"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                required
+                placeholder={t('createTheme.placeholder.title')}
               />
-              <label htmlFor="languageTopicToggle" className="text-sm text-light/80">
-                {t('createTheme.languageTopic.toggle')}
-              </label>
-            </div>
-            <p className="text-xs text-light/50">
-              {t('createTheme.languageTopic.helper')}
-            </p>
-            <p className="text-xs text-amber-200/80">
-              {t('createTheme.languageTopic.note')}
-            </p>
-          </div>
-        )}
+            </FormField>
+
+            <FormField
+              label={t('createTheme.label.description')}
+              htmlFor="themeDescription"
+              required
+            >
+              <Textarea
+                id="themeDescription"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                required
+                rows={4}
+                placeholder={t('createTheme.placeholder.description')}
+              />
+            </FormField>
+
+            <FormField label={t('createTheme.label.difficulty')} htmlFor="themeDifficulty" required>
+              <Select
+                id="themeDifficulty"
+                value={difficulty}
+                onChange={(event) =>
+                  setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')
+                }
+              >
+                <option value="Easy">{t('createTheme.diff.easy')}</option>
+                <option value="Medium">{t('createTheme.diff.medium')}</option>
+                <option value="Hard">{t('createTheme.diff.hard')}</option>
+              </Select>
+            </FormField>
+
+            {!isEditMode && (
+              <FormField
+                label={t('createTheme.label.languageTopic')}
+                description={
+                  <>
+                    <span className="block">{t('createTheme.languageTopic.helper')}</span>
+                    <span className="block text-amber-200/80">
+                      {t('createTheme.languageTopic.note')}
+                    </span>
+                  </>
+                }
+              >
+                <Checkbox
+                  checked={isLanguageTopic}
+                  onChange={(event) => setIsLanguageTopic(event.target.checked)}
+                  label={t('createTheme.languageTopic.toggle')}
+                />
+              </FormField>
+            )}
 
             <div className="flex flex-col gap-4 pt-4 sm:flex-row">
-              <Button type="submit" disabled={!title.trim() || !description.trim() || loading} className="flex-1 px-8 py-4 text-base">
-                {loading ? t('createTheme.save.saving') : isEditMode ? t('createTheme.save.update') : t('createTheme.save.create')}
+              <Button
+                type="submit"
+                size="fluid"
+                disabled={!title.trim() || !description.trim()}
+                isLoading={loading}
+                className="sm:flex-1"
+              >
+                {isEditMode ? t('createTheme.save.update') : t('createTheme.save.create')}
               </Button>
-              <Button variant="ghost" onClick={() => router.push('/user')} className="flex-1 px-8 py-4 text-base">{t('createTheme.cancel')}</Button>
+              <Button
+                variant="outline"
+                size="fluid"
+                onClick={() => router.push('/user')}
+                className="sm:flex-1"
+              >
+                {t('createTheme.cancel')}
+              </Button>
             </div>
           </Card>
         </form>
       )}
-    </main>
+    </PageContainer>
   );
 }
-

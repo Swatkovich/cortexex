@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { observer } from 'mobx-react-lite';
 import { themeStore } from '@/store/themeStore';
@@ -11,6 +11,7 @@ import QuestionView from '@/components/game/QuestionView';
 import ResultsView from '@/components/game/ResultsView';
 import { useT } from '@/lib/i18n';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
+import { PageContainer } from '@/components/layout';
 
 function shuffle<T>(arr: T[]) {
   return arr
@@ -32,7 +33,7 @@ const normalizeAnswerString = (value: string) =>
 
 const summarizeLanguageEntryResults = (
   list: Question[],
-  answers: Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>
+  answers: Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>,
 ) => {
   const perEntry: Record<
     string,
@@ -90,7 +91,10 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
     });
 
     if (words.length > 1) {
-      const distractors = shuffle(words.filter((word) => word !== entry.word)).slice(0, Math.min(3, words.length - 1));
+      const distractors = shuffle(words.filter((word) => word !== entry.word)).slice(
+        0,
+        Math.min(3, words.length - 1),
+      );
       const options = shuffle([entry.word, ...distractors]);
       questions.push({
         id: `${entry.id}-choice`,
@@ -167,7 +171,9 @@ const PlayPage = observer(() => {
   const [index, setIndex] = useState(0);
 
   const [passed, setPassed] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>>({});
+  const [userAnswers, setUserAnswers] = useState<
+    Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>
+  >({});
   const [showResults, setShowResults] = useState(false);
 
   const [inputValue, setInputValue] = useState('');
@@ -190,18 +196,19 @@ const PlayPage = observer(() => {
   const titleKey = !hasSelection
     ? 'game.title.noSelection'
     : showResults
-    ? 'game.title.results'
-    : playing
-    ? 'game.title.playing'
-    : 'game.title.ready';
+      ? 'game.title.results'
+      : playing
+        ? 'game.title.playing'
+        : 'game.title.ready';
   const subtitleKey = !hasSelection
     ? 'game.subtitle.noSelection'
     : showResults
-    ? 'game.subtitle.results'
-    : playing
-    ? 'game.subtitle.playing'
-    : 'game.subtitle.ready';
-  const noSelectionLoaded = selected.length === 0 && (!isClient || selectedIdsCount === 0) && questions.length === 0;
+      ? 'game.subtitle.results'
+      : playing
+        ? 'game.subtitle.playing'
+        : 'game.subtitle.ready';
+  const noSelectionLoaded =
+    selected.length === 0 && (!isClient || selectedIdsCount === 0) && questions.length === 0;
 
   useEffect(() => {
     // mark client-side hydration
@@ -243,9 +250,13 @@ const PlayPage = observer(() => {
       setLoading(true);
       try {
         const payloads = await Promise.all(idsToLoad.map((id) => api.fetchTheme(id)));
-        const classicFromThemes = payloads.flatMap((data) => (Array.isArray(data.questions) ? data.questions : []));
+        const classicFromThemes = payloads.flatMap((data) =>
+          Array.isArray(data.questions) ? data.questions : [],
+        );
         const languageEntriesFromThemes = payloads.flatMap((data) =>
-          data.is_language_topic && Array.isArray(data.language_entries) ? data.language_entries : []
+          data.is_language_topic && Array.isArray(data.language_entries)
+            ? data.language_entries
+            : [],
         );
         const classicLanguageQuestions = buildClassicLanguageQuestions(languageEntriesFromThemes);
         const allQuestions = [...classicFromThemes, ...classicLanguageQuestions];
@@ -282,7 +293,7 @@ const PlayPage = observer(() => {
       }
     };
     load();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient, selectedIds, selected]);
 
   useEffect(() => {
@@ -312,9 +323,15 @@ const PlayPage = observer(() => {
           if (typeof s.mode === 'string' && (s.mode === 'classic' || s.mode === 'language')) {
             setMode(s.mode);
           }
-          if (typeof s.sessionMode === 'string' && (s.sessionMode === 'classic' || s.sessionMode === 'language')) {
+          if (
+            typeof s.sessionMode === 'string' &&
+            (s.sessionMode === 'classic' || s.sessionMode === 'language')
+          ) {
             setSessionMode(s.sessionMode);
-          } else if (typeof s.mode === 'string' && (s.mode === 'classic' || s.mode === 'language')) {
+          } else if (
+            typeof s.mode === 'string' &&
+            (s.mode === 'classic' || s.mode === 'language')
+          ) {
             setSessionMode(s.mode);
           }
           if (typeof s.classicCount === 'number') {
@@ -337,7 +354,9 @@ const PlayPage = observer(() => {
             setUserAnswers(s.userAnswers || {});
             setPassed(typeof s.passed === 'number' ? s.passed : 0);
             setLastWasCorrect(typeof s.lastWasCorrect === 'boolean' ? s.lastWasCorrect : null);
-            setIncludeNonStrict(typeof s.includeNonStrict === 'boolean' ? s.includeNonStrict : true);
+            setIncludeNonStrict(
+              typeof s.includeNonStrict === 'boolean' ? s.includeNonStrict : true,
+            );
             setBlindMode(typeof s.blindMode === 'boolean' ? s.blindMode : false);
             // restore selected theme ids into store so selectedThemes is populated
             if (Array.isArray(s.selectedThemeIds) && s.selectedThemeIds.length > 0) {
@@ -385,11 +404,27 @@ const PlayPage = observer(() => {
     } catch (err) {
       // ignore storage errors
     }
-  }, [playing, questions, index, submitted, inputValue, selectedOption, selectedOptions, userAnswers, passed, showResults, lastWasCorrect, includeNonStrict, blindMode]);
+  }, [
+    playing,
+    questions,
+    index,
+    submitted,
+    inputValue,
+    selectedOption,
+    selectedOptions,
+    userAnswers,
+    passed,
+    showResults,
+    lastWasCorrect,
+    includeNonStrict,
+    blindMode,
+  ]);
 
   const totalClassicAvailable = classicQuestions.length;
   const strictClassicAvailable = classicQuestions.filter((q) => q.is_strict).length;
-  const effectiveClassicAvailable = includeNonStrict ? totalClassicAvailable : strictClassicAvailable;
+  const effectiveClassicAvailable = includeNonStrict
+    ? totalClassicAvailable
+    : strictClassicAvailable;
   const languageAvailable = estimateLanguageQuestionCount(languageEntries);
   const activeCount = mode === 'classic' ? classicCount : languageCount;
 
@@ -411,7 +446,9 @@ const PlayPage = observer(() => {
       const limited = shuffle(pool).slice(0, Math.min(languageCount, pool.length));
       prepared = shuffleQuestionOptions(limited);
     } else {
-      const source = includeNonStrict ? classicQuestions : classicQuestions.filter((q) => q.is_strict);
+      const source = includeNonStrict
+        ? classicQuestions
+        : classicQuestions.filter((q) => q.is_strict);
       if (source.length === 0) return;
       const limited = shuffle(source).slice(0, Math.min(classicCount, source.length));
       prepared = shuffleQuestionOptions(limited);
@@ -480,7 +517,11 @@ const PlayPage = observer(() => {
       const normalizedUser = normalizeAnswerString(user);
       const normalizedCorrect = normalizeAnswerString(current.answer);
       isCorrect = normalizedUser === normalizedCorrect;
-    } else if ((current.question_type === 'radiobutton' || current.question_type === 'select') && current.correct_options && current.correct_options.length > 0) {
+    } else if (
+      (current.question_type === 'radiobutton' || current.question_type === 'select') &&
+      current.correct_options &&
+      current.correct_options.length > 0
+    ) {
       // grade based on correct_options
       if (current.question_type === 'radiobutton') {
         const user = (answerVal as string) || '';
@@ -488,13 +529,14 @@ const PlayPage = observer(() => {
         isCorrect = normalizeAnswerString(user) === normalizeAnswerString(correct);
       } else {
         // select: compare sets (case-insensitive)
-        const normalizeArray = (list: string[]) => list.map(a => normalizeAnswerString(a)).sort();
+        const normalizeArray = (list: string[]) => list.map((a) => normalizeAnswerString(a)).sort();
         const userArr = Array.isArray(answerVal) ? normalizeArray(answerVal as string[]) : [];
         const correctArr = normalizeArray(current.correct_options || []);
         if (userArr.length === 0) {
           isCorrect = false;
         } else {
-          isCorrect = userArr.length === correctArr.length && userArr.every((v, i) => v === correctArr[i]);
+          isCorrect =
+            userArr.length === correctArr.length && userArr.every((v, i) => v === correctArr[i]);
         }
       }
     } else {
@@ -533,7 +575,7 @@ const PlayPage = observer(() => {
     if (!showResults || resultSent) return;
 
     const questionsAnswered = questions.length;
-    const correctAnswers = Object.values(userAnswers).filter(a => a.isCorrect === true).length;
+    const correctAnswers = Object.values(userAnswers).filter((a) => a.isCorrect === true).length;
 
     // compute max correct-in-row and the ending streak (drops to zero on every wrong answer)
     let maxStreak = 0;
@@ -549,16 +591,20 @@ const PlayPage = observer(() => {
     }
     const endingStreak = currentStreak;
 
-    const perQuestion = sessionMode === 'language'
-      ? []
-      : questions.map(q => ({ questionId: q.id, isCorrect: userAnswers[q.id]?.isCorrect ?? null }));
+    const perQuestion =
+      sessionMode === 'language'
+        ? []
+        : questions.map((q) => ({
+            questionId: q.id,
+            isCorrect: userAnswers[q.id]?.isCorrect ?? null,
+          }));
 
-    const languageEntryResults = sessionMode === 'language'
-      ? summarizeLanguageEntryResults(questions, userAnswers)
-      : [];
+    const languageEntryResults =
+      sessionMode === 'language' ? summarizeLanguageEntryResults(questions, userAnswers) : [];
 
     // fire-and-forget, don't block UI; mark sent whether it succeeds to avoid duplicates
-    api.postGameResult({
+    api
+      .postGameResult({
         questionsAnswered,
         correctAnswers,
         maxCorrectInRow: maxStreak,
@@ -568,27 +614,25 @@ const PlayPage = observer(() => {
       })
       .catch(() => {})
       .finally(() => setResultSent(true));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults]);
 
   if (!canAccess) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-dark">
+      <PageContainer fullHeight centered>
         <p className="text-light/70">{t('dashboard.loadingThemes')}</p>
-      </main>
+      </PageContainer>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-4xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
+    <PageContainer fullHeight className="max-w-4xl">
       <header className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">{t('game.modeLabel')}</p>
-        <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
-          {t(titleKey)}
-        </h1>
-        <p className="max-w-2xl text-lg text-light/70">
-          {t(subtitleKey)}
+        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
+          {t('game.modeLabel')}
         </p>
+        <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">{t(titleKey)}</h1>
+        <p className="max-w-2xl text-lg text-light/70">{t(subtitleKey)}</p>
       </header>
 
       {noSelectionLoaded ? (
@@ -601,8 +645,16 @@ const PlayPage = observer(() => {
             <ResultsView
               questions={questions}
               userAnswers={userAnswers}
-              onRestart={() => { setShowResults(false); startGame(); }}
-              onBack={() => { try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {} ; router.push('/user'); }}
+              onRestart={() => {
+                setShowResults(false);
+                startGame();
+              }}
+              onBack={() => {
+                try {
+                  sessionStorage.removeItem(STORAGE_KEY);
+                } catch (e) {}
+                router.push('/user');
+              }}
             />
           ) : !playing ? (
             <GameSetup
@@ -638,7 +690,12 @@ const PlayPage = observer(() => {
               hasOnlyLanguageTopics={hasOnlyLanguageTopics}
               loading={loading}
               startGame={startGame}
-              onBack={() => { try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {} ; router.push('/user'); }}
+              onBack={() => {
+                try {
+                  sessionStorage.removeItem(STORAGE_KEY);
+                } catch (e) {}
+                router.push('/user');
+              }}
             />
           ) : (
             <QuestionView
@@ -662,9 +719,8 @@ const PlayPage = observer(() => {
           )}
         </section>
       )}
-    </main>
+    </PageContainer>
   );
 });
 
 export default PlayPage;
-

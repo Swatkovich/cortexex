@@ -35,7 +35,7 @@ const eslintConfig = defineConfig([
           ],
           pathGroupsExcludedImportTypes: ['builtin'],
           alphabetize: { order: 'asc', caseInsensitive: true },
-          newlinesBetween: 'always',
+          'newlines-between': 'always',
         },
       ],
       'prettier/prettier': 'warn',
