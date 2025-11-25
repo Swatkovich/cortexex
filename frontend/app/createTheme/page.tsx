@@ -10,6 +10,7 @@ import TextArea from '@/components/TextArea';
 import Card from '@/components/Card';
 import { useT } from '@/lib/i18n';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
+import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
 export default function CreateThemePage() {
   const t = useT();
@@ -17,6 +18,7 @@ export default function CreateThemePage() {
   const searchParams = useSearchParams();
   const themeId = searchParams.get('id');
   const isEditMode = !!themeId;
+  const canAccess = useProtectedRoute('/');
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -151,6 +153,14 @@ export default function CreateThemePage() {
       setLoading(false);
     }
   };
+
+  if (!canAccess) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-dark">
+        <p className="text-light/70">{t('createTheme.loading')}</p>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">

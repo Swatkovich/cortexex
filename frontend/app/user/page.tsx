@@ -12,6 +12,7 @@ import ProfileDiagram from '@/components/ProfileDiagram';
 import { useT } from '@/lib/i18n';
 import { fetchThemeStats, exportTheme } from '@/lib/api';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
+import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
 const UserPage = observer(() => {
   const router = useRouter();
@@ -24,12 +25,6 @@ const UserPage = observer(() => {
       authStore.hydrate();
     }
   }, [initialized, loading]);
-
-  useEffect(() => {
-    if (initialized && !isAuthenticated) {
-      router.replace('/auth?type=login');
-    }
-  }, [initialized, isAuthenticated, router]);
 
   useEffect(() => {
     if (isAuthenticated && !themeStore.initialized && !themeStore.loading) {
@@ -46,6 +41,7 @@ const UserPage = observer(() => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const menuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const t = useT();
+  const canAccess = useProtectedRoute('/');
   const THEME_ERROR_MAP: Record<string, string> = {
     'Failed to fetch themes': 'themes.error.fetch',
     'Failed to create theme': 'themes.error.create',
@@ -151,7 +147,7 @@ const UserPage = observer(() => {
     }
   };
 
-  if (!initialized || loading) {
+  if (!canAccess || !initialized || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-dark">
         <p className="text-lg text-light/70">{t('dashboard.loadingThemes')}</p>

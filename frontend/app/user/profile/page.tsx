@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/Button';
 import { authStore } from '@/store/authStore';
@@ -10,13 +9,14 @@ import { fetchProfileStats } from '@/lib/api';
 import ProfileDiagram from '@/components/ProfileDiagram';
 import { useT } from '@/lib/i18n';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
+import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
 const ProfilePage = observer(() => {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null);
   const t = useT();
+  const canAccess = useProtectedRoute('/');
   const ERROR_MAP: Record<string, string> = {
     'Failed to load profile stats': 'profile.error.failed',
     'Failed to load profile': 'profile.error.failed',
@@ -28,12 +28,6 @@ const ProfilePage = observer(() => {
       authStore.hydrate();
     }
   }, [authStore.initialized, authStore.loading]);
-
-  useEffect(() => {
-    if (authStore.initialized && !authStore.isAuthenticated) {
-      router.replace('/auth?type=login');
-    }
-  }, [authStore.initialized, authStore.isAuthenticated, router]);
 
   useEffect(() => {
     // Wait for auth to be initialized and authenticated before loading profile stats
@@ -54,7 +48,7 @@ const ProfilePage = observer(() => {
     })();
   }, [authStore.initialized, authStore.isAuthenticated]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen bg-dark"><p className="text-light/70">{t('profile.loading')}</p></div>;
+  if (!canAccess || loading) return <div className="flex items-center justify-center min-h-screen bg-dark"><p className="text-light/70">{t('profile.loading')}</p></div>;
   if (error) return <div className="p-12 text-center text-red-400">{t('generic.errorPrefix')}: {resolveErrorMessage(error, ERROR_MAP, t) ?? error}</div>;
 
   return (

@@ -12,6 +12,7 @@ import Card from '@/components/Card';
 import DifficultyTag from '@/components/DifficultyTag';
 import { useT } from '@/lib/i18n';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
+import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -43,6 +44,7 @@ export default function QuestionsPage() {
   const [languageError, setLanguageError] = useState<string | null>(null);
   const [languageEditingId, setLanguageEditingId] = useState<string | null>(null);
   const t = useT();
+  const canAccess = useProtectedRoute('/');
   const QUESTION_ERROR_MAP: Record<string, string> = {
     'Failed to save question': 'questions.error.save',
     'Failed to create question': 'questions.error.save',
@@ -458,7 +460,7 @@ export default function QuestionsPage() {
     }
   };
 
-  if (loading) {
+  if (!canAccess || loading) {
     return (
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
         <div className="flex items-center justify-center py-12">

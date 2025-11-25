@@ -10,6 +10,7 @@ import GameSetup from '@/components/game/GameSetup';
 import QuestionView from '@/components/game/QuestionView';
 import ResultsView from '@/components/game/ResultsView';
 import { useT } from '@/lib/i18n';
+import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
 function shuffle<T>(arr: T[]) {
   return arr
@@ -148,6 +149,7 @@ const PlayPage = observer(() => {
   const selectedIds = themeStore.selectedThemeIds;
   const [isClient, setIsClient] = useState(false);
   const t = useT();
+  const canAccess = useProtectedRoute('/');
 
   const [classicQuestions, setClassicQuestions] = useState<Question[]>([]);
   const [languageEntries, setLanguageEntries] = useState<LanguageEntry[]>([]);
@@ -568,6 +570,14 @@ const PlayPage = observer(() => {
       .finally(() => setResultSent(true));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showResults]);
+
+  if (!canAccess) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-dark">
+        <p className="text-light/70">{t('dashboard.loadingThemes')}</p>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-4xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
