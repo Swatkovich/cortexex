@@ -342,69 +342,65 @@ const UserPage = observer(() => {
                         </button>
                         
                         {openMenuId === theme.id && (
-                          <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-light/20 bg-dark/90 backdrop-blur-sm shadow-lg z-10 p-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <button
-                                onClick={() => handleExport(theme.id)}
-                                disabled={exporting || deletingId === theme.id}
-                                className="p-2 rounded-lg hover:bg-dark/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label={t('questions.export.button')}
-                                title={t('questions.export.button')}
-                              >
-                                {exporting ? (
-                                  <svg className="h-5 w-5 animate-spin text-light/70" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
-                                  </svg>
-                                ) : (
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5 text-light/80"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l4 4m0 0l-4 4m4-4H4"
-                                    />
-                                  </svg>
-                                )}
-                                <span className="sr-only">{t('questions.export.button')}</span>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteTheme(theme.id)}
-                                disabled={deletingId === theme.id || exporting}
-                                className="p-2 rounded-lg hover:bg-dark/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label={t('theme.delete')}
-                                title={t('theme.delete')}
-                              >
-                                {deletingId === theme.id ? (
-                                  <svg className="h-5 w-5 animate-spin text-red-400" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
-                                  </svg>
-                                ) : (
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5 text-red-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-4 0a1 1 0 00-1 1v1h6V5a1 1 0 00-1-1m-4 0h4"
-                                    />
-                                  </svg>
-                                )}
-                                <span className="sr-only">{t('theme.delete')}</span>
-                              </button>
-                            </div>
+                          <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-light/20 bg-dark/90 backdrop-blur-sm shadow-lg z-10 py-2">
+                            <button
+                              type="button"
+                              onClick={() => handleExport(theme.id)}
+                              disabled={exporting || deletingId === theme.id}
+                              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-light hover:bg-dark/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {exporting ? (
+                                <svg className="h-5 w-5 animate-spin text-light/70" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-light/80"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l4 4m0 0l-4 4m4-4H4"
+                                  />
+                                </svg>
+                              )}
+                              <span>{t('questions.export.button')}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTheme(theme.id)}
+                              disabled={deletingId === theme.id || exporting}
+                              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {deletingId === theme.id ? (
+                                <svg className="h-5 w-5 animate-spin text-red-400" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-red-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-4 0a1 1 0 00-1 1v1h6V5a1 1 0 00-1-1m-4 0h4"
+                                  />
+                                </svg>
+                              )}
+                              <span>{t('theme.delete')}</span>
+                            </button>
                           </div>
                         )}
                       </div>

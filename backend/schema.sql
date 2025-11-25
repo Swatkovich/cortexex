@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS themes (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     difficulty VARCHAR(20) NOT NULL CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
-    is_language_topic BOOLEAN NOT NULL DEFAULT false
+    is_language_topic BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Questions table

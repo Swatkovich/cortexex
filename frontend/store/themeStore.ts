@@ -10,6 +10,7 @@ export type Theme = {
   questions: number;
   is_language_topic?: boolean;
   language_entries_count?: number;
+  created_at?: string;
 };
 
 class ThemeStore {
@@ -46,13 +47,21 @@ class ThemeStore {
     }
   }
 
+  private sortThemesByCreatedAt(themes: Theme[]) {
+    return [...themes].sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bTime - aTime;
+    });
+  }
+
   async fetchThemes() {
     this.loading = true;
     this.error = null;
     try {
       const themes = await api.fetchThemes();
       runInAction(() => {
-        this.themes = themes;
+        this.themes = this.sortThemesByCreatedAt(themes);
         this.loading = false;
         this.initialized = true;
       });
@@ -71,7 +80,7 @@ class ThemeStore {
     try {
       const newTheme = await api.createTheme(theme);
       runInAction(() => {
-        this.themes = [...this.themes, newTheme];
+        this.themes = this.sortThemesByCreatedAt([...this.themes, newTheme]);
         this.loading = false;
       });
       return newTheme;
@@ -90,8 +99,10 @@ class ThemeStore {
     try {
       const updatedTheme = await api.updateTheme(id, updates);
       runInAction(() => {
-        this.themes = this.themes.map((theme) =>
-          theme.id === id ? updatedTheme : theme
+        this.themes = this.sortThemesByCreatedAt(
+          this.themes.map((theme) =>
+            theme.id === id ? updatedTheme : theme
+          )
         );
         this.loading = false;
       });

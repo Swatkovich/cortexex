@@ -8,6 +8,7 @@ export interface Theme {
     is_language_topic: boolean;
     language_entries_count?: number;
     language_entries?: LanguageEntry[];
+    created_at?: string;
 }
 
 export interface Question {

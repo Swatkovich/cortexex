@@ -17,13 +17,15 @@ export const getThemes = async (req: AuthRequest, res: Response) => {
             t.description,
             t.difficulty,
             t.is_language_topic,
+            t.created_at,
             COUNT(DISTINCT q.id) as questions_count,
             COUNT(DISTINCT le.id) as language_entries_count
         FROM themes t
         LEFT JOIN questions q ON t.id = q.theme_id
         LEFT JOIN language_entries le ON t.id = le.theme_id
         WHERE t.user_id = $1
-        GROUP BY t.id`,
+        GROUP BY t.id
+        ORDER BY t.created_at DESC`,
         [userId]
     );
 
@@ -35,7 +37,8 @@ export const getThemes = async (req: AuthRequest, res: Response) => {
         difficulty: row.difficulty,
         is_language_topic: row.is_language_topic,
         language_entries_count: parseInt(row.language_entries_count) || 0,
-        questions: row.is_language_topic ? (parseInt(row.language_entries_count) || 0) : (parseInt(row.questions_count) || 0)
+        questions: row.is_language_topic ? (parseInt(row.language_entries_count) || 0) : (parseInt(row.questions_count) || 0),
+        created_at: row.created_at
     }));
 
     return res.status(200).json(themes);
@@ -724,6 +727,7 @@ export const importTheme = async (req: AuthRequest, res: Response) => {
             t.description,
             t.difficulty,
             t.is_language_topic,
+            t.created_at,
             COUNT(DISTINCT q.id) as questions_count,
             COUNT(DISTINCT le.id) as language_entries_count
         FROM themes t
@@ -744,7 +748,8 @@ export const importTheme = async (req: AuthRequest, res: Response) => {
         difficulty: finalTheme.difficulty,
         is_language_topic: finalTheme.is_language_topic,
         questions: isLanguageTopic ? (parseInt(finalTheme.language_entries_count) || 0) : (parseInt(finalTheme.questions_count) || 0),
-        language_entries_count: parseInt(finalTheme.language_entries_count) || 0
+        language_entries_count: parseInt(finalTheme.language_entries_count) || 0,
+        created_at: finalTheme.created_at
     });
 };
 
