@@ -93,6 +93,7 @@ const eng: Record<string, string> = {
   'profile.gamesPlayed': 'Games played',
   'profile.questionsAnswered': 'Questions answered',
   'profile.bestStreak': 'Best correct in a row',
+  'profile.bestCurrentStreak': 'Current correct in a row',
   'profile.yourQuestions': 'Your questions',
   'profile.knowledgeDistribution.title': 'Knowledge distribution (strict questions)',
   'profile.error.failed': 'Failed to load profile',

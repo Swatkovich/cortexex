@@ -533,18 +533,19 @@ const PlayPage = observer(() => {
     const questionsAnswered = questions.length;
     const correctAnswers = Object.values(userAnswers).filter(a => a.isCorrect === true).length;
 
-    // compute max correct-in-row based on question order
+    // compute max correct-in-row and the ending streak (drops to zero on every wrong answer)
     let maxStreak = 0;
-    let cur = 0;
+    let currentStreak = 0;
     for (const q of questions) {
       const ua = userAnswers[q.id];
       if (ua?.isCorrect === true) {
-        cur += 1;
-        if (cur > maxStreak) maxStreak = cur;
+        currentStreak += 1;
+        if (currentStreak > maxStreak) maxStreak = currentStreak;
       } else {
-        cur = 0;
+        currentStreak = 0;
       }
     }
+    const endingStreak = currentStreak;
 
     const perQuestion = sessionMode === 'language'
       ? []
@@ -559,6 +560,7 @@ const PlayPage = observer(() => {
         questionsAnswered,
         correctAnswers,
         maxCorrectInRow: maxStreak,
+        currentCorrectInRow: endingStreak,
         perQuestion,
         languageEntryResults: sessionMode === 'language' ? languageEntryResults : undefined,
       })

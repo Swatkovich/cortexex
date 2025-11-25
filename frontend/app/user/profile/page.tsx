@@ -67,7 +67,7 @@ const ProfilePage = observer(() => {
       </div>
 
       <section className="mb-8">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
             <h3 className="text-sm font-semibold text-light/70">{t('profile.gamesPlayed')}</h3>
             <p className="text-2xl font-bold text-light">{stats.totalGames}</p>
@@ -78,7 +78,9 @@ const ProfilePage = observer(() => {
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
             <h3 className="text-sm font-semibold text-light/70">{t('profile.bestStreak')}</h3>
-            <p className="text-2xl font-bold text-light">{stats.bestCorrectInRow}</p>
+            <p className="text-2xl font-bold text-light">{stats.bestCorrectInRow ?? 0}</p>
+            <h3 className="text-sm font-semibold text-light/70">{t('profile.bestCurrentStreak')}</h3>
+            <p className="text-2xl font-bold text-light">{stats.currentCorrectInRow ?? stats.bestCurrentCorrectInRow ?? stats.bestCorrectInRow ?? 0}</p>
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
             <h3 className="text-sm font-semibold text-light/70">{t('profile.yourQuestions')}</h3>

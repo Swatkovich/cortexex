@@ -93,6 +93,7 @@ const ru: Record<string, string> = {
   'profile.gamesPlayed': 'Сыграно игр',
   'profile.questionsAnswered': 'Отвечено вопросов',
   'profile.bestStreak': 'Лучшее количество правильных подряд',
+  'profile.bestCurrentStreak': 'Текущая серия правильных ответов',
   'profile.yourQuestions': 'Ваши вопросы',
   'profile.knowledgeDistribution.title': 'Распределение знаний (строгие вопросы)',
   'profile.error.failed': 'Не удалось загрузить профиль',

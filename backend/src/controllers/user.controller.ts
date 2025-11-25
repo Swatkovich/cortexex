@@ -8,7 +8,20 @@ export const getProfileStats = async (req: AuthRequest, res: Response) => {
 
     // Total games played
     const gamesRes = await pool.query(
-        "SELECT COUNT(*)::int AS total_games, COALESCE(SUM(questions_answered),0)::int AS total_questions_answered, COALESCE(MAX(max_correct_in_row),0)::int AS best_correct_streak FROM user_games WHERE user_id = $1",
+        `SELECT
+            COUNT(*)::int AS total_games,
+            COALESCE(SUM(questions_answered),0)::int AS total_questions_answered,
+            COALESCE(MAX(max_correct_in_row),0)::int AS best_correct_streak,
+            COALESCE(MAX(current_correct_in_row),0)::int AS best_current_correct_streak,
+            COALESCE((
+                SELECT current_correct_in_row
+                FROM user_games
+                WHERE user_id = $1
+                ORDER BY played_at DESC
+                LIMIT 1
+            ), 0)::int AS current_correct_streak
+        FROM user_games
+        WHERE user_id = $1`,
         [userId]
     );
 
@@ -79,6 +92,8 @@ export const getProfileStats = async (req: AuthRequest, res: Response) => {
         totalGames: Number(gamesRow.total_games || 0),
         totalQuestionsAnswered: Number(gamesRow.total_questions_answered || 0),
         bestCorrectInRow: Number(gamesRow.best_correct_streak || 0),
+        currentCorrectInRow: Number(gamesRow.current_correct_streak || 0),
+        bestCurrentCorrectInRow: Number(gamesRow.best_current_correct_streak || 0),
         questionsCounts: {
             total: totalQuestionsCreated,
             words: languageEntriesCount,
@@ -98,10 +113,11 @@ export const getProfileStats = async (req: AuthRequest, res: Response) => {
 // Body: { questionsAnswered: number, correctAnswers: number, maxCorrectInRow: number, perQuestion: { questionId: string, isCorrect: boolean }[] }
 export const postGameResult = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
-    const { questionsAnswered, correctAnswers, maxCorrectInRow, perQuestion, languageEntryResults } = req.body as {
+    const { questionsAnswered, correctAnswers, maxCorrectInRow, currentCorrectInRow, perQuestion, languageEntryResults } = req.body as {
         questionsAnswered?: number;
         correctAnswers?: number;
         maxCorrectInRow?: number;
+        currentCorrectInRow?: number;
         perQuestion?: Array<{ questionId: string; isCorrect: boolean | null }>;
         languageEntryResults?: Array<{ entryId: string; correct: boolean }>;
     };
@@ -110,12 +126,13 @@ export const postGameResult = async (req: AuthRequest, res: Response) => {
     const qAnswered = Number(questionsAnswered || 0);
     const cAnswers = Number(correctAnswers || 0);
     const maxStreak = Number(maxCorrectInRow || 0);
+    const currentStreak = Math.max(0, Number(currentCorrectInRow || 0));
 
     // Insert a user_games row
     await pool.query(
-        `INSERT INTO user_games (user_id, questions_answered, correct_answers, max_correct_in_row)
-         VALUES ($1, $2, $3, $4)`,
-        [userId, qAnswered, cAnswers, maxStreak]
+        `INSERT INTO user_games (user_id, questions_answered, correct_answers, max_correct_in_row, current_correct_in_row)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [userId, qAnswered, cAnswers, maxStreak, currentStreak]
     );
 
     // Update per-question knowledge levels if provided

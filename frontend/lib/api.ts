@@ -81,6 +81,7 @@ export async function postGameResult(data: {
   questionsAnswered: number;
   correctAnswers: number;
   maxCorrectInRow: number;
+  currentCorrectInRow: number;
   perQuestion: Array<{ questionId: string; isCorrect: boolean | null }>;
   languageEntryResults?: Array<{ entryId: string; correct: boolean }>;
 }) {
