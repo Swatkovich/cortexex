@@ -2,7 +2,7 @@
 
 import { observer } from 'mobx-react-lite';
 import { themeStore } from '@/store/themeStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import * as api from '@/lib/api';
 import { Question, LanguageEntry } from '@/lib/interface';
@@ -21,6 +21,47 @@ function shuffle<T>(arr: T[]) {
 const clamp = (value: number, min: number, max: number) => {
   if (Number.isNaN(value)) return min;
   return Math.max(min, Math.min(value, max));
+};
+
+const normalizeAnswerString = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/\u0451/g, 'е'); // treat ё as е to accept both spellings
+
+const summarizeLanguageEntryResults = (
+  list: Question[],
+  answers: Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>
+) => {
+  const perEntry: Record<
+    string,
+    {
+      attempted: boolean;
+      correct: boolean;
+    }
+  > = {};
+
+  for (const question of list) {
+    if (!question.language_entry_id) continue;
+    const entryId = question.language_entry_id;
+    if (!perEntry[entryId]) {
+      perEntry[entryId] = { attempted: false, correct: true };
+    }
+    const userAnswer = answers[question.id];
+    if (userAnswer) {
+      perEntry[entryId].attempted = true;
+      if (userAnswer.isCorrect !== true) {
+        perEntry[entryId].correct = false;
+      }
+    } else {
+      perEntry[entryId].attempted = true;
+      perEntry[entryId].correct = false;
+    }
+  }
+
+  return Object.entries(perEntry)
+    .filter(([, data]) => data.attempted)
+    .map(([entryId, data]) => ({ entryId, correct: data.correct }));
 };
 
 const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
@@ -44,6 +85,7 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
       answer: entry.translation,
       correct_options: null,
       question_hint: hint,
+      language_entry_id: entry.id,
     });
 
     if (words.length > 1) {
@@ -59,6 +101,7 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
         answer: null,
         correct_options: [entry.word],
         question_hint: hint,
+        language_entry_id: entry.id,
       });
     } else {
       questions.push({
@@ -71,6 +114,7 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
         answer: entry.word,
         correct_options: null,
         question_hint: hint,
+        language_entry_id: entry.id,
       });
     }
   });
@@ -91,6 +135,7 @@ const buildClassicLanguageQuestions = (entries: LanguageEntry[]): Question[] => 
       answer: entry.translation.trim(),
       correct_options: null,
       question_hint: entry.description?.trim() || null,
+      language_entry_id: entry.id,
     }));
 };
 const estimateLanguageQuestionCount = (entries: LanguageEntry[]) => {
@@ -106,8 +151,8 @@ const PlayPage = observer(() => {
 
   const [classicQuestions, setClassicQuestions] = useState<Question[]>([]);
   const [languageEntries, setLanguageEntries] = useState<LanguageEntry[]>([]);
-  const [classicCount, setClassicCount] = useState<number>(5);
-  const [languageCount, setLanguageCount] = useState<number>(5);
+  const [classicCount, setClassicCount] = useState<number>(1);
+  const [languageCount, setLanguageCount] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [includeNonStrict, setIncludeNonStrict] = useState<boolean>(true);
   const [blindMode, setBlindMode] = useState<boolean>(false);
@@ -131,6 +176,8 @@ const PlayPage = observer(() => {
   const [lastWasCorrect, setLastWasCorrect] = useState<boolean | null>(null);
   const [resultSent, setResultSent] = useState(false);
   const router = useRouter();
+  const classicCountManualRef = useRef(false);
+  const languageCountManualRef = useRef(false);
   const selectedIdsCount = selectedIds?.length ?? 0;
   const hasSelection =
     (isClient && selectedIdsCount > 0) ||
@@ -185,6 +232,8 @@ const PlayPage = observer(() => {
         return;
       }
 
+      classicCountManualRef.current = false;
+      languageCountManualRef.current = false;
       setLoading(true);
       try {
         const payloads = await Promise.all(idsToLoad.map((id) => api.fetchTheme(id)));
@@ -198,7 +247,7 @@ const PlayPage = observer(() => {
 
         const maxClassic = Math.max(1, allQuestions.length || 1);
         setClassicCount((prev) => {
-          const base = prev && prev > 0 ? prev : Math.min(5, maxClassic);
+          const base = classicCountManualRef.current && prev > 0 ? prev : maxClassic;
           return clamp(base, 1, maxClassic);
         });
 
@@ -207,8 +256,11 @@ const PlayPage = observer(() => {
         const usableEntries = allLanguage ? languageEntriesForClassic : [];
         setLanguageEntries(usableEntries);
         const languageMax = estimateLanguageQuestionCount(usableEntries);
-        const defaultLanguageCount = usableEntries.length > 0 ? usableEntries.length : 1;
-        setLanguageCount(clamp(defaultLanguageCount, 1, Math.max(1, languageMax || 1)));
+        const defaultLanguageCount = languageMax > 0 ? languageMax : 1;
+        setLanguageCount((prev) => {
+          const base = languageCountManualRef.current && prev > 0 ? prev : defaultLanguageCount;
+          return clamp(base, 1, Math.max(1, languageMax || 1));
+        });
       } catch (err) {
         setClassicQuestions([]);
         setLanguageEntries([]);
@@ -413,18 +465,20 @@ const PlayPage = observer(() => {
 
     if (current.question_type === 'input' && current.answer) {
       const user = (answerVal as string) || '';
-      const normalize = (s: string) => s.trim().toLowerCase();
-      isCorrect = normalize(user) === normalize(current.answer);
+      const normalizedUser = normalizeAnswerString(user);
+      const normalizedCorrect = normalizeAnswerString(current.answer);
+      isCorrect = normalizedUser === normalizedCorrect;
     } else if ((current.question_type === 'radiobutton' || current.question_type === 'select') && current.correct_options && current.correct_options.length > 0) {
       // grade based on correct_options
       if (current.question_type === 'radiobutton') {
         const user = (answerVal as string) || '';
         const correct = current.correct_options[0] || '';
-        isCorrect = user.trim().toLowerCase() === correct.trim().toLowerCase();
+        isCorrect = normalizeAnswerString(user) === normalizeAnswerString(correct);
       } else {
         // select: compare sets (case-insensitive)
-        const userArr = Array.isArray(answerVal) ? (answerVal as string[]).map(a => a.trim().toLowerCase()).sort() : [];
-        const correctArr = (current.correct_options || []).map(a => a.trim().toLowerCase()).sort();
+        const normalizeArray = (list: string[]) => list.map(a => normalizeAnswerString(a)).sort();
+        const userArr = Array.isArray(answerVal) ? normalizeArray(answerVal as string[]) : [];
+        const correctArr = normalizeArray(current.correct_options || []);
         if (userArr.length === 0) {
           isCorrect = false;
         } else {
@@ -486,8 +540,18 @@ const PlayPage = observer(() => {
       ? []
       : questions.map(q => ({ questionId: q.id, isCorrect: userAnswers[q.id]?.isCorrect ?? null }));
 
+    const languageEntryResults = sessionMode === 'language'
+      ? summarizeLanguageEntryResults(questions, userAnswers)
+      : [];
+
     // fire-and-forget, don't block UI; mark sent whether it succeeds to avoid duplicates
-    api.postGameResult({ questionsAnswered, correctAnswers, maxCorrectInRow: maxStreak, perQuestion })
+    api.postGameResult({
+        questionsAnswered,
+        correctAnswers,
+        maxCorrectInRow: maxStreak,
+        perQuestion,
+        languageEntryResults: sessionMode === 'language' ? languageEntryResults : undefined,
+      })
       .catch(() => {})
       .finally(() => setResultSent(true));
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -524,8 +588,10 @@ const PlayPage = observer(() => {
               count={activeCount}
               setCount={(value) => {
                 if (mode === 'classic') {
+                  classicCountManualRef.current = true;
                   setClassicCount(value);
                 } else {
+                  languageCountManualRef.current = true;
                   setLanguageCount(value);
                 }
               }}

@@ -46,6 +46,7 @@ export interface Question {
     answer: string | null;
     correct_options?: string[] | null;
     question_hint?: string | null;
+    language_entry_id?: string | null;
 }
 
 export interface CreateQuestionDto {

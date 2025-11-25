@@ -77,7 +77,13 @@ export async function fetchGlobalStats(): Promise<GlobalStats> {
   }
 }
 
-export async function postGameResult(data: { questionsAnswered: number; correctAnswers: number; maxCorrectInRow: number; perQuestion: Array<{ questionId: string; isCorrect: boolean | null }> }) {
+export async function postGameResult(data: {
+  questionsAnswered: number;
+  correctAnswers: number;
+  maxCorrectInRow: number;
+  perQuestion: Array<{ questionId: string; isCorrect: boolean | null }>;
+  languageEntryResults?: Array<{ entryId: string; correct: boolean }>;
+}) {
   try {
     const response = await apiClient.post('/auth/profile/stats', data);
     return response.data;

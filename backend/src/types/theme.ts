@@ -20,6 +20,7 @@ export interface Question {
     answer: string | null; // Correct answer for input type questions
     correct_options?: string[] | null; // For select/radiobutton: the correct option(s)
     question_hint?: string | null;
+    language_entry_id?: string | null;
 }
 
 export interface CreateThemeDto {
