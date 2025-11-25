@@ -24,6 +24,11 @@ export default function CreateThemePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLanguageTopic, setIsLanguageTopic] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [showImportForm, setShowImportForm] = useState(false);
+  const [hasImportData, setHasImportData] = useState(false);
   const ERROR_MAP: Record<string, string> = {
     'Failed to fetch theme': 'createTheme.error.load',
     'Failed to load theme': 'createTheme.error.load',
@@ -34,7 +39,7 @@ export default function CreateThemePage() {
     'createTheme.error.save': 'createTheme.error.save',
   };
 
-  // Load theme data if editing
+  // Load theme data if editing or check for import URL
   useEffect(() => {
     if (isEditMode && themeId) {
       const loadTheme = async () => {
@@ -52,8 +57,69 @@ export default function CreateThemePage() {
         }
       };
       loadTheme();
+    } else {
+      // Check for import parameter in URL
+      const importParam = searchParams.get('import');
+      if (importParam) {
+        try {
+          // Decode the base64 data - handle Unicode characters properly
+          const decodedData = decodeURIComponent(escape(atob(importParam)));
+          const importData = JSON.parse(decodedData) as api.ExportThemeData;
+          
+          // Auto-fill the form with imported data
+          setTitle(importData.title);
+          setDescription(importData.description);
+          setDifficulty(importData.difficulty);
+          setIsLanguageTopic(importData.is_language_topic);
+          
+          // Set import URL for reference
+          setImportUrl(importParam);
+          setHasImportData(true);
+        } catch (err) {
+          setError(t('createTheme.import.invalid'));
+        }
+      }
     }
-  }, [isEditMode, themeId]);
+  }, [isEditMode, themeId, searchParams, t]);
+
+  const handleImport = async (importParam?: string) => {
+    const paramToUse = importParam || importUrl.trim();
+    
+    if (!paramToUse) {
+      setImportError(t('createTheme.import.invalid'));
+      return;
+    }
+
+    setImporting(true);
+    setImportError(null);
+
+    try {
+      // Extract the import parameter from the URL
+      let importDataParam = paramToUse;
+      
+      // If it's a full URL, extract the import parameter
+      try {
+        const url = new URL(paramToUse);
+        importDataParam = url.searchParams.get('import') || paramToUse;
+      } catch {
+        // If it's not a valid URL, assume it's just the encoded data
+        importDataParam = paramToUse;
+      }
+
+      // Decode the base64 data - handle Unicode characters properly
+      const decodedData = decodeURIComponent(escape(atob(importDataParam)));
+      const importData = JSON.parse(decodedData) as api.ExportThemeData;
+
+      // Import the theme directly
+      const importedTheme = await api.importTheme(importData);
+      
+      // Redirect to the theme questions page
+      router.push(`/theme/${importedTheme.id}/questions`);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'createTheme.import.error');
+      setImporting(false);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -101,6 +167,83 @@ export default function CreateThemePage() {
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
           <p className="text-red-400 text-sm">{resolveErrorMessage(error, ERROR_MAP, t) ?? error}</p>
         </div>
+      )}
+
+      {!isEditMode && hasImportData && (
+        <Card className="p-6 bg-blue-500/10 border-blue-500/20">
+          <p className="text-sm font-medium text-light mb-4">
+            {t('createTheme.import.label')} - {t('createTheme.subtitle.create')}
+          </p>
+          <p className="text-xs text-light/60 mb-4">
+            {t('createTheme.import.loaded')}
+          </p>
+          {importError && (
+            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 mb-4">
+              <p className="text-red-400 text-sm">{resolveErrorMessage(importError, ERROR_MAP, t) ?? importError}</p>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <Button
+              onClick={() => handleImport(importUrl)}
+              disabled={importing}
+              className="flex-1 px-6 py-3"
+            >
+              {importing ? t('createTheme.save.saving') : t('createTheme.import.button')}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setHasImportData(false)}
+              className="px-6 py-3"
+            >
+              {t('createTheme.cancel')}
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {!isEditMode && !hasImportData && (
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-light">{t('createTheme.import.label')}</h2>
+            <Button
+              variant="ghost"
+              onClick={() => setShowImportForm(!showImportForm)}
+              className="px-4 py-2 text-sm border border-light/20"
+            >
+              {showImportForm ? t('createTheme.cancel') : t('createTheme.import.button')}
+            </Button>
+          </div>
+          
+          {showImportForm && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-light">
+                  {t('createTheme.import.placeholder')}
+                </label>
+                <TextInput
+                  value={importUrl}
+                  onChange={(e) => setImportUrl(e.target.value)}
+                  placeholder={t('createTheme.import.placeholder')}
+                  className="w-full"
+                />
+              </div>
+              
+              {importError && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3">
+                  <p className="text-red-400 text-sm">{resolveErrorMessage(importError, ERROR_MAP, t) ?? importError}</p>
+                </div>
+              )}
+              
+              <Button
+                onClick={() => handleImport()}
+                disabled={!importUrl.trim() || importing}
+                className="w-full px-6 py-3"
+              >
+                {importing ? t('createTheme.save.saving') : t('createTheme.import.button')}
+              </Button>
+            </div>
+          )}
+        </Card>
       )}
 
       {loading && isEditMode && !title ? (

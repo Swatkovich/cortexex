@@ -61,6 +61,13 @@ const eng: Record<string, string> = {
   'createTheme.cancel': 'Cancel',
   'createTheme.error.load': 'Failed to load theme',
   'createTheme.error.save': 'Failed to save theme',
+  'createTheme.import.button': 'Import from URL',
+  'createTheme.import.label': 'Import Theme',
+  'createTheme.import.placeholder': 'Paste the shareable URL here',
+  'createTheme.import.success': 'Theme imported successfully!',
+  'createTheme.import.error': 'Failed to import theme',
+  'createTheme.import.invalid': 'Invalid import URL',
+  'createTheme.import.loaded': 'Theme data has been loaded from the URL. You can edit it below or import it directly.',
   // Home / Landing
   'home.beta': 'Beta 1.0',
   'home.h1.part1': 'Learn Anything',
@@ -148,6 +155,11 @@ const eng: Record<string, string> = {
   'questions.language.error.save': 'Failed to save language entry',
   'questions.language.error.update': 'Failed to update language entry',
   'questions.language.error.delete': 'Failed to delete language entry',
+  'questions.export.button': 'Export Theme',
+  'questions.export.success': 'Shareable URL copied to clipboard!',
+  'questions.export.error': 'Failed to export theme',
+  'questions.export.copy': 'Copy URL',
+  'questions.export.shareUrl': 'Share this URL to import this theme:',
 
   // Theme card
   'theme.selected': 'Selected',

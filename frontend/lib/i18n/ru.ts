@@ -61,6 +61,13 @@ const ru: Record<string, string> = {
   'createTheme.cancel': 'Отмена',
   'createTheme.error.load': 'Не удалось загрузить тему',
   'createTheme.error.save': 'Не удалось сохранить тему',
+  'createTheme.import.button': 'Импортировать из URL',
+  'createTheme.import.label': 'Импорт темы',
+  'createTheme.import.placeholder': 'Вставьте ссылку для импорта',
+  'createTheme.import.success': 'Тема успешно импортирована!',
+  'createTheme.import.error': 'Не удалось импортировать тему',
+  'createTheme.import.invalid': 'Неверная ссылка для импорта',
+  'createTheme.import.loaded': 'Данные темы загружены из URL. Вы можете отредактировать их ниже или импортировать напрямую.',
   // Home / Landing
   'home.beta': 'Бета 1.0',
   'home.h1.part1': 'Учитесь всему',
@@ -148,6 +155,11 @@ const ru: Record<string, string> = {
   'questions.language.error.save': 'Не удалось сохранить слово',
   'questions.language.error.update': 'Не удалось обновить слово',
   'questions.language.error.delete': 'Не удалось удалить слово',
+  'questions.export.button': 'Экспортировать тему',
+  'questions.export.success': 'Ссылка скопирована в буфер обмена!',
+  'questions.export.error': 'Не удалось экспортировать тему',
+  'questions.export.copy': 'Копировать ссылку',
+  'questions.export.shareUrl': 'Поделитесь этой ссылкой для импорта темы:',
 
   // Theme card
   'theme.selected': 'Выбрано',

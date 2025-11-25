@@ -584,3 +584,167 @@ export const deleteLanguageEntry = async (req: AuthRequest, res: Response) => {
     return res.status(200).json({ message: "Language entry deleted successfully" });
 };
 
+// Export theme data for sharing
+export const exportTheme = async (req: AuthRequest, res: Response) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+
+    // Check if theme exists and belongs to user
+    const themeResult = await pool.query(
+        "SELECT * FROM themes WHERE id = $1 AND user_id = $2",
+        [id, userId]
+    );
+
+    if (themeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Theme not found" });
+    }
+
+    const theme = themeResult.rows[0];
+
+    // Get questions for this theme
+    const questionsResult = await pool.query(
+        "SELECT * FROM questions WHERE theme_id = $1",
+        [id]
+    );
+
+    // Get language entries for this theme
+    const languageEntriesResult = await pool.query(
+        `SELECT id, theme_id, word, description, translation
+         FROM language_entries
+         WHERE theme_id = $1
+         ORDER BY created_at ASC`,
+        [id]
+    );
+
+    // Prepare export data (exclude IDs and user_id)
+    const exportData = {
+        title: theme.title,
+        description: theme.description,
+        difficulty: theme.difficulty,
+        is_language_topic: theme.is_language_topic,
+        questions: questionsResult.rows.map(q => ({
+            question_text: q.question_text,
+            question_type: q.question_type,
+            is_strict: q.is_strict,
+            options: safeParseJson(q.options),
+            answer: q.answer || null,
+            correct_options: safeParseJson(q.correct_options),
+        })),
+        language_entries: languageEntriesResult.rows.map(entry => ({
+            word: entry.word,
+            description: entry.description,
+            translation: entry.translation
+        }))
+    };
+
+    return res.status(200).json(exportData);
+};
+
+// Import theme from shared data
+export const importTheme = async (req: AuthRequest, res: Response) => {
+    const userId = req.userId!;
+    const { title, description, difficulty, is_language_topic, questions, language_entries } = req.body;
+
+    if (!title || !description || !difficulty) {
+        return res.status(400).json({ message: "Title, description, and difficulty are required" });
+    }
+
+    if (!['Easy', 'Medium', 'Hard'].includes(difficulty)) {
+        return res.status(400).json({ message: "Difficulty must be Easy, Medium, or Hard" });
+    }
+
+    const isLanguageTopic = typeof is_language_topic === 'boolean' ? is_language_topic : false;
+
+    // Validate that questions are provided for non-language topics
+    if (!isLanguageTopic && (!questions || !Array.isArray(questions))) {
+        return res.status(400).json({ message: "Questions are required for non-language topics" });
+    }
+
+    // Validate that language_entries are provided for language topics
+    if (isLanguageTopic && (!language_entries || !Array.isArray(language_entries))) {
+        return res.status(400).json({ message: "Language entries are required for language topics" });
+    }
+
+    const themeId = randomUUID();
+
+    // Create theme
+    const themeResult = await pool.query(
+        `INSERT INTO themes (id, user_id, title, description, difficulty, is_language_topic)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [themeId, userId, title, description, difficulty, isLanguageTopic]
+    );
+
+    // Create questions if not a language topic
+    if (!isLanguageTopic && questions && questions.length > 0) {
+        for (const q of questions) {
+            if (!q.question_text || !q.question_type) {
+                continue; // Skip invalid questions
+            }
+
+            const questionId = randomUUID();
+            const optionsJson = (q.question_type === 'select' || q.question_type === 'radiobutton') && q.options
+                ? JSON.stringify(q.options)
+                : null;
+            const answerValue = q.question_type === 'input' ? q.answer : null;
+            const correctOptionsJson = (q.question_type === 'select' || q.question_type === 'radiobutton') && q.correct_options
+                ? JSON.stringify(q.correct_options)
+                : null;
+
+            await pool.query(
+                `INSERT INTO questions (id, theme_id, question_text, question_type, is_strict, options, answer, correct_options)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [questionId, themeId, q.question_text, q.question_type, q.is_strict || false, optionsJson, answerValue, correctOptionsJson]
+            );
+        }
+    }
+
+    // Create language entries if it's a language topic
+    if (isLanguageTopic && language_entries && language_entries.length > 0) {
+        for (const entry of language_entries) {
+            if (!entry.word || !entry.translation) {
+                continue; // Skip invalid entries
+            }
+
+            const entryId = randomUUID();
+            await pool.query(
+                `INSERT INTO language_entries (id, theme_id, word, description, translation)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [entryId, themeId, entry.word.trim(), entry.description?.trim() || null, entry.translation.trim()]
+            );
+        }
+    }
+
+    // Fetch the created theme with counts
+    const finalThemeResult = await pool.query(
+        `SELECT 
+            t.id,
+            t.user_id,
+            t.title,
+            t.description,
+            t.difficulty,
+            t.is_language_topic,
+            COUNT(DISTINCT q.id) as questions_count,
+            COUNT(DISTINCT le.id) as language_entries_count
+        FROM themes t
+        LEFT JOIN questions q ON t.id = q.theme_id
+        LEFT JOIN language_entries le ON t.id = le.theme_id
+        WHERE t.id = $1
+        GROUP BY t.id`,
+        [themeId]
+    );
+
+    const finalTheme = finalThemeResult.rows[0];
+
+    return res.status(201).json({
+        id: finalTheme.id,
+        user_id: finalTheme.user_id,
+        title: finalTheme.title,
+        description: finalTheme.description,
+        difficulty: finalTheme.difficulty,
+        is_language_topic: finalTheme.is_language_topic,
+        questions: isLanguageTopic ? (parseInt(finalTheme.language_entries_count) || 0) : (parseInt(finalTheme.questions_count) || 0),
+        language_entries_count: parseInt(finalTheme.language_entries_count) || 0
+    });
+};
+

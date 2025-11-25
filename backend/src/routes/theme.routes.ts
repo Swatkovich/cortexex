@@ -10,7 +10,9 @@ import {
     deleteQuestion,
     createLanguageEntry,
     updateLanguageEntry,
-    deleteLanguageEntry
+    deleteLanguageEntry,
+    exportTheme,
+    importTheme
 } from "../controllers/theme.controller";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { authMiddleware } from "../middleware/authMiddleware";
@@ -22,8 +24,10 @@ router.use(asyncHandler(authMiddleware));
 
 // Theme routes
 router.get("/", asyncHandler(getThemes));
+router.get("/:id/export", asyncHandler(exportTheme)); // Must come before /:id
 router.get("/:id", asyncHandler(getTheme));
 router.post("/", asyncHandler(createTheme));
+router.post("/import", asyncHandler(importTheme));
 router.put("/:id", asyncHandler(updateTheme));
 router.delete("/:id", asyncHandler(deleteTheme));
 

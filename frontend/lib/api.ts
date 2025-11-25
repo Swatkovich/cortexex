@@ -207,3 +207,41 @@ export async function deleteLanguageEntry(themeId: string, entryId: string): Pro
     handleError(error, 'Failed to delete language entry');
   }
 }
+
+export interface ExportThemeData {
+  title: string;
+  description: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  is_language_topic: boolean;
+  questions: Array<{
+    question_text: string;
+    question_type: 'input' | 'select' | 'radiobutton';
+    is_strict: boolean;
+    options: string[] | null;
+    answer: string | null;
+    correct_options: string[] | null;
+  }>;
+  language_entries: Array<{
+    word: string;
+    description: string | null;
+    translation: string;
+  }>;
+}
+
+export async function exportTheme(themeId: string): Promise<ExportThemeData> {
+  try {
+    const response = await apiClient.get(`/themes/${themeId}/export`);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to export theme');
+  }
+}
+
+export async function importTheme(data: ExportThemeData): Promise<Theme> {
+  try {
+    const response = await apiClient.post('/themes/import', data);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Failed to import theme');
+  }
+}
