@@ -91,9 +91,11 @@ export default function GameSetup(props: {
               <p className={`text-xs mt-1 ${languageModeEnabled ? 'text-light/60' : 'text-red-300'}`}>
                 {languageModeEnabled ? t('game.mode.languageHint', { count: languageAvailable }) : t('game.mode.languageRestriction')}
               </p>
-              <p className="text-[11px] mt-2 text-blue-100/70">
-                {t('game.mode.languageStatsNotice')}
-              </p>
+              {languageModeEnabled && (
+                <p className="text-[11px] mt-2 text-blue-100/70">
+                  {t('game.mode.languageStatsNotice')}
+                </p>
+              )}
             </button>
           )}
         </div>
