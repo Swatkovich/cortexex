@@ -18,12 +18,13 @@ export default function QuestionView(props: {
   handleToggleCheckbox: (idx: number) => void;
   submitted: boolean;
   lastWasCorrect: boolean | null;
+  blindMode: boolean;
   canProceed: boolean;
   handleSubmitAnswer: () => void;
   handleNext: () => void;
   resetGame: () => void;
 }) {
-  const { current, index, total, inputValue, setInputValue, selectedOption, setSelectedOption, selectedOptions, handleToggleCheckbox, submitted, lastWasCorrect, canProceed, handleSubmitAnswer, handleNext, resetGame } = props;
+  const { current, index, total, inputValue, setInputValue, selectedOption, setSelectedOption, selectedOptions, handleToggleCheckbox, submitted, lastWasCorrect, blindMode, canProceed, handleSubmitAnswer, handleNext, resetGame } = props;
   const t = useT();
 
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -160,25 +161,31 @@ export default function QuestionView(props: {
 
         {submitted && (
           <div className="mt-4 rounded-md border border-light/10 bg-dark/40 p-3">
-            {current?.is_strict ? (
-              lastWasCorrect === true ? (
-                <div className="text-sm text-green-400">{t('game.question.result.correct')}</div>
-              ) : lastWasCorrect === false ? (
-                <div className="text-sm text-red-400">{t('game.question.result.incorrect')}</div>
-              ) : (
-                <div className="text-sm text-light/60">{t('game.question.result.recorded')}</div>
-              )
-            ) : null}
+            {blindMode ? (
+              <div className="text-sm text-white">{t('game.question.result.sent')}</div>
+            ) : (
+              <>
+                {current?.is_strict ? (
+                  lastWasCorrect === true ? (
+                    <div className="text-sm text-green-400">{t('game.question.result.correct')}</div>
+                  ) : lastWasCorrect === false ? (
+                    <div className="text-sm text-red-400">{t('game.question.result.incorrect')}</div>
+                  ) : (
+                    <div className="text-sm text-light/60">{t('game.question.result.recorded')}</div>
+                  )
+                ) : null}
 
-            {current?.question_type === 'input' && current.answer && (
-              <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
-                {t('game.question.correctAnswer')}: {current.answer}
-              </div>
-            )}
-            {(current?.question_type === 'radiobutton' || current?.question_type === 'select') && current?.correct_options && current.correct_options.length > 0 && (
-              <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
-                {t('game.question.correctOptions')}: {current.correct_options.join(', ')}
-              </div>
+                {current?.question_type === 'input' && current.answer && (
+                  <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
+                    {t('game.question.correctAnswer')}: {current.answer}
+                  </div>
+                )}
+                {(current?.question_type === 'radiobutton' || current?.question_type === 'select') && current?.correct_options && current.correct_options.length > 0 && (
+                  <div className={`mt-2 text-xs ${current?.is_strict ? 'text-light/50' : 'text-yellow-300'}`}>
+                    {t('game.question.correctOptions')}: {current.correct_options.join(', ')}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

@@ -28,6 +28,7 @@ const PlayPage = observer(() => {
   const [count, setCount] = useState<number>(5);
   const [loading, setLoading] = useState(false);
   const [includeNonStrict, setIncludeNonStrict] = useState<boolean>(true);
+  const [blindMode, setBlindMode] = useState<boolean>(false);
 
   const [playing, setPlaying] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -157,6 +158,7 @@ const PlayPage = observer(() => {
             setPassed(typeof s.passed === 'number' ? s.passed : 0);
             setLastWasCorrect(typeof s.lastWasCorrect === 'boolean' ? s.lastWasCorrect : null);
             setIncludeNonStrict(typeof s.includeNonStrict === 'boolean' ? s.includeNonStrict : true);
+            setBlindMode(typeof s.blindMode === 'boolean' ? s.blindMode : false);
             // restore selected theme ids into store so selectedThemes is populated
             if (Array.isArray(s.selectedThemeIds) && s.selectedThemeIds.length > 0) {
               try {
@@ -192,12 +194,13 @@ const PlayPage = observer(() => {
         lastWasCorrect,
         selectedThemeIds: (themeStore as any).selectedThemeIds || [],
         includeNonStrict,
+        blindMode,
       };
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (err) {
       // ignore storage errors
     }
-  }, [playing, questions, index, submitted, inputValue, selectedOption, selectedOptions, userAnswers, passed, showResults, lastWasCorrect, includeNonStrict]);
+  }, [playing, questions, index, submitted, inputValue, selectedOption, selectedOptions, userAnswers, passed, showResults, lastWasCorrect, includeNonStrict, blindMode]);
 
   const totalAvailable = availableQuestions.length;
   const strictAvailable = availableQuestions.filter((q) => q.is_strict).length;
@@ -388,6 +391,8 @@ const PlayPage = observer(() => {
                   setCount((c) => Math.min(c, strictCount));
                 }
               }}
+              blindMode={blindMode}
+              setBlindMode={setBlindMode}
               effectiveAvailable={effectiveAvailable}
               totalAvailable={totalAvailable}
               strictAvailable={strictAvailable}
@@ -408,6 +413,7 @@ const PlayPage = observer(() => {
               handleToggleCheckbox={handleToggleCheckbox}
               submitted={submitted}
               lastWasCorrect={lastWasCorrect}
+              blindMode={blindMode}
               canProceed={canProceed}
               handleSubmitAnswer={handleSubmitAnswer}
               handleNext={handleNext}

@@ -14,6 +14,8 @@ export default function GameSetup(props: {
   setCount: (n: number) => void;
   includeNonStrict: boolean;
   setIncludeNonStrict: (v: boolean) => void;
+  blindMode: boolean;
+  setBlindMode: (v: boolean) => void;
   effectiveAvailable: number;
   totalAvailable: number;
   strictAvailable: number;
@@ -27,6 +29,8 @@ export default function GameSetup(props: {
     setCount,
     includeNonStrict,
     setIncludeNonStrict,
+    blindMode,
+    setBlindMode,
     effectiveAvailable,
     totalAvailable,
     strictAvailable,
@@ -92,6 +96,19 @@ export default function GameSetup(props: {
               />
               <span className="text-light">{t('game.setup.includeNonStrict')}</span>
             </label>
+          </div>
+
+          <div className="mt-4">
+            <label className="inline-flex items-center gap-2 text-sm text-light/80">
+              <input
+                type="checkbox"
+                checked={blindMode}
+                onChange={() => setBlindMode(!blindMode)}
+                className="h-4 w-4"
+              />
+              <span className="text-light">{t('game.setup.blindMode.label')}</span>
+            </label>
+            <p className="mt-1 text-xs text-light/50">{t('game.setup.blindMode.description')}</p>
           </div>
 
           <div className="mt-4 flex gap-3">
