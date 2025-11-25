@@ -155,16 +155,31 @@ export const getThemeStats = async (req: AuthRequest, res: Response) => {
 
 // Returns aggregated statistics across all users for the public landing page
 export const getGlobalStats = async (_req: Request, res: Response) => {
-    const result = await pool.query(`
-        SELECT
-            (SELECT COUNT(*)::int FROM users) AS total_users,
-            (SELECT COUNT(*)::int FROM themes) AS total_themes,
-            (SELECT COUNT(*)::int FROM questions) AS total_questions,
-            (SELECT COUNT(*)::int FROM user_games) AS total_games,
-            (SELECT COALESCE(SUM(questions_answered), 0)::int FROM user_games) AS total_questions_answered
-    `);
+    const [aggregateResult, distributionResult] = await Promise.all([
+        pool.query(`
+            SELECT
+                (SELECT COUNT(*)::int FROM users) AS total_users,
+                (SELECT COUNT(*)::int FROM themes) AS total_themes,
+                (SELECT COUNT(*)::int FROM questions) AS total_questions,
+                (SELECT COUNT(*)::int FROM user_games) AS total_games,
+                (SELECT COALESCE(SUM(questions_answered), 0)::int FROM user_games) AS total_questions_answered
+        `),
+        pool.query(`
+            SELECT uqs.knowledge_level::int AS level, COUNT(*)::int AS cnt
+            FROM user_question_stats uqs
+            JOIN questions q ON q.id = uqs.question_id
+            WHERE q.is_strict = true
+            GROUP BY uqs.knowledge_level
+        `)
+    ]);
 
-    const row = result.rows[0] || {};
+    const row = aggregateResult.rows[0] || {};
+    const distribution = { 0: 0, 1: 0, 2: 0, 3: 0 } as Record<number, number>;
+
+    for (const distRow of distributionResult.rows) {
+        const level = Number(distRow.level);
+        distribution[level] = Number(distRow.cnt);
+    }
 
     return res.status(200).json({
         totalUsers: Number(row.total_users || 0),
@@ -172,5 +187,11 @@ export const getGlobalStats = async (_req: Request, res: Response) => {
         totalQuestions: Number(row.total_questions || 0),
         totalGamesPlayed: Number(row.total_games || 0),
         totalQuestionsAnswered: Number(row.total_questions_answered || 0),
+        knowledgeDistribution: {
+            dontKnow: distribution[0] || 0,
+            know: distribution[1] || 0,
+            wellKnow: distribution[2] || 0,
+            perfectlyKnow: distribution[3] || 0,
+        }
     });
 }

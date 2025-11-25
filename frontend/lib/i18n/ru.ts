@@ -72,6 +72,7 @@ const ru: Record<string, string> = {
   'home.stats.questionsAnswered': 'Дано ответов',
   'home.stats.loading': 'Собираем статистику сообщества...',
   'home.stats.error': 'Не удалось загрузить статистику сообщества',
+  'home.stats.diagramTitle': 'Средний уровень знаний',
   // Profile
   'profile.title': 'Профиль',
   'profile.backToThemes': 'К темам',

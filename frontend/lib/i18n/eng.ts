@@ -72,6 +72,7 @@ const eng: Record<string, string> = {
   'home.stats.questionsAnswered': 'Questions answered',
   'home.stats.loading': 'Tracking community impact...',
   'home.stats.error': 'Unable to load community stats',
+  'home.stats.diagramTitle': 'Average knowledge',
   // Profile
   'profile.title': 'Profile',
   'profile.backToThemes': 'Back to Themes',

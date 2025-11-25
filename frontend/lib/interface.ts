@@ -58,5 +58,11 @@ export interface GlobalStats {
     totalQuestions: number;
     totalGamesPlayed: number;
     totalQuestionsAnswered: number;
+    knowledgeDistribution: {
+        dontKnow: number;
+        know: number;
+        wellKnow: number;
+        perfectlyKnow: number;
+    };
 }
   

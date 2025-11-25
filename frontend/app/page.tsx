@@ -7,6 +7,7 @@ import { authStore } from '@/store/authStore';
 import { useT } from '@/lib/i18n';
 import { fetchGlobalStats } from '@/lib/api';
 import type { GlobalStats } from '@/lib/interface';
+import ProfileDiagram from '@/components/ProfileDiagram';
 
 const HomePage = observer(() => {
   const isAuthenticated = authStore.isAuthenticated;
@@ -14,6 +15,7 @@ const HomePage = observer(() => {
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
+  const emptyDistribution = { dontKnow: 0, know: 0, wellKnow: 0, perfectlyKnow: 0 };
 
   useEffect(() => {
     let isMounted = true;
@@ -53,6 +55,7 @@ const HomePage = observer(() => {
         { label: t('home.stats.questionsAnswered'), value: stats.totalQuestionsAnswered },
       ]
     : [];
+  const distribution = stats?.knowledgeDistribution ?? emptyDistribution;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-dark font-sans">
@@ -104,21 +107,30 @@ const HomePage = observer(() => {
           ) : statsError ? (
             <p className="text-sm text-red-300">{t('home.stats.error')}</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {statsItems.map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-light/5 bg-dark/40 p-4 text-center shadow-inner shadow-black/30"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-widest text-light/60">
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-3xl font-bold text-light">
-                    {formatNumber(item.value)}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                {statsItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-2xl border border-light/5 bg-dark/40 p-4 text-center shadow-inner shadow-black/30"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-widest text-light/60">
+                      {item.label}
+                    </p>
+                    <p className="mt-2 text-3xl font-bold text-light">
+                      {formatNumber(item.value)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-10 rounded-2xl border border-light/5 bg-dark/30 p-6">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-light/60">
+                  {t('home.stats.diagramTitle')}
+                </p>
+                <ProfileDiagram counts={distribution} />
+              </div>
+            </>
           )}
         </div>
         <p className="mt-12 text-sm text-light/50">{t('home.developing')}</p>
