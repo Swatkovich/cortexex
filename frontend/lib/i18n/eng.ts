@@ -136,6 +136,8 @@ const eng: Record<string, string> = {
   'diagram.strictCorrect': 'Strict correct',
   'diagram.strictIncorrect': 'Strict incorrect',
   'diagram.nonstrict': 'Non-strict',
+  'diagram.correct': 'Correct',
+  'diagram.incorrect': 'Incorrect',
 
   // Game
   'game.modeLabel': 'Play Mode',

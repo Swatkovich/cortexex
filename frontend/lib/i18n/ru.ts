@@ -136,6 +136,8 @@ const ru: Record<string, string> = {
   'diagram.strictCorrect': 'Строгие верные',
   'diagram.strictIncorrect': 'Строгие неверные',
   'diagram.nonstrict': 'Нестрогие',
+  'diagram.correct': 'Верные',
+  'diagram.incorrect': 'Неверные',
 
   // Game
   'game.modeLabel': 'Режим игры',

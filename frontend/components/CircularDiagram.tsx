@@ -10,6 +10,9 @@ export default function CircularDiagram({ questions, userAnswers }: { questions:
   const green = questions.filter((q) => q.is_strict && userAnswers[q.id]?.isCorrect === true).length;
   const red = questions.filter((q) => q.is_strict && userAnswers[q.id]?.isCorrect !== true).length;
   const yellow = questions.filter((q) => !q.is_strict).length;
+  const hasNonStrict = yellow > 0;
+  const correctCount = questions.filter((q) => userAnswers[q.id]?.isCorrect === true).length;
+  const incorrectCount = questions.filter((q) => userAnswers[q.id]?.isCorrect !== true).length;
   const total = green + red + yellow;
   const t = useT();
 
@@ -52,7 +55,7 @@ export default function CircularDiagram({ questions, userAnswers }: { questions:
             <circle r={radius} cx={size / 2} cy={size / 2} fill="transparent" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
             {segment(dashG, '#34d399', 'g')}
             {segment(dashR, '#f87171', 'r')}
-            {segment(dashY, '#fbbf24', 'y')}
+            {hasNonStrict && segment(dashY, '#fbbf24', 'y')}
           </g>
         </svg>
 
@@ -62,9 +65,18 @@ export default function CircularDiagram({ questions, userAnswers }: { questions:
       </div>
 
       <div className="text-sm text-light/70">
-        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />{t('diagram.strictCorrect')}: {green}</div>
-        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-yellow-300 mr-2 align-middle" />{t('diagram.strictIncorrect')}: {yellow}</div>
-        <div><span className="inline-block w-3 h-3 rounded-full bg-red-400 mr-2 align-middle" />{t('diagram.nonstrict')}: {red}</div>
+        {hasNonStrict ? (
+          <>
+            <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />{t('diagram.strictCorrect')}: {green}</div>
+            <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-yellow-300 mr-2 align-middle" />{t('diagram.nonstrict')}: {yellow}</div>
+            <div><span className="inline-block w-3 h-3 rounded-full bg-red-400 mr-2 align-middle" />{t('diagram.strictIncorrect')}: {red}</div>
+          </>
+        ) : (
+          <>
+            <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />{t('diagram.correct')}: {correctCount}</div>
+            <div><span className="inline-block w-3 h-3 rounded-full bg-red-400 mr-2 align-middle" />{t('diagram.incorrect')}: {incorrectCount}</div>
+          </>
+        )}
       </div>
     </div>
   );
