@@ -26,6 +26,14 @@ export const getProfileStats = async (req: AuthRequest, res: Response) => {
     );
 
     const qCounts = qCountsRes.rows[0] || { strict_questions: 0, non_strict_questions: 0 };
+    const languageEntriesRes = await pool.query(
+        `SELECT COUNT(*)::int AS language_entries
+         FROM language_entries le
+         JOIN themes t ON le.theme_id = t.id
+         WHERE t.user_id = $1`,
+        [userId]
+    );
+    const languageEntriesCount = Number(languageEntriesRes.rows[0]?.language_entries || 0);
 
     // Knowledge distribution for strict questions (levels 0-3)
     const distRes = await pool.query(
@@ -42,13 +50,35 @@ export const getProfileStats = async (req: AuthRequest, res: Response) => {
         const lvl = Number(row.level);
         distribution[lvl] = Number(row.cnt);
     }
+    const languageDistRes = await pool.query(
+        `SELECT
+            CASE
+                WHEN correct_streak >= 3 THEN 3
+                WHEN correct_streak <= 0 THEN 0
+                ELSE correct_streak
+            END AS level,
+            COUNT(*)::int AS cnt
+         FROM user_language_entry_stats
+         WHERE user_id = $1
+         GROUP BY level`,
+        [userId]
+    );
+    for (const row of languageDistRes.rows) {
+        const lvl = Number(row.level);
+        distribution[lvl] = (distribution[lvl] || 0) + Number(row.cnt || 0);
+    }
+    const strictQuestions = Number(qCounts.strict_questions || 0);
+    const totalStrict = strictQuestions + languageEntriesCount;
+    const counted = (distribution[0] || 0) + (distribution[1] || 0) + (distribution[2] || 0) + (distribution[3] || 0);
+    const missing = Math.max(0, totalStrict - counted);
+    distribution[0] = (distribution[0] || 0) + missing;
 
     return res.status(200).json({
         totalGames: Number(gamesRow.total_games || 0),
         totalQuestionsAnswered: Number(gamesRow.total_questions_answered || 0),
         bestCorrectInRow: Number(gamesRow.best_correct_streak || 0),
         questionsCounts: {
-            strict: Number(qCounts.strict_questions || 0),
+            strict: totalStrict,
             nonStrict: Number(qCounts.non_strict_questions || 0),
         },
         knowledgeDistribution: {
@@ -243,16 +273,31 @@ export const getGlobalStats = async (_req: Request, res: Response) => {
             SELECT
                 (SELECT COUNT(*)::int FROM users) AS total_users,
                 (SELECT COUNT(*)::int FROM themes) AS total_themes,
-                (SELECT COUNT(*)::int FROM questions) AS total_questions,
+                (SELECT COUNT(*)::int FROM questions) AS total_questions_only,
+                (SELECT COUNT(*)::int FROM language_entries) AS total_language_entries,
                 (SELECT COUNT(*)::int FROM user_games) AS total_games,
                 (SELECT COALESCE(SUM(questions_answered), 0)::int FROM user_games) AS total_questions_answered
         `),
         pool.query(`
-            SELECT uqs.knowledge_level::int AS level, COUNT(*)::int AS cnt
-            FROM user_question_stats uqs
-            JOIN questions q ON q.id = uqs.question_id
-            WHERE q.is_strict = true
-            GROUP BY uqs.knowledge_level
+            SELECT level, SUM(cnt)::int AS cnt
+            FROM (
+                SELECT uqs.knowledge_level::int AS level, COUNT(*)::int AS cnt
+                FROM user_question_stats uqs
+                JOIN questions q ON q.id = uqs.question_id
+                WHERE q.is_strict = true
+                GROUP BY uqs.knowledge_level
+                UNION ALL
+                SELECT
+                    CASE
+                        WHEN correct_streak >= 3 THEN 3
+                        WHEN correct_streak <= 0 THEN 0
+                        ELSE correct_streak
+                    END AS level,
+                    COUNT(*)::int AS cnt
+                FROM user_language_entry_stats
+                GROUP BY level
+            ) combined
+            GROUP BY level
         `)
     ]);
 
@@ -264,10 +309,13 @@ export const getGlobalStats = async (_req: Request, res: Response) => {
         distribution[level] = Number(distRow.cnt);
     }
 
+    const totalQuestionsOnly = Number(row.total_questions_only || 0);
+    const totalLanguageEntries = Number(row.total_language_entries || 0);
+
     return res.status(200).json({
         totalUsers: Number(row.total_users || 0),
         totalThemes: Number(row.total_themes || 0),
-        totalQuestions: Number(row.total_questions || 0),
+        totalQuestions: totalQuestionsOnly + totalLanguageEntries,
         totalGamesPlayed: Number(row.total_games || 0),
         totalQuestionsAnswered: Number(row.total_questions_answered || 0),
         knowledgeDistribution: {

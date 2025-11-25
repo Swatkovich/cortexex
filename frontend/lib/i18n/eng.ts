@@ -181,6 +181,7 @@ const eng: Record<string, string> = {
   'game.mode.languageHint': '{{count}} generated translation prompts',
   'game.mode.languageRestriction': 'Select only language topics to enable this mode',
   'game.mode.languageStrict': 'Language mode uses strict answers (case-insensitive).',
+  'game.mode.languageStatsNotice': 'Only the language test mode affects your statistics.',
   'game.title.noSelection': 'No themes selected',
   'game.title.results': 'Results',
   'game.title.playing': 'Playing',

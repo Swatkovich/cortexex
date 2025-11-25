@@ -181,6 +181,7 @@ const ru: Record<string, string> = {
   'game.mode.languageHint': '{{count}} автоматически сгенерированных заданий на перевод',
   'game.mode.languageRestriction': 'Чтобы включить режим, выберите только языковые темы',
   'game.mode.languageStrict': 'В языковом режиме ответы всегда проверяются строго (регистр игнорируется).',
+  'game.mode.languageStatsNotice': 'Только языковой тест влияет на вашу статистику.',
   'game.title.noSelection': 'Темы не выбраны',
   'game.title.results': 'Результаты',
   'game.title.playing': 'Игра',

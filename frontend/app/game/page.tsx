@@ -178,6 +178,8 @@ const PlayPage = observer(() => {
   const router = useRouter();
   const classicCountManualRef = useRef(false);
   const languageCountManualRef = useRef(false);
+  const [hasAnyLanguageTopics, setHasAnyLanguageTopics] = useState(false);
+  const [hasOnlyLanguageTopics, setHasOnlyLanguageTopics] = useState(false);
   const selectedIdsCount = selectedIds?.length ?? 0;
   const hasSelection =
     (isClient && selectedIdsCount > 0) ||
@@ -229,6 +231,8 @@ const PlayPage = observer(() => {
         setClassicQuestions([]);
         setLanguageEntries([]);
         setLanguageModeEligible(false);
+        setHasAnyLanguageTopics(false);
+        setHasOnlyLanguageTopics(false);
         return;
       }
 
@@ -238,10 +242,10 @@ const PlayPage = observer(() => {
       try {
         const payloads = await Promise.all(idsToLoad.map((id) => api.fetchTheme(id)));
         const classicFromThemes = payloads.flatMap((data) => (Array.isArray(data.questions) ? data.questions : []));
-        const languageEntriesForClassic = payloads.flatMap((data) =>
+        const languageEntriesFromThemes = payloads.flatMap((data) =>
           data.is_language_topic && Array.isArray(data.language_entries) ? data.language_entries : []
         );
-        const classicLanguageQuestions = buildClassicLanguageQuestions(languageEntriesForClassic);
+        const classicLanguageQuestions = buildClassicLanguageQuestions(languageEntriesFromThemes);
         const allQuestions = [...classicFromThemes, ...classicLanguageQuestions];
         setClassicQuestions(allQuestions);
 
@@ -251,9 +255,13 @@ const PlayPage = observer(() => {
           return clamp(base, 1, maxClassic);
         });
 
+        const hasLanguageTopicsSelected = payloads.some((data) => data.is_language_topic);
+        setHasAnyLanguageTopics(hasLanguageTopicsSelected);
+
         const allLanguage = payloads.length > 0 && payloads.every((data) => data.is_language_topic);
+        setHasOnlyLanguageTopics(allLanguage);
         setLanguageModeEligible(allLanguage);
-        const usableEntries = allLanguage ? languageEntriesForClassic : [];
+        const usableEntries = allLanguage ? languageEntriesFromThemes : [];
         setLanguageEntries(usableEntries);
         const languageMax = estimateLanguageQuestionCount(usableEntries);
         const defaultLanguageCount = languageMax > 0 ? languageMax : 1;
@@ -265,6 +273,8 @@ const PlayPage = observer(() => {
         setClassicQuestions([]);
         setLanguageEntries([]);
         setLanguageModeEligible(false);
+        setHasAnyLanguageTopics(false);
+        setHasOnlyLanguageTopics(false);
       } finally {
         setLoading(false);
       }
@@ -612,6 +622,8 @@ const PlayPage = observer(() => {
               setMode={setMode}
               languageModeEnabled={languageModeEligible}
               languageAvailable={languageAvailable}
+              showLanguageMode={hasAnyLanguageTopics}
+              hasOnlyLanguageTopics={hasOnlyLanguageTopics}
               loading={loading}
               startGame={startGame}
               onBack={() => { try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {} ; router.push('/user'); }}

@@ -23,6 +23,8 @@ export default function GameSetup(props: {
   setMode: (mode: 'classic' | 'language') => void;
   languageModeEnabled: boolean;
   languageAvailable: number;
+  showLanguageMode: boolean;
+  hasOnlyLanguageTopics: boolean;
   loading: boolean;
   startGame: () => void;
   onBack?: () => void;
@@ -42,18 +44,22 @@ export default function GameSetup(props: {
     setMode,
     languageModeEnabled,
     languageAvailable,
+    showLanguageMode,
+    hasOnlyLanguageTopics,
     loading,
     startGame,
     onBack,
   } = props;
   const t = useT();
   const isLanguageMode = mode === 'language';
-  const availableDisplay = isLanguageMode ? languageAvailable : effectiveAvailable;
   const maxForMode = Math.max(1, isLanguageMode ? (languageAvailable || 0) : (effectiveAvailable || 0));
+  const modeGridCols = showLanguageMode ? 'sm:grid-cols-2' : 'sm:grid-cols-1';
   const handleCountChange = (value: number) => {
     if (Number.isNaN(value)) return;
     setCount(Math.max(1, Math.min(value, maxForMode)));
   };
+  const showClassicTotals = !isLanguageMode && !hasOnlyLanguageTopics;
+  const showIncludeNonStrict = !isLanguageMode && !hasOnlyLanguageTopics;
 
   return (
     <div>
@@ -65,7 +71,7 @@ export default function GameSetup(props: {
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-light">{t('game.mode.label')}</label>
-        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+        <div className={`mt-2 grid gap-3 grid-cols-1 ${modeGridCols}`}>
           <button
             type="button"
             onClick={() => setMode('classic')}
@@ -74,17 +80,22 @@ export default function GameSetup(props: {
             <p className="text-base font-semibold text-light">{t('game.mode.classic')}</p>
             <p className="text-xs text-light/60 mt-1">{t('game.mode.classicHint', { count: effectiveAvailable })}</p>
           </button>
-          <button
-            type="button"
-            onClick={() => languageModeEnabled && setMode('language')}
-            disabled={!languageModeEnabled}
-            className={`rounded-2xl border px-4 py-4 text-left transition ${mode === 'language' ? 'border-blue-400/60 bg-blue-500/10' : 'border-light/20 bg-dark/30 hover:border-light/30'} ${!languageModeEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <p className="text-base font-semibold text-light">{t('game.mode.language')}</p>
-            <p className={`text-xs mt-1 ${languageModeEnabled ? 'text-light/60' : 'text-red-300'}`}>
-              {languageModeEnabled ? t('game.mode.languageHint', { count: languageAvailable }) : t('game.mode.languageRestriction')}
-            </p>
-          </button>
+          {showLanguageMode && (
+            <button
+              type="button"
+              onClick={() => languageModeEnabled && setMode('language')}
+              disabled={!languageModeEnabled}
+              className={`rounded-2xl border px-4 py-4 text-left transition ${mode === 'language' ? 'border-blue-400/60 bg-blue-500/10' : 'border-light/20 bg-dark/30 hover:border-light/30'} ${!languageModeEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <p className="text-base font-semibold text-light">{t('game.mode.language')}</p>
+              <p className={`text-xs mt-1 ${languageModeEnabled ? 'text-light/60' : 'text-red-300'}`}>
+                {languageModeEnabled ? t('game.mode.languageHint', { count: languageAvailable }) : t('game.mode.languageRestriction')}
+              </p>
+              <p className="text-[11px] mt-2 text-blue-100/70">
+                {t('game.mode.languageStatsNotice')}
+              </p>
+            </button>
+          )}
         </div>
       </div>
 
@@ -126,24 +137,19 @@ export default function GameSetup(props: {
               onChange={(e) => handleCountChange(Number(e.target.value))}
               className="w-32"
             />
-            {!isLanguageMode && (
-              <div className="text-sm text-light/50">
-                {count}/{availableDisplay}
-              </div>
-            )}
           </div>
           {isLanguageMode ? (
             <p className="mt-2 text-xs text-light/50">
               {t('game.mode.languageHint', { count: languageAvailable })}
             </p>
-          ) : (
+          ) : showClassicTotals ? (
             <p className="mt-2 text-xs text-light/50">
               {t('game.setup.totalAvailable')}: {totalAvailable} ({strictAvailable} {t('game.setup.strictLabel')})
               {loading ? ` (${t('game.setup.loading')})` : ''}
             </p>
-          )}
+          ) : null}
 
-          {!isLanguageMode ? (
+          {showIncludeNonStrict ? (
             <div className="mt-4">
               <label className="inline-flex items-center gap-2 text-sm text-light/80">
                 <input
@@ -155,11 +161,11 @@ export default function GameSetup(props: {
                 <span className="text-light">{t('game.setup.includeNonStrict')}</span>
               </label>
             </div>
-          ) : (
+          ) : isLanguageMode ? (
             <p className="mt-4 text-xs text-light/50">
               {t('game.mode.languageStrict')}
             </p>
-          )}
+          ) : null}
 
           <div className="mt-4">
             <label className="inline-flex items-center gap-2 text-sm text-light/80">
