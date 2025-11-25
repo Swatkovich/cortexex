@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Question } from '@/lib/interface';
+import { useT } from '@/lib/i18n';
 
 type AnswersMap = Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>;
 
@@ -10,6 +11,7 @@ export default function CircularDiagram({ questions, userAnswers }: { questions:
   const red = questions.filter((q) => q.is_strict && userAnswers[q.id]?.isCorrect !== true).length;
   const yellow = questions.filter((q) => !q.is_strict).length;
   const total = green + red + yellow;
+  const t = useT();
 
   const size = 96;
   const stroke = 12;
@@ -60,9 +62,9 @@ export default function CircularDiagram({ questions, userAnswers }: { questions:
       </div>
 
       <div className="text-sm text-light/70">
-        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />Strict correct: {green}</div>
-        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-red-400 mr-2 align-middle" />Strict incorrect: {red}</div>
-        <div><span className="inline-block w-3 h-3 rounded-full bg-yellow-300 mr-2 align-middle" />Non-strict: {yellow}</div>
+        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2 align-middle" />{t('diagram.strictCorrect')}: {green}</div>
+        <div className="mb-1"><span className="inline-block w-3 h-3 rounded-full bg-yellow-300 mr-2 align-middle" />{t('diagram.strictIncorrect')}: {yellow}</div>
+        <div><span className="inline-block w-3 h-3 rounded-full bg-red-400 mr-2 align-middle" />{t('diagram.nonstrict')}: {red}</div>
       </div>
     </div>
   );

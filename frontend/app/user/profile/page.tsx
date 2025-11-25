@@ -8,6 +8,7 @@ import { authStore } from '@/store/authStore';
 import { fetchProfileStats } from '@/lib/api';
 import ProfileDiagram from '@/components/ProfileDiagram';
 import { useT } from '@/lib/i18n';
+import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -15,6 +16,11 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null);
   const t = useT();
+  const ERROR_MAP: Record<string, string> = {
+    'Failed to load profile stats': 'profile.error.failed',
+    'Failed to load profile': 'profile.error.failed',
+    'profile.error.failed': 'profile.error.failed',
+  };
 
   useEffect(() => {
     if (!authStore.initialized) {
@@ -36,7 +42,7 @@ export default function ProfilePage() {
         const data = await fetchProfileStats();
         setStats(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load');
+        setError(err?.message || 'profile.error.failed');
       } finally {
         setLoading(false);
       }
@@ -44,7 +50,7 @@ export default function ProfilePage() {
   }, [authStore.isAuthenticated]);
 
   if (loading) return <div className="flex items-center justify-center min-h-screen bg-dark"><p className="text-light/70">{t('profile.loading')}</p></div>;
-  if (error) return <div className="p-12 text-center text-red-400">Error: {error}</div>;
+  if (error) return <div className="p-12 text-center text-red-400">{t('generic.errorPrefix')}: {resolveErrorMessage(error, ERROR_MAP, t) ?? error}</div>;
 
   return (
     <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-4xl px-6 py-12">
@@ -71,7 +77,9 @@ export default function ProfilePage() {
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
             <h3 className="text-sm font-semibold text-light/70">{t('profile.yourQuestions')}</h3>
-            <p className="text-2xl font-bold text-light">{stats.questionsCounts.strict + stats.questionsCounts.nonStrict} total: {stats.questionsCounts.strict} strict / {stats.questionsCounts.nonStrict} non-strict</p>
+            <p className="text-2xl font-bold text-light">
+              {stats.questionsCounts.strict + stats.questionsCounts.nonStrict} {t('profile.questionsSummary.total')}: {stats.questionsCounts.strict} {t('profile.questionsSummary.strict')} / {stats.questionsCounts.nonStrict} {t('profile.questionsSummary.nonStrict')}
+            </p>
           </div>
         </div>
       </section>

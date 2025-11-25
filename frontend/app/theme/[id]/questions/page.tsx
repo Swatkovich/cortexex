@@ -11,6 +11,7 @@ import TextArea from '@/components/TextArea';
 import Card from '@/components/Card';
 import DifficultyTag from '@/components/DifficultyTag';
 import { useT } from '@/lib/i18n';
+import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -35,6 +36,23 @@ export default function QuestionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const t = useT();
+  const QUESTION_ERROR_MAP: Record<string, string> = {
+    'Failed to save question': 'questions.error.save',
+    'Failed to create question': 'questions.error.save',
+    'Failed to update question': 'questions.error.update',
+    'Failed to delete question': 'questions.error.delete',
+    'Failed to fetch theme': 'questions.notFound',
+    'questions.error.save': 'questions.error.save',
+    'questions.error.update': 'questions.error.update',
+    'questions.error.delete': 'questions.error.delete',
+    'questions.notFound': 'questions.notFound',
+  };
+  const getQuestionTypeLabel = (type: string) => {
+    if (type === 'input') return t('questions.form.type.input');
+    if (type === 'select') return t('questions.form.type.select');
+    if (type === 'radiobutton') return t('questions.form.type.radiobutton');
+    return type;
+  };
 
   useEffect(() => {
     loadData();
@@ -48,7 +66,7 @@ export default function QuestionsPage() {
       setTheme(themeData);
       setQuestions(themeData.questions || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('questions.notFound'));
+      setError(err instanceof Error ? err.message : 'questions.notFound');
     } finally {
       setLoading(false);
     }
@@ -194,7 +212,7 @@ export default function QuestionsPage() {
         onDone(updated as Question);
         setEditingId(null);
       } catch (err) {
-        setLocalError(err instanceof Error ? err.message : 'Failed to update question');
+        setLocalError(err instanceof Error ? err.message : 'questions.error.update');
       } finally {
         setSubmittingLocal(false);
       }
@@ -238,7 +256,7 @@ export default function QuestionsPage() {
           </div>
         )}
 
-        {localError && <div className="text-sm text-red-400">{localError}</div>}
+        {localError && <div className="text-sm text-red-400">{resolveErrorMessage(localError, QUESTION_ERROR_MAP, t) ?? localError}</div>}
 
         <div className="flex gap-3">
           <Button type="submit" disabled={submittingLocal} className="px-4 py-2 text-sm">{t('questions.form.save.save')}</Button>
@@ -299,7 +317,7 @@ export default function QuestionsPage() {
       resetForm();
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save question');
+      setError(err instanceof Error ? err.message : 'questions.error.save');
     } finally {
       setSubmitting(false);
     }
@@ -316,7 +334,7 @@ export default function QuestionsPage() {
       await themeStore.fetchThemes();
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete question');
+      setError(err instanceof Error ? err.message : 'questions.error.delete');
     }
   };
 
@@ -362,7 +380,7 @@ export default function QuestionsPage() {
 
       {error && (
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-          <p className="text-red-400 text-sm">{error}</p>
+          <p className="text-red-400 text-sm">{resolveErrorMessage(error, QUESTION_ERROR_MAP, t) ?? error}</p>
         </div>
       )}
 
@@ -541,7 +559,7 @@ export default function QuestionsPage() {
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center gap-3">
                       <span className="rounded-full border border-light/20 bg-light/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-light/60">
-                        {question.question_type}
+                        {getQuestionTypeLabel(question.question_type)}
                       </span>
                       {question.is_strict && (
                         <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-400">

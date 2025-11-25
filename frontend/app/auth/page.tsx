@@ -7,12 +7,25 @@ import { register } from '@/lib/api';
 import Button from '@/components/Button';
 import TextInput from '@/components/TextInput';
 import Card from '@/components/Card';
+import { useT } from '@/lib/i18n';
+import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 
 export default function AuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get('type');
   const isRegister = type === 'register';
+  const t = useT();
+  const ERROR_MAP: Record<string, string> = {
+    'Registration failed': 'auth.error.register',
+    'Login failed': 'auth.error.login',
+    'Passwords do not match': 'auth.error.passwordMismatch',
+    'Password must be at least 6 characters long': 'auth.error.passwordLength',
+    'auth.error.passwordMismatch': 'auth.error.passwordMismatch',
+    'auth.error.passwordLength': 'auth.error.passwordLength',
+    'auth.error.register': 'auth.error.register',
+    'auth.error.login': 'auth.error.login',
+  };
   
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -42,11 +55,11 @@ export default function AuthPage() {
     // Password confirmation check for register
     if (isRegister) {
       if (password !== confirmPassword) {
-        setError('Passwords do not match');
+        setError('auth.error.passwordMismatch');
         return;
       }
       if (password.length < 6) {
-        setError('Password must be at least 6 characters long');
+        setError('auth.error.passwordLength');
         return;
       }
     }
@@ -62,7 +75,7 @@ export default function AuthPage() {
         router.push('/user');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isRegister ? 'Registration failed' : 'Login failed'));
+      setError(err instanceof Error ? err.message : (isRegister ? 'auth.error.register' : 'auth.error.login'));
     } finally {
       setFormLoading(false);
     }
@@ -74,7 +87,7 @@ export default function AuthPage() {
       <Card className="w-full max-w-md p-10 backdrop-blur-sm">
         <div className="mb-8">
           <h1 className="mb-6 text-3xl font-bold tracking-tight text-light text-center">
-            {isRegister ? 'Register' : 'Log In'}
+            {isRegister ? t('auth.title.register') : t('auth.title.login')}
           </h1>
           
           {/* Tab Switcher */}
@@ -88,7 +101,7 @@ export default function AuthPage() {
                   : 'text-light/60 hover:text-light'
               }`}
             >
-              Log In
+              {t('auth.tab.login')}
             </button>
             <button
               type="button"
@@ -99,13 +112,13 @@ export default function AuthPage() {
                   : 'text-light/60 hover:text-light'
               }`}
             >
-              Register
+              {t('auth.tab.register')}
             </button>
           </div>
           
           {isRegister && (
             <p className="mt-4 text-center text-sm text-light/60">
-              Create your CortexEx account
+              {t('auth.subtitle.register')}
             </p>
           )}
         </div>
@@ -113,7 +126,7 @@ export default function AuthPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
-              {error}
+              {resolveErrorMessage(error, ERROR_MAP, t) ?? error}
             </div>
           )}
 
@@ -122,7 +135,7 @@ export default function AuthPage() {
               htmlFor="name"
               className="block text-sm font-medium text-light"
             >
-              Name
+              {t('auth.label.name')}
             </label>
             <TextInput
               id="name"
@@ -130,7 +143,7 @@ export default function AuthPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="Enter your name"
+              placeholder={t('auth.placeholder.name')}
             />
           </div>
 
@@ -139,7 +152,7 @@ export default function AuthPage() {
               htmlFor="password"
               className="block text-sm font-medium text-light"
             >
-              Password
+              {t('auth.label.password')}
             </label>
             <TextInput
               id="password"
@@ -147,7 +160,7 @@ export default function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder={isRegister ? 'Create a password' : 'Enter your password'}
+              placeholder={isRegister ? t('auth.placeholder.password.create') : t('auth.placeholder.password.enter')}
             />
           </div>
 
@@ -157,7 +170,7 @@ export default function AuthPage() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-light"
               >
-                Confirm Password
+                {t('auth.label.confirmPassword')}
               </label>
               <TextInput
                 id="confirmPassword"
@@ -165,14 +178,14 @@ export default function AuthPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                placeholder="Confirm your password"
+                placeholder={t('auth.placeholder.confirmPassword')}
               />
             </div>
           )}
           <Button type="submit" disabled={formLoading} className="w-full">
             {formLoading
-              ? (isRegister ? 'Creating account...' : 'Logging in...')
-              : (isRegister ? 'Register' : 'Log In')}
+              ? (isRegister ? t('auth.loading.register') : t('auth.loading.login'))
+              : (isRegister ? t('register') : t('login'))}
           </Button>
         </form>
 

@@ -11,6 +11,7 @@ import { authStore } from '@/store/authStore';
 import ProfileDiagram from '@/components/ProfileDiagram';
 import { useT } from '@/lib/i18n';
 import { fetchThemeStats } from '@/lib/api';
+import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 
 const UserPage = observer(() => {
   const router = useRouter();
@@ -38,6 +39,16 @@ const UserPage = observer(() => {
 
   const [statsMap, setStatsMap] = useState<Record<string, any>>({});
   const t = useT();
+  const THEME_ERROR_MAP: Record<string, string> = {
+    'Failed to fetch themes': 'themes.error.fetch',
+    'Failed to create theme': 'themes.error.create',
+    'Failed to update theme': 'themes.error.update',
+    'Failed to delete theme': 'themes.error.delete',
+    'themes.error.fetch': 'themes.error.fetch',
+    'themes.error.create': 'themes.error.create',
+    'themes.error.update': 'themes.error.update',
+    'themes.error.delete': 'themes.error.delete',
+  };
 
   useEffect(() => {
     // when themes are loaded, fetch stats for each theme
@@ -98,11 +109,13 @@ const UserPage = observer(() => {
 
       {themeStore.loading && !themeStore.initialized ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-lg text-light/70">Loading themes...</p>
+          <p className="text-lg text-light/70">{t('dashboard.loadingThemes')}</p>
         </div>
       ) : themeStore.error ? (
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
-          <p className="text-red-400">Error: {themeStore.error}</p>
+          <p className="text-red-400">
+            {t('generic.errorPrefix')}: {resolveErrorMessage(themeStore.error, THEME_ERROR_MAP, t) ?? themeStore.error}
+          </p>
         </div>
       ) : themeStore.themes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">

@@ -1,20 +1,15 @@
 "use client"
 
-import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 import { themeStore } from '@/store/themeStore';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import * as api from '@/lib/api';
 import { Question } from '@/lib/interface';
-import CircularDiagram from '@/components/CircularDiagram';
-import DifficultyTag from '@/components/DifficultyTag';
-import Button from '@/components/Button';
-import TextInput from '@/components/TextInput';
-import Card from '@/components/Card';
 import GameSetup from '@/components/game/GameSetup';
 import QuestionView from '@/components/game/QuestionView';
 import ResultsView from '@/components/game/ResultsView';
+import { useT } from '@/lib/i18n';
 
 function shuffle<T>(arr: T[]) {
   return arr
@@ -27,6 +22,7 @@ const PlayPage = observer(() => {
   const selected = themeStore.selectedThemes;
   const selectedIds = themeStore.selectedThemeIds;
   const [isClient, setIsClient] = useState(false);
+  const t = useT();
 
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [count, setCount] = useState<number>(5);
@@ -49,6 +45,26 @@ const PlayPage = observer(() => {
   const [lastWasCorrect, setLastWasCorrect] = useState<boolean | null>(null);
   const [resultSent, setResultSent] = useState(false);
   const router = useRouter();
+  const selectedIdsCount = selectedIds?.length ?? 0;
+  const hasSelection =
+    (isClient && selectedIdsCount > 0) ||
+    (!isClient && selected.length > 0) ||
+    questions.length > 0;
+  const titleKey = !hasSelection
+    ? 'game.title.noSelection'
+    : showResults
+    ? 'game.title.results'
+    : playing
+    ? 'game.title.playing'
+    : 'game.title.ready';
+  const subtitleKey = !hasSelection
+    ? 'game.subtitle.noSelection'
+    : showResults
+    ? 'game.subtitle.results'
+    : playing
+    ? 'game.subtitle.playing'
+    : 'game.subtitle.ready';
+  const noSelectionLoaded = selected.length === 0 && (!isClient || selectedIdsCount === 0) && questions.length === 0;
 
   useEffect(() => {
     // mark client-side hydration
@@ -337,30 +353,18 @@ const PlayPage = observer(() => {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-4xl flex-col gap-8 px-6 py-12 sm:px-8 lg:px-12">
       <header className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">Play Mode</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">{t('game.modeLabel')}</p>
         <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
-          {(() => {
-            const hasSelection = (isClient && selectedIds && selectedIds.length > 0) || questions.length > 0 || selected.length > 0;
-            if (!hasSelection) return 'No themes selected';
-            if (showResults) return 'Results';
-            if (playing) return 'Playing';
-            return 'Get ready!';
-          })()}
+          {t(titleKey)}
         </h1>
         <p className="max-w-2xl text-lg text-light/70">
-          {(() => {
-            const hasSelection = (isClient && selectedIds && selectedIds.length > 0) || selected.length > 0 || questions.length > 0;
-            if (!hasSelection) return 'Head back and choose at least one theme to unlock play mode.';
-            if (showResults) return 'Your session finished — review results or restart the game.';
-            if (playing) return 'Answer questions and progress through the session.';
-            return 'Choose how many questions and start the session.';
-          })()}
+          {t(subtitleKey)}
         </p>
       </header>
 
-      {((selected.length === 0 && (!isClient || selectedIds.length === 0)) && questions.length === 0) ? (
+      {noSelectionLoaded ? (
         <section className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
-          <p className="text-sm font-medium text-light/50">Nothing to load yet — add themes first.</p>
+          <p className="text-sm font-medium text-light/50">{t('game.emptySelection')}</p>
         </section>
       ) : (
         <section className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm">

@@ -9,6 +9,7 @@ import TextInput from '@/components/TextInput';
 import TextArea from '@/components/TextArea';
 import Card from '@/components/Card';
 import { useT } from '@/lib/i18n';
+import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 
 export default function CreateThemePage() {
   const t = useT();
@@ -22,6 +23,15 @@ export default function CreateThemePage() {
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Easy');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const ERROR_MAP: Record<string, string> = {
+    'Failed to fetch theme': 'createTheme.error.load',
+    'Failed to load theme': 'createTheme.error.load',
+    'Failed to create theme': 'createTheme.error.save',
+    'Failed to update theme': 'createTheme.error.save',
+    'Failed to save theme': 'createTheme.error.save',
+    'createTheme.error.load': 'createTheme.error.load',
+    'createTheme.error.save': 'createTheme.error.save',
+  };
 
   // Load theme data if editing
   useEffect(() => {
@@ -34,7 +44,7 @@ export default function CreateThemePage() {
           setDescription(theme.description);
           setDifficulty(theme.difficulty);
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'Failed to load theme');
+          setError(err instanceof Error ? err.message : 'createTheme.error.load');
         } finally {
           setLoading(false);
         }
@@ -64,7 +74,7 @@ export default function CreateThemePage() {
       }
       router.push('/user');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save theme');
+      setError(err instanceof Error ? err.message : 'createTheme.error.save');
       setLoading(false);
     }
   };
@@ -85,7 +95,7 @@ export default function CreateThemePage() {
 
       {error && (
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-          <p className="text-red-400 text-sm">{error}</p>
+          <p className="text-red-400 text-sm">{resolveErrorMessage(error, ERROR_MAP, t) ?? error}</p>
         </div>
       )}
 
