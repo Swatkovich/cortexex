@@ -169,6 +169,8 @@ const eng: Record<string, string> = {
   'theme.questions': 'Questions',
   'theme.languageEntries': 'words',
   'theme.languageTopicTag': 'Language topic',
+  'theme.delete': 'Delete theme',
+  'theme.delete.confirm': 'Delete this theme?',
   'themes.error.fetch': 'Failed to fetch themes',
   'themes.error.create': 'Failed to create theme',
   'themes.error.update': 'Failed to update theme',

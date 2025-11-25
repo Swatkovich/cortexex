@@ -42,6 +42,8 @@ const UserPage = observer(() => {
   const [exportSuccess, setExportSuccess] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const menuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const t = useT();
   const THEME_ERROR_MAP: Record<string, string> = {
@@ -129,6 +131,23 @@ const UserPage = observer(() => {
       setExportError(err instanceof Error ? err.message : 'questions.export.error');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleDeleteTheme = async (themeId: string) => {
+    const shouldDelete = window.confirm(t('theme.delete.confirm'));
+    if (!shouldDelete) {
+      return;
+    }
+    setDeletingId(themeId);
+    setDeleteError(null);
+    setOpenMenuId(null);
+    try {
+      await themeStore.deleteTheme(themeId);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'themes.error.delete');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -239,6 +258,37 @@ const UserPage = observer(() => {
             </div>
           )}
 
+          {deleteError && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <Card className="relative max-w-md w-full mx-4 p-6 bg-dark border-red-500/30">
+                <button
+                  onClick={() => setDeleteError(null)}
+                  className="absolute top-4 right-4 p-1 rounded-lg hover:bg-dark/50 transition-colors"
+                  aria-label="Close"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-light/70"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+                <div className="pr-8">
+                  <h3 className="text-lg font-semibold text-red-400 mb-2">{t('generic.errorPrefix')}</h3>
+                  <p className="text-sm text-light/80">{resolveErrorMessage(deleteError, THEME_ERROR_MAP, t) ?? deleteError}</p>
+                </div>
+              </Card>
+            </div>
+          )}
+
           <section className="grid gap-6 lg:grid-cols-2">
             {themeStore.themes.map((theme) => (
               <Card key={theme.id} className="group bg-dark-hover/50 p-6 hover:border-light/50">
@@ -292,14 +342,69 @@ const UserPage = observer(() => {
                         </button>
                         
                         {openMenuId === theme.id && (
-                          <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-light/20 bg-dark/90 backdrop-blur-sm shadow-lg z-10">
-                            <button
-                              onClick={() => handleExport(theme.id)}
-                              disabled={exporting}
-                              className="w-full px-4 py-2 text-left text-sm text-light hover:bg-dark/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {exporting ? t('questions.loading') : t('questions.export.button')}
-                            </button>
+                          <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-light/20 bg-dark/90 backdrop-blur-sm shadow-lg z-10 p-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <button
+                                onClick={() => handleExport(theme.id)}
+                                disabled={exporting || deletingId === theme.id}
+                                className="p-2 rounded-lg hover:bg-dark/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label={t('questions.export.button')}
+                                title={t('questions.export.button')}
+                              >
+                                {exporting ? (
+                                  <svg className="h-5 w-5 animate-spin text-light/70" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 text-light/80"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l4 4m0 0l-4 4m4-4H4"
+                                    />
+                                  </svg>
+                                )}
+                                <span className="sr-only">{t('questions.export.button')}</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTheme(theme.id)}
+                                disabled={deletingId === theme.id || exporting}
+                                className="p-2 rounded-lg hover:bg-dark/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label={t('theme.delete')}
+                                title={t('theme.delete')}
+                              >
+                                {deletingId === theme.id ? (
+                                  <svg className="h-5 w-5 animate-spin text-red-400" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"></path>
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 text-red-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-4 0a1 1 0 00-1 1v1h6V5a1 1 0 00-1-1m-4 0h4"
+                                    />
+                                  </svg>
+                                )}
+                                <span className="sr-only">{t('theme.delete')}</span>
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>

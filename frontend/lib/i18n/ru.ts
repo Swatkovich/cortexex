@@ -169,6 +169,8 @@ const ru: Record<string, string> = {
   'theme.questions': 'Вопросы',
   'theme.languageEntries': 'слов',
   'theme.languageTopicTag': 'Языковая тема',
+  'theme.delete': 'Удалить тему',
+  'theme.delete.confirm': 'Удалить эту тему?',
   'themes.error.fetch': 'Не удалось загрузить темы',
   'themes.error.create': 'Не удалось создать тему',
   'themes.error.update': 'Не удалось обновить тему',
