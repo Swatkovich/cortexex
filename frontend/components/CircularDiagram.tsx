@@ -28,6 +28,7 @@ export default function CircularDiagram({ questions, userAnswers }: { questions:
 
   let cumulative = 0;
   const segment = (dash: number, color: string, key: string) => {
+    if (dash <= 0) return null;
     const dashArray = `${dash} ${Math.max(0, circumference - dash)}`;
     const offset = circumference - cumulative;
     cumulative += dash;
