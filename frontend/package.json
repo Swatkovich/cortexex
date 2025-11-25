@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint:watch": "eslint . --ext .ts,.tsx --fix --watch",
+    "format": "prettier \"./**/*.{ts,tsx,js,jsx,json,md,css}\" --write",
+    "format:check": "prettier \"./**/*.{ts,tsx,js,jsx,json,md,css}\" --check"
   },
   "dependencies": {
     "axios": "^1.13.2",
@@ -24,7 +28,11 @@
     "autoprefixer": "^10.4.22",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
     "tailwindcss": "^4.1.17",
     "typescript": "^5"
   }
