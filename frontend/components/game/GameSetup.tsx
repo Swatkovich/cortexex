@@ -126,9 +126,11 @@ export default function GameSetup(props: {
               onChange={(e) => handleCountChange(Number(e.target.value))}
               className="w-32"
             />
-            <div className="text-sm text-light/50">
-              {count}/{availableDisplay}
-            </div>
+            {!isLanguageMode && (
+              <div className="text-sm text-light/50">
+                {count}/{availableDisplay}
+              </div>
+            )}
           </div>
           {isLanguageMode ? (
             <p className="mt-2 text-xs text-light/50">

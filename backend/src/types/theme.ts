@@ -19,6 +19,7 @@ export interface Question {
     options: string[] | null; // Array of options for select/radiobutton types
     answer: string | null; // Correct answer for input type questions
     correct_options?: string[] | null; // For select/radiobutton: the correct option(s)
+    question_hint?: string | null;
 }
 
 export interface CreateThemeDto {

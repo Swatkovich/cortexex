@@ -39,6 +39,9 @@ export default function ResultsView(props: {
           return (
             <div key={q.id} className="rounded-md border border-light/10 bg-dark/30 p-3">
               <div className="font-medium text-light">{i + 1}. {q.question_text}</div>
+              {q.question_hint && (
+                <div className="text-xs text-light/60 mt-1">{q.question_hint}</div>
+              )}
               <div className="text-xs text-light/50 mt-1">{t('game.results.yourAnswer')}: {Array.isArray(ua?.answer) ? ua?.answer.join(', ') : ua?.answer ?? '—'}</div>
               {q.answer && (
                 <div className="text-xs text-light/50 mt-1">{t('game.results.correctAnswer')}: {q.answer}</div>

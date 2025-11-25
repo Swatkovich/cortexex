@@ -85,6 +85,9 @@ export default function QuestionView(props: {
         <div>
           <div className="text-sm text-light/50">{t('game.question.label')} {index + 1} / {total}</div>
           <div className="text-lg font-semibold text-light">{current?.question_text}</div>
+          {current?.question_hint && (
+            <div className="mt-1 text-sm text-light/60">{current.question_hint}</div>
+          )}
         </div>
         <div>
           <Button variant="ghost" onClick={resetGame} className="px-4 py-2 text-sm">{t('game.question.end')}</Button>

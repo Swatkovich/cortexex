@@ -45,6 +45,7 @@ export interface Question {
     options: string[] | null;
     answer: string | null;
     correct_options?: string[] | null;
+    question_hint?: string | null;
 }
 
 export interface CreateQuestionDto {

@@ -33,16 +33,17 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
   const questions: Question[] = [];
 
   sanitized.forEach((entry) => {
-    const displayWord = entry.description ? `${entry.word} (${entry.description})` : entry.word;
+    const hint = entry.description?.trim() || null;
     questions.push({
       id: `${entry.id}-word`,
       theme_id: entry.theme_id,
-      question_text: displayWord,
+      question_text: entry.word,
       question_type: 'input',
       is_strict: true,
       options: null,
       answer: entry.translation,
       correct_options: null,
+      question_hint: hint,
     });
 
     if (words.length > 1) {
@@ -57,6 +58,7 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
         options,
         answer: null,
         correct_options: [entry.word],
+        question_hint: hint,
       });
     } else {
       questions.push({
@@ -68,6 +70,7 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
         options: null,
         answer: entry.word,
         correct_options: null,
+        question_hint: hint,
       });
     }
   });
@@ -75,6 +78,21 @@ const buildLanguageQuestionPool = (entries: LanguageEntry[]): Question[] => {
   return questions;
 };
 
+const buildClassicLanguageQuestions = (entries: LanguageEntry[]): Question[] => {
+  return entries
+    .filter((entry) => entry.word?.trim() && entry.translation?.trim())
+    .map((entry) => ({
+      id: `lang-${entry.id}`,
+      theme_id: entry.theme_id,
+      question_text: entry.word.trim(),
+      question_type: 'input',
+      is_strict: true,
+      options: null,
+      answer: entry.translation.trim(),
+      correct_options: null,
+      question_hint: entry.description?.trim() || null,
+    }));
+};
 const estimateLanguageQuestionCount = (entries: LanguageEntry[]) => {
   if (!entries.length) return 0;
   return entries.length * 2;
@@ -170,7 +188,12 @@ const PlayPage = observer(() => {
       setLoading(true);
       try {
         const payloads = await Promise.all(idsToLoad.map((id) => api.fetchTheme(id)));
-        const allQuestions = payloads.flatMap((data) => (Array.isArray(data.questions) ? data.questions : []));
+        const classicFromThemes = payloads.flatMap((data) => (Array.isArray(data.questions) ? data.questions : []));
+        const languageEntriesForClassic = payloads.flatMap((data) =>
+          data.is_language_topic && Array.isArray(data.language_entries) ? data.language_entries : []
+        );
+        const classicLanguageQuestions = buildClassicLanguageQuestions(languageEntriesForClassic);
+        const allQuestions = [...classicFromThemes, ...classicLanguageQuestions];
         setClassicQuestions(allQuestions);
 
         const maxClassic = Math.max(1, allQuestions.length || 1);
@@ -181,15 +204,11 @@ const PlayPage = observer(() => {
 
         const allLanguage = payloads.length > 0 && payloads.every((data) => data.is_language_topic);
         setLanguageModeEligible(allLanguage);
-        const entries = payloads.flatMap((data) => (Array.isArray(data.language_entries) ? data.language_entries : []));
-        const usableEntries = allLanguage ? entries : [];
+        const usableEntries = allLanguage ? languageEntriesForClassic : [];
         setLanguageEntries(usableEntries);
         const languageMax = estimateLanguageQuestionCount(usableEntries);
-        setLanguageCount((prev) => {
-          if (languageMax === 0) return 1;
-          const base = prev && prev > 0 ? prev : Math.min(5, languageMax);
-          return clamp(base, 1, Math.max(1, languageMax));
-        });
+        const defaultLanguageCount = usableEntries.length > 0 ? usableEntries.length : 1;
+        setLanguageCount(clamp(defaultLanguageCount, 1, Math.max(1, languageMax || 1)));
       } catch (err) {
         setClassicQuestions([]);
         setLanguageEntries([]);

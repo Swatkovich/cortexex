@@ -107,6 +107,11 @@ const UserPage = observer(() => {
         </p>
       </section>
 
+      <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+        <Button onClick={handlePlay} disabled={!themeStore.canPlay} className="flex-1 px-8 py-4 text-base">{t('dashboard.play')}</Button>
+        <Button variant="ghost" onClick={handleCreateTheme} className="flex-1 px-8 py-4 text-base">{t('dashboard.createTheme')}</Button>
+      </section>
+
       {themeStore.loading && !themeStore.initialized ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-lg text-light/70">{t('dashboard.loadingThemes')}</p>
@@ -172,10 +177,6 @@ const UserPage = observer(() => {
         </section>
       )}
 
-      <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-        <Button onClick={handlePlay} disabled={!themeStore.canPlay} className="flex-1 px-8 py-4 text-base">{t('dashboard.play')}</Button>
-        <Button variant="ghost" onClick={handleCreateTheme} className="flex-1 px-8 py-4 text-base">{t('dashboard.createTheme')}</Button>
-      </section>
     </main>
   );
 });
