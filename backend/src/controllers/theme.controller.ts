@@ -143,8 +143,8 @@ export const updateTheme = async (req: AuthRequest, res: Response) => {
     }
 
     const existingTheme = existingResult.rows[0];
-    if (existingTheme.is_language_topic && is_language_topic === false) {
-        return res.status(400).json({ message: "Language topic themes cannot be converted back to classic themes" });
+    if (is_language_topic !== undefined && existingTheme.is_language_topic !== is_language_topic) {
+        return res.status(400).json({ message: "Theme type cannot be changed after creation" });
     }
 
     // Build update query dynamically

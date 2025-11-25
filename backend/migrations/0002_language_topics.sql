@@ -13,3 +13,4 @@ CREATE TABLE IF NOT EXISTS language_entries (
 
 CREATE INDEX IF NOT EXISTS idx_language_entries_theme_id ON language_entries(theme_id);
 
+

@@ -24,7 +24,6 @@ export default function CreateThemePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLanguageTopic, setIsLanguageTopic] = useState(false);
-  const [languageTopicLocked, setLanguageTopicLocked] = useState(false);
   const ERROR_MAP: Record<string, string> = {
     'Failed to fetch theme': 'createTheme.error.load',
     'Failed to load theme': 'createTheme.error.load',
@@ -45,9 +44,7 @@ export default function CreateThemePage() {
           setTitle(theme.title);
           setDescription(theme.description);
           setDifficulty(theme.difficulty);
-          const isLang = !!theme.is_language_topic;
-          setIsLanguageTopic(isLang);
-          setLanguageTopicLocked(isLang);
+          setIsLanguageTopic(!!theme.is_language_topic);
         } catch (err) {
           setError(err instanceof Error ? err.message : 'createTheme.error.load');
         } finally {
@@ -127,21 +124,22 @@ export default function CreateThemePage() {
               <TextArea value={description} onChange={(event) => setDescription(event.target.value)} required rows={4} placeholder={t('createTheme.placeholder.description')} />
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-light">
-              {t('createTheme.label.difficulty')}
-            </label>
-            <select
-              value={difficulty}
-              onChange={(event) => setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')}
-              className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
-            >
-              <option value="Easy">{t('createTheme.diff.easy')}</option>
-              <option value="Medium">{t('createTheme.diff.medium')}</option>
-              <option value="Hard">{t('createTheme.diff.hard')}</option>
-            </select>
-          </div>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-light">
+            {t('createTheme.label.difficulty')}
+          </label>
+          <select
+            value={difficulty}
+            onChange={(event) => setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')}
+            className="w-full rounded-lg border border-light/20 bg-dark/50 px-4 py-3 text-base text-light focus:border-light/40 focus:bg-dark focus:outline-none focus:ring-2 focus:ring-light/20"
+          >
+            <option value="Easy">{t('createTheme.diff.easy')}</option>
+            <option value="Medium">{t('createTheme.diff.medium')}</option>
+            <option value="Hard">{t('createTheme.diff.hard')}</option>
+          </select>
+        </div>
+
+        {!isEditMode && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-light">
               {t('createTheme.label.languageTopic')}
@@ -150,15 +148,11 @@ export default function CreateThemePage() {
               <input
                 type="checkbox"
                 checked={isLanguageTopic}
-                onChange={(event) => {
-                  if (languageTopicLocked) return;
-                  setIsLanguageTopic(event.target.checked);
-                }}
-                disabled={languageTopicLocked}
-                className={`h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20 ${languageTopicLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                onChange={(event) => setIsLanguageTopic(event.target.checked)}
+                className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
                 id="languageTopicToggle"
               />
-              <label htmlFor="languageTopicToggle" className={`text-sm ${languageTopicLocked ? 'text-light/50' : 'text-light/80'}`}>
+              <label htmlFor="languageTopicToggle" className="text-sm text-light/80">
                 {t('createTheme.languageTopic.toggle')}
               </label>
             </div>
@@ -166,10 +160,10 @@ export default function CreateThemePage() {
               {t('createTheme.languageTopic.helper')}
             </p>
             <p className="text-xs text-amber-200/80">
-              {languageTopicLocked ? t('createTheme.languageTopic.lockedInfo') : t('createTheme.languageTopic.note')}
+              {t('createTheme.languageTopic.note')}
             </p>
           </div>
-        </div>
+        )}
 
             <div className="flex flex-col gap-4 pt-4 sm:flex-row">
               <Button type="submit" disabled={!title.trim() || !description.trim() || loading} className="flex-1 px-8 py-4 text-base">

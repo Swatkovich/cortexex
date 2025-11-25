@@ -10,3 +10,4 @@ CREATE INDEX IF NOT EXISTS idx_user_language_entry_stats_user ON user_language_e
 CREATE INDEX IF NOT EXISTS idx_user_language_entry_stats_entry ON user_language_entry_stats(entry_id);
 
 
+

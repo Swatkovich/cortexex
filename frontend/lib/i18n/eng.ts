@@ -51,6 +51,7 @@ const eng: Record<string, string> = {
   'createTheme.languageTopic.helper': 'Language topics let you create word lists and unlock the translation test mode.',
   'createTheme.languageTopic.note': 'After saving, this setting becomes permanent. Create a new theme if you need classic questions later.',
   'createTheme.languageTopic.lockedInfo': 'This theme is already a vocabulary list and cannot be converted back to classic questions.',
+  'createTheme.languageTopic.lockedGeneric': 'Theme type cannot be changed after creation.',
   'createTheme.diff.easy': 'Easy',
   'createTheme.diff.medium': 'Medium',
   'createTheme.diff.hard': 'Hard',
