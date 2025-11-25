@@ -24,6 +24,7 @@ export default function CreateThemePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLanguageTopic, setIsLanguageTopic] = useState(false);
+  const [languageTopicLocked, setLanguageTopicLocked] = useState(false);
   const ERROR_MAP: Record<string, string> = {
     'Failed to fetch theme': 'createTheme.error.load',
     'Failed to load theme': 'createTheme.error.load',
@@ -44,7 +45,9 @@ export default function CreateThemePage() {
           setTitle(theme.title);
           setDescription(theme.description);
           setDifficulty(theme.difficulty);
-          setIsLanguageTopic(!!theme.is_language_topic);
+          const isLang = !!theme.is_language_topic;
+          setIsLanguageTopic(isLang);
+          setLanguageTopicLocked(isLang);
         } catch (err) {
           setError(err instanceof Error ? err.message : 'createTheme.error.load');
         } finally {
@@ -147,16 +150,23 @@ export default function CreateThemePage() {
               <input
                 type="checkbox"
                 checked={isLanguageTopic}
-                onChange={(event) => setIsLanguageTopic(event.target.checked)}
-                className="h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20"
+                onChange={(event) => {
+                  if (languageTopicLocked) return;
+                  setIsLanguageTopic(event.target.checked);
+                }}
+                disabled={languageTopicLocked}
+                className={`h-4 w-4 rounded border-light/20 bg-dark/50 text-light focus:ring-2 focus:ring-light/20 ${languageTopicLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                 id="languageTopicToggle"
               />
-              <label htmlFor="languageTopicToggle" className="text-sm text-light/80">
+              <label htmlFor="languageTopicToggle" className={`text-sm ${languageTopicLocked ? 'text-light/50' : 'text-light/80'}`}>
                 {t('createTheme.languageTopic.toggle')}
               </label>
             </div>
             <p className="text-xs text-light/50">
               {t('createTheme.languageTopic.helper')}
+            </p>
+            <p className="text-xs text-amber-200/80">
+              {languageTopicLocked ? t('createTheme.languageTopic.lockedInfo') : t('createTheme.languageTopic.note')}
             </p>
           </div>
         </div>

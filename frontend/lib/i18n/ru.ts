@@ -49,6 +49,8 @@ const ru: Record<string, string> = {
   'createTheme.label.languageTopic': 'Языковая тема',
   'createTheme.languageTopic.toggle': 'Использовать как список слов (слово + перевод)',
   'createTheme.languageTopic.helper': 'Языковые темы позволяют создавать слова и открывают режим перевода в игре.',
+  'createTheme.languageTopic.note': 'После сохранения настройку нельзя изменить. Создайте новую тему, если позже понадобится классический режим вопросов.',
+  'createTheme.languageTopic.lockedInfo': 'Эта тема уже отмечена как словарь и не может быть возвращена в классический режим.',
   'createTheme.diff.easy': 'Лёгкая',
   'createTheme.diff.medium': 'Средняя',
   'createTheme.diff.hard': 'Сложная',
@@ -89,6 +91,7 @@ const ru: Record<string, string> = {
   'profile.questionsSummary.total': 'всего',
   'profile.questionsSummary.strict': 'строгих',
   'profile.questionsSummary.nonStrict': 'нестрогих',
+  'profile.questionsSummary.words': 'слов',
   // Questions / Theme editor
   'questions.loading': 'Загрузка вопросов...',
   'questions.notFound': 'Тема не найдена',

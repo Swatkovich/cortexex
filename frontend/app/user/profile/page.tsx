@@ -77,9 +77,16 @@ export default function ProfilePage() {
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
             <h3 className="text-sm font-semibold text-light/70">{t('profile.yourQuestions')}</h3>
-            <p className="text-2xl font-bold text-light">
-              {stats.questionsCounts.strict + stats.questionsCounts.nonStrict} {t('profile.questionsSummary.total')}: {stats.questionsCounts.strict} {t('profile.questionsSummary.strict')} / {stats.questionsCounts.nonStrict} {t('profile.questionsSummary.nonStrict')}
-            </p>
+            <div>
+              <p className="text-2xl font-bold text-light">
+                {stats.questionsCounts.total ?? (stats.questionsCounts.strict + stats.questionsCounts.nonStrict + (stats.questionsCounts.words ?? 0))} {t('profile.questionsSummary.total')}
+              </p>
+              <p className="mt-2 text-sm text-light/70 space-y-1">
+                <span className="block">{t('profile.questionsSummary.words')}: {stats.questionsCounts.words ?? 0}</span>
+                <span className="block">{t('profile.questionsSummary.strict')}: {stats.questionsCounts.strict}</span>
+                <span className="block">{t('profile.questionsSummary.nonStrict')}: {stats.questionsCounts.nonStrict}</span>
+              </p>
+            </div>
           </div>
         </div>
       </section>

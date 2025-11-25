@@ -68,18 +68,22 @@ export const getProfileStats = async (req: AuthRequest, res: Response) => {
         distribution[lvl] = (distribution[lvl] || 0) + Number(row.cnt || 0);
     }
     const strictQuestions = Number(qCounts.strict_questions || 0);
+    const nonStrictQuestions = Number(qCounts.non_strict_questions || 0);
     const totalStrict = strictQuestions + languageEntriesCount;
     const counted = (distribution[0] || 0) + (distribution[1] || 0) + (distribution[2] || 0) + (distribution[3] || 0);
     const missing = Math.max(0, totalStrict - counted);
     distribution[0] = (distribution[0] || 0) + missing;
+    const totalQuestionsCreated = strictQuestions + nonStrictQuestions + languageEntriesCount;
 
     return res.status(200).json({
         totalGames: Number(gamesRow.total_games || 0),
         totalQuestionsAnswered: Number(gamesRow.total_questions_answered || 0),
         bestCorrectInRow: Number(gamesRow.best_correct_streak || 0),
         questionsCounts: {
-            strict: totalStrict,
-            nonStrict: Number(qCounts.non_strict_questions || 0),
+            total: totalQuestionsCreated,
+            words: languageEntriesCount,
+            strict: strictQuestions,
+            nonStrict: nonStrictQuestions,
         },
         knowledgeDistribution: {
             dontKnow: distribution[0] || 0,

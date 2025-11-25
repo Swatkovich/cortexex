@@ -49,6 +49,8 @@ const eng: Record<string, string> = {
   'createTheme.label.languageTopic': 'Language topic',
   'createTheme.languageTopic.toggle': 'Use as vocabulary theme (word + translation pairs)',
   'createTheme.languageTopic.helper': 'Language topics let you create word lists and unlock the translation test mode.',
+  'createTheme.languageTopic.note': 'After saving, this setting becomes permanent. Create a new theme if you need classic questions later.',
+  'createTheme.languageTopic.lockedInfo': 'This theme is already a vocabulary list and cannot be converted back to classic questions.',
   'createTheme.diff.easy': 'Easy',
   'createTheme.diff.medium': 'Medium',
   'createTheme.diff.hard': 'Hard',
@@ -89,6 +91,7 @@ const eng: Record<string, string> = {
   'profile.questionsSummary.total': 'total',
   'profile.questionsSummary.strict': 'strict',
   'profile.questionsSummary.nonStrict': 'non-strict',
+  'profile.questionsSummary.words': 'words',
   // Questions / Theme editor
   'questions.loading': 'Loading questions...',
   'questions.notFound': 'Theme not found',

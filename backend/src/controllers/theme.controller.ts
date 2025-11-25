@@ -142,6 +142,11 @@ export const updateTheme = async (req: AuthRequest, res: Response) => {
         return res.status(404).json({ message: "Theme not found" });
     }
 
+    const existingTheme = existingResult.rows[0];
+    if (existingTheme.is_language_topic && is_language_topic === false) {
+        return res.status(400).json({ message: "Language topic themes cannot be converted back to classic themes" });
+    }
+
     // Build update query dynamically
     const updates: string[] = [];
     const values: any[] = [];
