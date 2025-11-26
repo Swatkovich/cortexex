@@ -704,7 +704,7 @@ export default function QuestionsPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="sticky top-16 z-20 flex items-center justify-between border-b border-light/10 bg-dark backdrop-blur-sm py-3">
         <p className="text-base font-medium text-light/80">
           {isLanguageTopic ? t('theme.languageEntries') : t('theme.questions')}:{' '}
           <span className="font-semibold text-light">{listCount}</span>
