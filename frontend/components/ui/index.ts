@@ -11,3 +11,4 @@ export type { SelectProps } from './select';
 export { Spinner } from './spinner';
 export { Textarea } from './textarea';
 export type { TextareaProps } from './textarea';
+export { Toast } from './toast';

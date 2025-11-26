@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
-import { Button, Card } from '@/components/ui';
+import { Button, Toast } from '@/components/ui';
 import { authStore } from '@/store/authStore';
 import { useT } from '@/lib/i18n';
 import { fetchThemeStats, exportTheme } from '@/lib/api';
@@ -177,106 +177,30 @@ const UserPage = observer(() => {
       ) : (
         <>
           {exportSuccess && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <Card className="relative max-w-md w-full mx-4 p-6 bg-dark border-green-500/30">
-                <button
-                  onClick={() => setExportSuccess(false)}
-                  className="absolute top-4 right-4 p-1 rounded-lg hover:bg-dark/50 transition-colors"
-                  aria-label="Close"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-light/70"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-                <div className="pr-8">
-                  <h3 className="text-lg font-semibold text-green-400 mb-2">
-                    {t('questions.export.success')}
-                  </h3>
-                  <p className="text-sm text-light/80">{t('questions.export.shareUrl')}</p>
-                </div>
-              </Card>
-            </div>
+            <Toast
+              variant="success"
+              onClose={() => setExportSuccess(false)}
+              title={t('questions.export.success')}
+              message={t('questions.export.shareUrl')}
+            />
           )}
 
           {exportError && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <Card className="relative max-w-md w-full mx-4 p-6 bg-dark border-red-500/30">
-                <button
-                  onClick={() => setExportError(null)}
-                  className="absolute top-4 right-4 p-1 rounded-lg hover:bg-dark/50 transition-colors"
-                  aria-label="Close"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-light/70"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-                <div className="pr-8">
-                  <h3 className="text-lg font-semibold text-red-400 mb-2">
-                    {t('generic.errorPrefix')}
-                  </h3>
-                  <p className="text-sm text-light/80">
-                    {resolveErrorMessage(exportError, THEME_ERROR_MAP, t) ?? exportError}
-                  </p>
-                </div>
-              </Card>
-            </div>
+            <Toast
+              variant="error"
+              onClose={() => setExportError(null)}
+              title={t('generic.errorPrefix')}
+              message={resolveErrorMessage(exportError, THEME_ERROR_MAP, t) ?? exportError}
+            />
           )}
 
           {deleteError && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <Card className="relative max-w-md w-full mx-4 p-6 bg-dark border-red-500/30">
-                <button
-                  onClick={() => setDeleteError(null)}
-                  className="absolute top-4 right-4 p-1 rounded-lg hover:bg-dark/50 transition-colors"
-                  aria-label="Close"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-light/70"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-                <div className="pr-8">
-                  <h3 className="text-lg font-semibold text-red-400 mb-2">
-                    {t('generic.errorPrefix')}
-                  </h3>
-                  <p className="text-sm text-light/80">
-                    {resolveErrorMessage(deleteError, THEME_ERROR_MAP, t) ?? deleteError}
-                  </p>
-                </div>
-              </Card>
-            </div>
+            <Toast
+              variant="error"
+              onClose={() => setDeleteError(null)}
+              title={t('generic.errorPrefix')}
+              message={resolveErrorMessage(deleteError, THEME_ERROR_MAP, t) ?? deleteError}
+            />
           )}
 
           <section className="grid gap-6 lg:grid-cols-2 sm:grid-cols-1">
