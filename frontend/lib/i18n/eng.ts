@@ -166,6 +166,7 @@ const eng: Record<string, string> = {
   'theme.select': 'Select',
   'theme.edit': 'Edit',
   'theme.questions': 'Questions',
+  'theme.add': 'Add',
   'theme.languageEntries': 'Words',
   'theme.languageTopicTag': 'Vocabulary',
   'theme.delete': 'Delete topic',

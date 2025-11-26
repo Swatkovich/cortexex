@@ -166,6 +166,7 @@ const ru: Record<string, string> = {
   'theme.select': 'Выбрать',
   'theme.edit': 'Редактировать',
   'theme.questions': 'Вопросы',
+  'theme.add': 'Добавить',
   'theme.languageEntries': 'Слова',
   'theme.languageTopicTag': 'Словарь',
   'theme.delete': 'Удалить тему',

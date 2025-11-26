@@ -208,9 +208,13 @@ export function ThemeCard({
         {/* Actions at bottom */}
         <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
           <Button
-            variant={isSelected ? 'primary' : 'outline'}
+            variant="outline"
             onClick={onToggleSelected}
-            className="w-full px-5 py-2.5 text-sm sm:flex-1"
+            className={`w-full px-5 py-2.5 text-sm sm:flex-1 ${
+              isSelected
+                ? 'bg-green-500/40 text-white hover:bg-green-500/40 border-green-500/30'
+                : ''
+            }`}
           >
             {isSelected ? t('theme.selected') : t('theme.select')}
           </Button>
@@ -222,11 +226,11 @@ export function ThemeCard({
             {t('theme.edit')}
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={onManageQuestions}
-            className="w-full px-5 py-2.5 text-sm sm:w-auto"
+            className="w-full px-5 py-2.5 text-sm sm:w-auto bg-light/20 text-light hover:bg-light/40"
           >
-            {t('theme.questions')}
+            {t('theme.add')}
           </Button>
         </div>
       </div>
