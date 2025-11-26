@@ -18,13 +18,13 @@ export const CortexLogo = ({ className = '', size = 32 }: CortexLogoProps) => {
       {/* Circle background - matches icon.svg */}
       <circle cx="32" cy="32" r="28" fill="#F9F9DF" />
       {/* Neural network nodes */}
-      <circle cx="32" cy="32" r="3" fill="#1A1A1A" />
-      <circle cx="24" cy="16" r="5" fill="#1A1A1A" />
-      <circle cx="40" cy="16" r="5" fill="#1A1A1A" />
-      <circle cx="48" cy="32" r="5" fill="#1A1A1A" />
-      <circle cx="40" cy="48" r="5" fill="#1A1A1A" />
-      <circle cx="24" cy="48" r="5" fill="#1A1A1A" />
-      <circle cx="16" cy="32" r="5" fill="#1A1A1A" />
+      <circle cx="32" cy="32" r="2" fill="#1A1A1A" />
+      <circle cx="24" cy="16" r="4" fill="#1A1A1A" />
+      <circle cx="40" cy="16" r="4" fill="#1A1A1A" />
+      <circle cx="48" cy="32" r="4" fill="#1A1A1A" />
+      <circle cx="40" cy="48" r="4" fill="#1A1A1A" />
+      <circle cx="24" cy="48" r="4" fill="#1A1A1A" />
+      <circle cx="16" cy="32" r="4" fill="#1A1A1A" />
       {/* X pattern through all circles */}
       <path
         // d="M24 16L32 32 M40 16L32 32 M40 48L32 32 M24 48L32 32"
