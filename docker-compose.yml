@@ -44,6 +44,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://whereitleads.io/api}
         NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/cortexex}
     container_name: cortexex_frontend
     environment:
