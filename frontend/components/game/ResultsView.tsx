@@ -9,22 +9,20 @@ import { useT } from '@/lib/i18n';
 export default function ResultsView(props: {
   questions: Question[];
   userAnswers: Record<string, { answer: string | string[] | null; isCorrect: boolean | null }>;
+  themeTitles: string[];
   onRestart: () => void;
   onBack: () => void;
+  onCopyResult: (type: 'success' | 'error', message: string) => void;
 }) {
-  const { questions, userAnswers, onRestart, onBack } = props;
-  const correct = Object.values(userAnswers).filter(a => a.isCorrect === true).length;
+  const { questions, userAnswers, themeTitles, onRestart, onBack, onCopyResult } = props;
   const t = useT();
-  const percent = Math.round((correct / Math.max(1, questions.length)) * 100);
   const diagramRef = useRef<HTMLDivElement | null>(null);
   const [copyingDiagram, setCopyingDiagram] = useState(false);
-  const [copyState, setCopyState] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleCopyDiagram = async () => {
     if (!diagramRef.current || copyingDiagram) return;
     try {
       setCopyingDiagram(true);
-      setCopyState('idle');
       const { toBlob } = await import('html-to-image');
       const node = diagramRef.current;
       const blob = await toBlob(node, {
@@ -40,52 +38,53 @@ export default function ResultsView(props: {
         throw new Error('Clipboard API unavailable');
       }
       await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-      setCopyState('success');
+      onCopyResult('success', t('game.results.copyDiagram.success'));
     } catch (error) {
       console.error('copy diagram error', error);
-      setCopyState('error');
+      onCopyResult('error', t('game.results.copyDiagram.error'));
     } finally {
       setCopyingDiagram(false);
-      setTimeout(() => setCopyState('idle'), 4000);
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-        <div className="flex-1">
-          <div
-            ref={diagramRef}
-            className="inline-flex flex-col gap-4 rounded-2xl border border-light/10 bg-gradient-to-br from-dark-hover/70 to-dark/40 p-6"
-          >
-            <CircularDiagram questions={questions} userAnswers={userAnswers} />
-            <div>
-              <h2 className="text-xl font-bold text-light">{t('game.results.title')}</h2>
-              <p className="text-sm text-light/60">
-                {t('game.results.summary.answered')} {correct}{' '}
-                {t('game.results.summary.outOf')} {questions.length} ({percent}%)
-              </p>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+          <div className="flex-1">
+            <div
+              ref={diagramRef}
+              className="inline-flex flex-col gap-4 rounded-2xl border border-light/10 bg-linear-to-br from-light-dark to-light/10 p-6"
+            >
+              <CircularDiagram questions={questions} userAnswers={userAnswers} />
+              <div>
+                <h2 className="text-xl font-bold text-light">{t('game.results.title')}</h2>
+                {themeTitles.length > 0 ? (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-light/80 mb-1">{t('game.results.themesPlayed')}:</p>
+                    <ul className="text-sm text-light/60 space-y-1">
+                      {themeTitles.map((title, idx) => (
+                        <li key={idx}>{idx + 1}) {title}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm text-light/60 mt-2">{t('game.results.noThemes')}</p>
+                )}
+              </div>
             </div>
           </div>
+          <div className="flex flex-col gap-3 sm:flex-shrink-0">
+            <Button variant="outline" size="fluid" onClick={handleCopyDiagram} isLoading={copyingDiagram}>
+              {t('game.results.copyDiagram')}
+            </Button>
+            <Button onClick={onRestart} size="fluid">
+              {t('game.results.restart')}
+            </Button>
+            <Button variant="outline" size="fluid" onClick={onBack}>
+              {t('action.backToThemes')}
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-shrink-0">
-          <Button variant="outline" size="fluid" onClick={handleCopyDiagram} isLoading={copyingDiagram}>
-            {t('game.results.copyDiagram')}
-          </Button>
-          {copyState === 'success' && (
-            <p className="text-xs text-green-400">{t('game.results.copyDiagram.success')}</p>
-          )}
-          {copyState === 'error' && (
-            <p className="text-xs text-red-400">{t('game.results.copyDiagram.error')}</p>
-          )}
-          <Button onClick={onRestart} size="fluid">
-            {t('game.results.restart')}
-          </Button>
-          <Button variant="outline" size="fluid" onClick={onBack}>
-            {t('action.backToThemes')}
-          </Button>
-        </div>
-      </div>
       <div className="space-y-3">
         {questions.map((q, i) => {
           const ua = userAnswers[q.id];

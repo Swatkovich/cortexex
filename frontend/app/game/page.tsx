@@ -12,6 +12,7 @@ import ResultsView from '@/components/game/ResultsView';
 import { useT } from '@/lib/i18n';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 import { PageContainer } from '@/components/layout';
+import { Toast } from '@/components/ui';
 
 function shuffle<T>(arr: T[]) {
   return arr
@@ -183,6 +184,7 @@ const PlayPage = observer(() => {
   const [submitted, setSubmitted] = useState(false);
   const [lastWasCorrect, setLastWasCorrect] = useState<boolean | null>(null);
   const [resultSent, setResultSent] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const router = useRouter();
   const classicCountManualRef = useRef(false);
   const languageCountManualRef = useRef(false);
@@ -626,11 +628,20 @@ const PlayPage = observer(() => {
   }
 
   return (
-    <PageContainer fullHeight className="max-w-4xl">
-      <header className="space-y-3">
-        <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">{t(titleKey)}</h1>
-        <p className="max-w-2xl text-lg text-light/70">{t(subtitleKey)}</p>
-      </header>
+    <>
+      {toastMessage && (
+        <Toast
+          variant={toastMessage.type}
+          onClose={() => setToastMessage(null)}
+          title={toastMessage.type === 'success' ? t('game.results.copyDiagram') : t('generic.errorPrefix')}
+          message={toastMessage.message}
+        />
+      )}
+      <PageContainer fullHeight className="max-w-4xl">
+        <header className="space-y-3">
+          <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">{t(titleKey)}</h1>
+          <p className="max-w-2xl text-lg text-light/70">{t(subtitleKey)}</p>
+        </header>
 
       {noSelectionLoaded ? (
         <section className="rounded-2xl border border-dashed border-light/20 bg-dark/30 p-12 text-center">
@@ -640,15 +651,17 @@ const PlayPage = observer(() => {
         <section
           className={`space-y-6 rounded-2xl border border-light/10 p-8 backdrop-blur-sm transition-colors ${
             playing && submitted && current
-              ? lastWasCorrect === true
-                ? 'bg-green-500/20'
-                : lastWasCorrect === false
-                  ? current.is_strict
-                    ? 'bg-red-500/15'
-                    : 'bg-yellow-300/10'
-                  : !current.is_strict
-                    ? 'bg-yellow-300/10'
-                    : 'bg-dark/50'
+              ? blindMode
+                ? 'bg-light/10'
+                : lastWasCorrect === true
+                  ? 'bg-green-500/20'
+                  : lastWasCorrect === false
+                    ? current.is_strict
+                      ? 'bg-red-500/15'
+                      : 'bg-yellow-300/10'
+                    : !current.is_strict
+                      ? 'bg-yellow-300/10'
+                      : 'bg-dark/50'
               : 'bg-dark/50'
           }`}
         >
@@ -656,6 +669,7 @@ const PlayPage = observer(() => {
             <ResultsView
               questions={questions}
               userAnswers={userAnswers}
+              themeTitles={selected.map((t) => t.title)}
               onRestart={() => {
                 setShowResults(false);
                 startGame();
@@ -666,6 +680,7 @@ const PlayPage = observer(() => {
                 } catch (e) {}
                 router.push('/user');
               }}
+              onCopyResult={(type, message) => setToastMessage({ type, message })}
             />
           ) : !playing ? (
             <GameSetup
@@ -730,7 +745,8 @@ const PlayPage = observer(() => {
           )}
         </section>
       )}
-    </PageContainer>
+      </PageContainer>
+    </>
   );
 });
 
