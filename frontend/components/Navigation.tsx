@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useT } from '@/lib/i18n';
 
 import LangSwitcher from './LangSwitcher';
+import { CortexLogo } from './CortexLogo';
 
 const Navigation = observer(() => {
   const router = useRouter();
@@ -41,9 +42,10 @@ const Navigation = observer(() => {
         <div className="flex h-20 items-center justify-between">
           <Link
             href="/"
-            className="text-2xl font-bold text-light tracking-tight transition-opacity hover:opacity-80"
+            className="flex items-center gap-2 text-2xl font-bold text-light tracking-tight transition-opacity hover:opacity-80"
           >
-            {t('brand')}
+            <CortexLogo size={64} className="flex-shrink-0" />
+            <span>{t('brand')}</span>
           </Link>
 
           <div className='flex gap-3'>
