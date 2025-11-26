@@ -53,11 +53,11 @@ export default function ResultsView(props: {
           <div className="flex-1">
             <div
               ref={diagramRef}
-              className="inline-flex flex-col gap-4 rounded-2xl border border-light/10 bg-linear-to-br from-light-dark to-light/10 p-6"
+              className="inline-flex flex-col gap-4 rounded-2xl bg-linear-to-br from-light/5 to-light/15 p-6"
             >
+              <h2 className="text-xl font-bold text-light">{t('game.results.title')}</h2>
               <CircularDiagram questions={questions} userAnswers={userAnswers} />
               <div>
-                <h2 className="text-xl font-bold text-light">{t('game.results.title')}</h2>
                 {themeTitles.length > 0 ? (
                   <div className="mt-2">
                     <p className="text-sm font-medium text-light/80 mb-1">{t('game.results.themesPlayed')}:</p>
