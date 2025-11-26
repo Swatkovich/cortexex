@@ -89,7 +89,7 @@ export default function QuestionView(props: {
           )}
         </div>
         <div>
-          <Button variant="ghost" size="sm" onClick={resetGame}>
+          <Button variant="outline" size="md" onClick={resetGame}>
             {t('game.question.end')}
           </Button>
         </div>
@@ -155,7 +155,7 @@ export default function QuestionView(props: {
 
           <Button
             ref={nextButtonRef}
-            variant="ghost"
+            variant="outline"
             onClick={handleNext}
             disabled={!canProceed}
             size="lg"

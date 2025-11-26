@@ -51,12 +51,12 @@ export default function ResultsView(props: {
   };
 
   return (
-    <><div className="space-y-4 rounded-2xl border border-light/10 bg-dark/50 p-6">
-      <div className="flex items-start justify-between">
-        <div className="flex-1 space-y-4">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <div className="flex-1">
           <div
             ref={diagramRef}
-            className="inline-flex flex-col gap-4 rounded-2xl border border-light/10 bg-gradient-to-br from-dark-hover/70 to-dark/40 p-4"
+            className="inline-flex flex-col gap-4 rounded-2xl border border-light/10 bg-gradient-to-br from-dark-hover/70 to-dark/40 p-6"
           >
             <CircularDiagram questions={questions} userAnswers={userAnswers} />
             <div>
@@ -68,29 +68,29 @@ export default function ResultsView(props: {
             </div>
           </div>
         </div>
+        <div className="flex flex-col gap-3 sm:flex-shrink-0">
+          <Button variant="outline" size="fluid" onClick={handleCopyDiagram} isLoading={copyingDiagram}>
+            {t('game.results.copyDiagram')}
+          </Button>
+          {copyState === 'success' && (
+            <p className="text-xs text-green-400">{t('game.results.copyDiagram.success')}</p>
+          )}
+          {copyState === 'error' && (
+            <p className="text-xs text-red-400">{t('game.results.copyDiagram.error')}</p>
+          )}
+          <Button onClick={onRestart} size="fluid">
+            {t('game.results.restart')}
+          </Button>
+          <Button variant="outline" size="fluid" onClick={onBack}>
+            {t('action.backToThemes')}
+          </Button>
+        </div>
       </div>
-      <div className="ml-6 flex-shrink-0 flex flex-col items-end gap-3">
-        <Button variant="outline" size="lg" onClick={handleCopyDiagram} isLoading={copyingDiagram}>
-          {t('game.results.copyDiagram')}
-        </Button>
-        {copyState === 'success' && (
-          <p className="text-xs text-green-400">{t('game.results.copyDiagram.success')}</p>
-        )}
-        {copyState === 'error' && (
-          <p className="text-xs text-red-400">{t('game.results.copyDiagram.error')}</p>
-        )}
-        <Button onClick={onRestart} size="lg">
-          {t('game.results.restart')}
-        </Button>
-        <Button variant="ghost" size="lg" onClick={onBack}>
-          {t('action.backToThemes')}
-        </Button>
-      </div>
-    </div><div className="mt-4 space-y-3">
+      <div className="space-y-3">
         {questions.map((q, i) => {
           const ua = userAnswers[q.id];
           return (
-            <div key={q.id} className="rounded-md border border-light/10 bg-dark/30 p-3">
+            <div key={q.id} className="rounded-2xl border border-light/10 bg-dark/30 p-4">
               <div className="font-medium text-light">{i + 1}. {q.question_text}</div>
               {q.question_hint && (
                 <div className="text-xs text-light/60 mt-1">{q.question_hint}</div>
@@ -123,6 +123,7 @@ export default function ResultsView(props: {
             </div>
           );
         })}
-      </div></>
+      </div>
+    </div>
   );
 }

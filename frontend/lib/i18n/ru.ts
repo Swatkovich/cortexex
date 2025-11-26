@@ -179,7 +179,7 @@ const ru: Record<string, string> = {
   'themes.error.delete': 'Не удалось удалить тему',
 
   // Generic
-  'action.backToThemes': 'К темам',
+  'action.backToThemes': 'Обратно к Темам',
   'generic.errorPrefix': 'Ошибка',
 
   // Circular Diagram
@@ -207,9 +207,9 @@ const ru: Record<string, string> = {
   'game.title.results': 'Результаты',
   'game.title.playing': 'Игра',
   'game.title.ready': 'Настройка игры',
-  'game.subtitle.noSelection': 'Вернитесь и выберите хотя бы одну тему, чтобы открыть режим игры.',
-  'game.subtitle.results': 'Сессия завершена — изучите результаты или перезапустите игру.',
-  'game.subtitle.playing': 'Отвечайте на вопросы и продвигайтесь по сессии.',
+  'game.subtitle.noSelection': 'Вернитесь и выберите хотя бы одну тему, чтобы открыть режим игры',
+  'game.subtitle.results': 'Игра завершена - изучите и поделитесь своими результатами',
+  'game.subtitle.playing': 'Отвечайте на вопросы',
   'game.subtitle.ready': 'Выберите режим игры и количество вопросов',
   'game.emptySelection': 'Пока нечего загружать — добавьте темы.',
   'game.setup.selectedThemes': 'Выбранные темы',
@@ -238,8 +238,8 @@ const ru: Record<string, string> = {
   'game.results.summary.answered': 'Вы ответили',
   'game.results.summary.outOf': 'правильно из',
   'game.results.restart': 'Сыграть снова',
-  'game.results.copyDiagram': 'Скопировать диаграмму',
-  'game.results.copyDiagram.success': 'Диаграмма скопирована в буфер обмена',
+  'game.results.copyDiagram': 'Поделиться результатом',
+  'game.results.copyDiagram.success': 'Результат скопирован в буфер обмена',
   'game.results.copyDiagram.error': 'Не удалось скопировать. Попробуйте ещё раз.',
   'game.results.yourAnswer': 'Ваш ответ',
   'game.results.correctAnswer': 'Правильный ответ',

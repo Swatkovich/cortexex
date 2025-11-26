@@ -637,7 +637,21 @@ const PlayPage = observer(() => {
           <p className="text-sm font-medium text-light/50">{t('game.emptySelection')}</p>
         </section>
       ) : (
-        <section className="space-y-6 rounded-2xl border border-light/10 bg-dark/50 p-8 backdrop-blur-sm">
+        <section
+          className={`space-y-6 rounded-2xl border border-light/10 p-8 backdrop-blur-sm transition-colors ${
+            playing && submitted && current
+              ? lastWasCorrect === true
+                ? 'bg-green-500/20'
+                : lastWasCorrect === false
+                  ? current.is_strict
+                    ? 'bg-red-500/15'
+                    : 'bg-yellow-300/10'
+                  : !current.is_strict
+                    ? 'bg-yellow-300/10'
+                    : 'bg-dark/50'
+              : 'bg-dark/50'
+          }`}
+        >
           {showResults ? (
             <ResultsView
               questions={questions}
