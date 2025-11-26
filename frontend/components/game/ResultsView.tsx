@@ -73,7 +73,7 @@ export default function ResultsView(props: {
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-shrink-0">
+          <div className="flex flex-col gap-3 sm:flex-shrink-0 sm:w-48">
             <Button variant="outline" size="fluid" onClick={handleCopyDiagram} isLoading={copyingDiagram}>
               {t('game.results.copyDiagram')}
             </Button>

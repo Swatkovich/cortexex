@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Card } from './card';
 
 export type ToastVariant = 'success' | 'error' | 'info';
@@ -25,6 +25,14 @@ const variantTitle: Record<ToastVariant, string> = {
 };
 
 export function Toast({ title, message, onClose, variant = 'info' }: ToastProps) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
   return (
     <div className="fixed bottom-4 right-4 z-50 flex justify-end px-4 pointer-events-none">
       <Card
