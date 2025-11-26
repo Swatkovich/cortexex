@@ -20,7 +20,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           input:-webkit-autofill:hover,
           input:-webkit-autofill:focus,
           input:-webkit-autofill:active {
-            -webkit-box-shadow: 0 0 0 30px rgba(30, 30, 30, 0.4) inset !important;
+            -webkit-box-shadow: 0 0 0 30px transparent inset !important;
             -webkit-text-fill-color: rgb(255, 255, 255) !important;
             caret-color: rgb(255, 255, 255) !important;
           }
@@ -35,7 +35,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         type={type}
         data-invalid={isInvalid ? '' : undefined}
         className={cn(
-          'w-full rounded-2xl border border-light/20 bg-dark/40 px-4 py-3 text-base text-light placeholder:text-light/50 transition focus:border-light/60 focus:bg-dark/40 focus:outline-none focus:ring-2 focus:ring-light/30 data-[invalid]:border-red-400 data-[invalid]:ring-red-300/60',
+          'w-full rounded-2xl border border-light/20 bg-transparent px-4 py-3 text-base text-light placeholder:text-light/50 transition focus:border-light/60 focus:bg-transparent focus:outline-none focus:ring-2 focus:ring-light/30 data-[invalid]:border-red-400 data-[invalid]:ring-red-300/60',
           className,
         )}
         {...props}
