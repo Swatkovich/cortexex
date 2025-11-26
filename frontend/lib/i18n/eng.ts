@@ -86,7 +86,7 @@ const eng: Record<string, string> = {
   "home.stats.diagramTitle": "Average knowledge level of all users",
   // Profile
   'profile.title': 'User statistics',
-  'profile.backToThemes': 'Back to topics',
+  'profile.backToThemes': 'Back to Topics',
   'profile.loading': 'Loading profile...',
   'profile.gamesPlayed': 'Games played:',
   'profile.questionsAnswered': 'Questions answered:',
@@ -104,7 +104,7 @@ const eng: Record<string, string> = {
   'questions.loading': 'Loading questions...',
   'questions.notFound': 'Topic not found',
   'questions.manage.header': 'Manage Questions',
-  'questions.backToThemes': '← Back to topics',
+  'questions.backToThemes': '←     Back to Topics',
   'questions.count.single': 'question',
   'questions.count.plural': 'questions',
   'questions.add': 'Add Question',

@@ -104,7 +104,7 @@ const ru: Record<string, string> = {
   'questions.loading': 'Загрузка вопросов...',
   'questions.notFound': 'Тема не найдена',
   'questions.manage.header': 'Управление вопросами',
-  'questions.backToThemes': '← К темам',
+  'questions.backToThemes': '←     Обратно к темам',
   'questions.count.single': 'вопрос',
   'questions.count.plural': 'вопросов',
   'questions.add': 'Добавить вопрос',
