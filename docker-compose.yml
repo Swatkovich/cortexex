@@ -81,6 +81,23 @@ services:
       - cortexex_network
     restart: unless-stopped
 
+  nginx:
+    image: nginx:alpine
+    container_name: cortexex_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - /var/www/whereitleads.io:/var/www/whereitleads.io:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - cortexex_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
 
