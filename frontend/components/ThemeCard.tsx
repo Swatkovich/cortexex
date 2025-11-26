@@ -26,6 +26,7 @@ type ThemeCardProps = {
   exporting: boolean;
   deleting: boolean;
   t: (key: string) => string;
+  strictCount?: number;
 };
 
 export function ThemeCard({
@@ -40,8 +41,10 @@ export function ThemeCard({
   exporting,
   deleting,
   t,
+  strictCount,
 }: ThemeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showDiagramTooltip, setShowDiagramTooltip] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Close menu when clicking outside
@@ -69,11 +72,17 @@ export function ThemeCard({
   };
 
   return (
-    <Card className="group relative h-full bg-dark-hover/50 p-6 hover:border-light/50">
+    <Card
+      className="group relative h-full cursor-pointer bg-dark-hover/50 p-6 hover:border-light/50"
+      onClick={onToggleSelected}
+    >
       {/* Three-dot menu in top-right corner */}
       <div className="absolute right-4 top-4 z-10" ref={menuRef}>
         <button
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((open) => !open);
+          }}
           className="p-2 rounded-lg bg-transparent text-light border border-light/20 hover:border-light/40 hover:bg-light/5 transition-colors"
           aria-label="Theme options"
         >
@@ -97,7 +106,10 @@ export function ThemeCard({
           <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-light/20 bg-dark/90 backdrop-blur-sm shadow-lg py-2">
             <button
               type="button"
-              onClick={handleExportClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleExportClick();
+              }}
               disabled={exporting || deleting}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-light hover:bg-light/15 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -124,7 +136,10 @@ export function ThemeCard({
             </button>
             <button
               type="button"
-              onClick={handleDeleteClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick();
+              }}
               disabled={deleting || exporting}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -195,21 +210,49 @@ export function ThemeCard({
               <p>
                 {t('theme.questions')}:{' '}
                 <span className="font-semibold text-light/80">{theme.questions}</span>
+                <span className="text-light/60">
+                  {' '}
+                  ({t('theme.questions.strict')}:{' '}
+                  <span className="font-semibold text-light/80">
+                    {strictCount ?? theme.strict_questions ?? 0}
+                  </span>)
+                </span>
               </p>
             )}
           </div>
         </div>
 
         {/* Diagram centered */}
-        <div className="flex justify-left py-2">
+        <div className="mt-auto flex items-center justify-center gap-4 py-2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDiagramTooltip((prev) => !prev);
+              }}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-light/20 bg-dark/60 text-sm font-semibold text-light/80 transition hover:border-light/40 hover:text-light"
+              aria-label={t('profile.knowledgeDistribution.description')}
+            >
+              ?
+            </button>
+            {showDiagramTooltip && (
+              <div className="absolute left-1/2 top-full z-20 mt-2 w-60 -translate-x-1/2 rounded-xl border border-light/15 bg-dark/90 p-3 text-xs text-light/80 shadow-lg">
+                {t('profile.knowledgeDistribution.description')}
+              </div>
+            )}
+          </div>
           <ProfileDiagram counts={counts} />
         </div>
 
         {/* Actions at bottom */}
-        <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
           <Button
             variant="outline"
-            onClick={onToggleSelected}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelected();
+            }}
             className={`w-full px-5 py-2.5 text-sm sm:flex-1 ${
               isSelected
                 ? 'bg-green-500/40 text-white hover:bg-green-500/40 border-green-500/30'
@@ -220,14 +263,20 @@ export function ThemeCard({
           </Button>
           <Button
             variant="outline"
-            onClick={onEdit}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
             className="w-full px-5 py-2.5 text-sm sm:w-auto"
           >
             {t('theme.edit')}
           </Button>
           <Button
             variant="ghost"
-            onClick={onManageQuestions}
+            onClick={(e) => {
+              e.stopPropagation();
+              onManageQuestions();
+            }}
             className="w-full px-5 py-2.5 text-sm sm:w-auto bg-light/20 text-light hover:bg-light/40"
           >
             {t('theme.add')}

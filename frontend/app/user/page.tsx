@@ -216,6 +216,7 @@ const UserPage = observer(() => {
                     perfectlyKnow: 0,
                   }
                 }
+                strictCount={statsMap[theme.id]?.questionsCounts?.strict}
                 isSelected={themeStore.isSelected(theme.id)}
                 onToggleSelected={() => themeStore.toggleTheme(theme.id)}
                 onEdit={() => handleEditTheme(theme.id)}
