@@ -1,3 +1,11 @@
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Themes table
 -- Each user can have multiple themes
 CREATE TABLE IF NOT EXISTS themes (
@@ -42,6 +50,7 @@ CREATE TABLE IF NOT EXISTS user_language_entry_stats (
 );
 
 -- Indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
 CREATE INDEX IF NOT EXISTS idx_themes_user_id ON themes(user_id);
 CREATE INDEX IF NOT EXISTS idx_questions_theme_id ON questions(theme_id);
 CREATE INDEX IF NOT EXISTS idx_language_entries_theme_id ON language_entries(theme_id);

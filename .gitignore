@@ -63,6 +63,12 @@ coverage/
 *.sqlite
 *.sqlite3
 
+# Backups
+backups/*.sql
+backups/*.sql.gz
+backups/*.log
+!backups/.gitkeep
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
