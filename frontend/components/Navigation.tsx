@@ -61,7 +61,7 @@ const Navigation = observer(() => {
               <button
                 type="button"
                 onClick={() => authStore.logout()}
-                className="rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-medium text-light hover:border-light/40 hover:bg-light/5"
+                className="w-32 rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-medium text-light hover:border-light/40 hover:bg-light/5"
               >
                 {t('logout')}
               </button>
