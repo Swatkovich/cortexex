@@ -229,72 +229,80 @@ export default function CreateThemePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
-              {resolveErrorMessage(error, ERROR_MAP, t) ?? error}
-            </div>
-          )}
+          <div className="space-y-6 pb-4">
+            {error && (
+              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+                {resolveErrorMessage(error, ERROR_MAP, t) ?? error}
+              </div>
+            )}
 
-          <FormField label={t('createTheme.label.title')} htmlFor="themeTitle" required>
-            <Input
-              id="themeTitle"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              required
-              placeholder={t('createTheme.placeholder.title')}
-            />
-          </FormField>
-
-          <FormField
-            label={t('createTheme.label.description')}
-            htmlFor="themeDescription"
-            required
-          >
-            <Textarea
-              id="themeDescription"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              required
-              rows={4}
-              placeholder={t('createTheme.placeholder.description')}
-            />
-          </FormField>
-
-          <FormField label={t('createTheme.label.difficulty')} htmlFor="themeDifficulty" required>
-            <Select
-              id="themeDifficulty"
-              value={difficulty}
-              onChange={(event) =>
-                setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')
-              }
-            >
-              <option value="Easy">{t('createTheme.diff.easy')}</option>
-              <option value="Medium">{t('createTheme.diff.medium')}</option>
-              <option value="Hard">{t('createTheme.diff.hard')}</option>
-            </Select>
-          </FormField>
-
-          {!isEditMode && (
-            <FormField
-              label={t('createTheme.label.languageTopic')}
-              description={
-                <>
-                  <span className="block text-amber-200/80">{t('createTheme.languageTopic.helper')}</span>
-                  <span className="block text-red-300/80 mt-2">
-                    {t('createTheme.languageTopic.note')}
-                  </span>
-                </>
-              }
-            >
-              <Checkbox
-                checked={isLanguageTopic}
-                onChange={(event) => setIsLanguageTopic(event.target.checked)}
-                label={t('createTheme.languageTopic.toggle')}
+            <FormField label={t('createTheme.label.title')} htmlFor="themeTitle" required>
+              <Input
+                id="themeTitle"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                required
+                placeholder={t('createTheme.placeholder.title')}
               />
             </FormField>
-          )}
 
-          <div className="flex flex-col gap-4 pt-2 sm:flex-row">
+            <FormField
+              label={t('createTheme.label.description')}
+              htmlFor="themeDescription"
+              required
+            >
+              <Textarea
+                id="themeDescription"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                required
+                rows={4}
+                placeholder={t('createTheme.placeholder.description')}
+              />
+            </FormField>
+
+            <FormField
+              label={t('createTheme.label.difficulty')}
+              htmlFor="themeDifficulty"
+              required
+            >
+              <Select
+                id="themeDifficulty"
+                value={difficulty}
+                onChange={(event) =>
+                  setDifficulty(event.target.value as 'Easy' | 'Medium' | 'Hard')
+                }
+              >
+                <option value="Easy">{t('createTheme.diff.easy')}</option>
+                <option value="Medium">{t('createTheme.diff.medium')}</option>
+                <option value="Hard">{t('createTheme.diff.hard')}</option>
+              </Select>
+            </FormField>
+
+            {!isEditMode && (
+              <FormField
+                label={t('createTheme.label.languageTopic')}
+                description={
+                  <>
+                    <span className="block text-amber-200/80">
+                      {t('createTheme.languageTopic.helper')}
+                    </span>
+                    <span className="mt-2 block text-red-300/80">
+                      {t('createTheme.languageTopic.note')}
+                    </span>
+                  </>
+                }
+              >
+                <Checkbox
+                  checked={isLanguageTopic}
+                  onChange={(event) => setIsLanguageTopic(event.target.checked)}
+                  label={t('createTheme.languageTopic.toggle')}
+                />
+              </FormField>
+            )}
+          </div>
+
+          <div className="sticky bottom-0 -mx-10 flex flex-col gap-4 border-t border-light/10 bg-dark/95 px-10 pb-2 pt-4 sm:flex-row">
             <Button
               type="submit"
               size="fluid"
