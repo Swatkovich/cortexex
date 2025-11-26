@@ -83,7 +83,7 @@ const ru: Record<string, string> = {
   "home.stats.questionsAnswered": "Данно ответов на вопросы",
   "home.stats.loading": "Загружаем статистику...",
   "home.stats.error": "Не удалось загрузить статистику",
-  "home.stats.diagramTitle": "Средний уровень знаний по всем пользователям",
+  "home.stats.diagramTitle": "Среднее распределение знаний по всем пользователям",
   // Profile
   'profile.title': 'Стастистика пользователя',
   'profile.backToThemes': 'Обратно к Темам',

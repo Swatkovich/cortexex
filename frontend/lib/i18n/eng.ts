@@ -83,7 +83,7 @@ const eng: Record<string, string> = {
   "home.stats.questionsAnswered": "Answers on questions submitted",
   "home.stats.loading": "Loading community data...",
   "home.stats.error": "Could not load statistics",
-  "home.stats.diagramTitle": "Average knowledge level of all users",
+  "home.stats.diagramTitle": "Average knowledge distribution of all users",
   // Profile
   'profile.title': 'User statistics',
   'profile.backToThemes': 'Back to Topics',
