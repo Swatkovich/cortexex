@@ -10,6 +10,26 @@ export type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, isInvalid, leadingIcon, children, ...props }, ref) => {
+    React.useEffect(() => {
+      // Inject styles for select options to ensure proper contrast
+      const styleId = 'select-option-styles';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+          select option {
+            background-color: rgb(30, 30, 30) !important;
+            color: rgb(255, 255, 255) !important;
+          }
+          select option:checked {
+            background-color: rgb(60, 60, 60) !important;
+            color: rgb(255, 255, 255) !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }, []);
+
     return (
       <div
         className={cn(
@@ -30,6 +50,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             leadingIcon && 'pl-10',
             className,
           )}
+          style={{
+            colorScheme: 'dark',
+          }}
           {...props}
         >
           {children}
