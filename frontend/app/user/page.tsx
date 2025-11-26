@@ -163,10 +163,20 @@ const UserPage = observer(() => {
       </section>
 
       <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-        <Button onClick={handlePlay} disabled={!themeStore.canPlay} size="lg" className="flex-1">
+        <Button
+          onClick={handlePlay}
+          disabled={!themeStore.canPlay}
+          size="lg"
+          className="flex-1 h-auto py-4 text-base sm:h-13 sm:py-0 sm:text-lg"
+        >
           {t('dashboard.play')}
         </Button>
-        <Button variant="outline" onClick={handleCreateTheme} size="lg" className="flex-1">
+        <Button
+          variant="outline"
+          onClick={handleCreateTheme}
+          size="lg"
+          className="flex-1 h-auto py-4 text-base sm:h-13 sm:py-0 sm:text-lg"
+        >
           {t('dashboard.createTheme')}
         </Button>
       </section>
