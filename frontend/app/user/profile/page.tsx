@@ -130,10 +130,11 @@ const ProfilePage = observer(() => {
         <h2 className="text-lg font-semibold text-light mb-1">
           {t('profile.knowledgeDistribution.title')}
         </h2>
-        <p className="text-sm text-light/70 mb-4">
+        <p className="text-sm text-red-300/80 mb-4">
           {t('profile.knowledgeDistribution.description')}
         </p>
-        <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
+        <div className="rounded-2xl border  border-light/10 bg-dark-hover/50 p-6">
+        
           <ProfileDiagram counts={stats.knowledgeDistribution} />
         </div>
       </section>
