@@ -65,6 +65,7 @@ const eng: Record<string, string> = {
   'createTheme.import.success': 'Topic imported successfully!',
   'createTheme.import.error': 'Failed to import topic',
   'createTheme.import.invalid': 'Invalid import link',
+  'createTheme.import.broken': 'The URL link you provided is broken or invalid.',
   'createTheme.import.loaded': 'Topic data has been loaded from the link. You can edit it below or import it directly.',
   // Home / Landing
   'home.beta': 'Open Beta 1.0',

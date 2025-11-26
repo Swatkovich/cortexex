@@ -30,11 +30,11 @@ const Navigation = observer(() => {
   }, [authStore.initialized]);
 
   useEffect(() => {
-    const path = window.location.pathname
-    if (path === "/auth") {
-      router.push('/user')
+    const path = window.location.pathname;
+    if (path === '/auth' && authStore.isAuthenticated) {
+      router.push('/user');
     }
-  }, [])
+  }, [router, authStore.isAuthenticated]);
 
   return (
     <nav className="border-b border-light/10 bg-dark-hover/50 backdrop-blur-sm sticky top-0 z-50">

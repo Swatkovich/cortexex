@@ -65,6 +65,7 @@ const ru: Record<string, string> = {
   'createTheme.import.success': 'Тема успешно импортирована!',
   'createTheme.import.error': 'Не удалось импортировать Тему',
   'createTheme.import.invalid': 'Неверная ссылка для импорта',
+  'createTheme.import.broken': 'Предоставленная вами ссылка некорректна или повреждена.',
   'createTheme.import.loaded': 'Данные Темы получены по ссылке. Можно отредактировать их ниже или импортировать сразу.',
   // Home / Landing
   'home.beta': 'Открытая бета 1.0',

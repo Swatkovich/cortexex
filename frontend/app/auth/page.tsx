@@ -68,6 +68,8 @@ export default function AuthPage() {
     try {
       if (isRegister) {
         await register(name, password);
+        // Immediately authenticate the new user so protected routes and Navigation see the profile
+        await authStore.login(name, password);
         router.push('/user');
       } else {
         await authStore.login(name, password);

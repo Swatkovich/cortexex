@@ -4,7 +4,7 @@ import { FormEvent, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { themeStore } from '@/store/themeStore';
 import * as api from '@/lib/api';
-import { Button, Card, Checkbox, FormField, Input, Select, Textarea } from '@/components/ui';
+import { Button, Card, Checkbox, FormField, Input, Select, Textarea, Toast } from '@/components/ui';
 import { PageContainer } from '@/components/layout';
 import { useT } from '@/lib/i18n';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
@@ -36,6 +36,7 @@ export default function CreateThemePage() {
     'Failed to save theme': 'createTheme.error.save',
     'createTheme.error.load': 'createTheme.error.load',
     'createTheme.error.save': 'createTheme.error.save',
+    'createTheme.import.broken': 'createTheme.import.broken',
   };
 
   // Load theme data if editing or check for import URL
@@ -119,7 +120,8 @@ export default function CreateThemePage() {
       // Redirect to the user page to see the updated state
       router.push('/user');
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'createTheme.import.error');
+      // Show a friendly toast message instead of raw DB error
+      setImportError('createTheme.import.broken');
       setImporting(false);
     }
   };
@@ -175,8 +177,17 @@ export default function CreateThemePage() {
   }
 
   return (
-    <PageContainer fullHeight centered className="max-w-3xl justify-center">
-      <Card className="w-full p-10 backdrop-blur-sm">
+    <>
+      {importError && (
+        <Toast
+          variant="error"
+          onClose={() => setImportError(null)}
+          title={t('createTheme.import.label')}
+          message={resolveErrorMessage(importError, ERROR_MAP, t) ?? importError}
+        />
+      )}
+      <PageContainer fullHeight centered className="max-w-3xl justify-center">
+        <Card className="w-full p-10 backdrop-blur-sm">
         <div className="mb-8">
           <h1 className="mb-6 text-3xl font-bold tracking-tight text-light text-center">
             {isEditMode ? t('createTheme.title.edit') : t('createTheme.title.create')}
@@ -191,11 +202,6 @@ export default function CreateThemePage() {
                 {showImportForm ? t('createTheme.cancel') : t('createTheme.import.button')}
               </Button>
             </div>
-            {importError && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 mb-4 text-sm text-red-400">
-                {resolveErrorMessage(importError, ERROR_MAP, t) ?? importError}
-              </div>
-            )}
 
             {showImportForm && (
               <div className="space-y-4 ">
@@ -308,7 +314,8 @@ export default function CreateThemePage() {
             </Button>
           </div>
         </form>
-      </Card>
-    </PageContainer>
+        </Card>
+      </PageContainer>
+    </>
   );
 }
