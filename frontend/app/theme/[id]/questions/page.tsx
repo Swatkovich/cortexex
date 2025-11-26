@@ -597,38 +597,35 @@ export default function QuestionsPage() {
 
   const isLanguageTopic = Boolean(theme?.is_language_topic);
   const listCount = isLanguageTopic ? languageEntries.length : questions.length;
-  const countLabel = isLanguageTopic
-    ? listCount === 1
-      ? t('questions.language.count.single')
-      : t('questions.language.count.plural')
-    : listCount === 1
-      ? t('questions.count.single')
-      : t('questions.count.plural');
 
   return (
     <PageContainer fullHeight>
-      <header className="space-y-3">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/user')} className="w-fit">
+      <header className="space-y-4">
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => router.push('/user')}
+          className="w-fit"
+        >
           {t('questions.backToThemes')}
         </Button>
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
-            {t('questions.manage.header')}
-          </p>
-          <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
+        <div className="space-y-3">
+          <h1 className="text-3xl font-bold tracking-tight text-light sm:text-4xl">
             {theme.title}
           </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-4">
-            <p className="text-lg text-light/70">{theme.description}</p>
-            <div>
-              <DifficultyTag d={theme.difficulty} />
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <DifficultyTag d={theme.difficulty} />
             {isLanguageTopic && (
               <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-300">
                 {t('questions.language.tag')}
               </span>
             )}
           </div>
+          {theme.description && (
+            <p className="max-w-3xl text-sm leading-relaxed text-light/70">
+              {theme.description}
+            </p>
+          )}
         </div>
       </header>
 
@@ -641,8 +638,9 @@ export default function QuestionsPage() {
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-light/60">
-          {listCount} {countLabel}
+        <p className="text-base font-medium text-light/80">
+          {isLanguageTopic ? t('theme.languageEntries') : t('theme.questions')}:{' '}
+          <span className="font-semibold text-light">{listCount}</span>
         </p>
         {!showAddForm && (
           <Button onClick={() => setShowAddForm(true)} size="lg" className="w-fit">

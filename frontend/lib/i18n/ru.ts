@@ -86,7 +86,7 @@ const ru: Record<string, string> = {
   "home.stats.diagramTitle": "Средний уровень знаний по всем пользователям",
   // Profile
   'profile.title': 'Стастистика пользователя',
-  'profile.backToThemes': 'Обратно к темам',
+  'profile.backToThemes': 'Обратно к Темам',
   'profile.loading': 'Загрузка профиля...',
   'profile.gamesPlayed': 'Сыграно игр:',
   'profile.questionsAnswered': 'Отвечено вопросов:',
@@ -128,7 +128,7 @@ const ru: Record<string, string> = {
   'questions.form.cancel': 'Отмена',
   'questions.form.validation.select.mustChoose': 'Пожалуйста, выберите хотя бы один правильный вариант для вопроса с выбором.',
   'questions.form.validation.radio.mustChoose': 'Пожалуйста, выберите правильный вариант для переключателей (радио).',
-  'questions.empty': 'Вопросов пока нет. Добавьте первый вопрос, чтобы начать.',
+  'questions.empty': 'Вопросов пока нет. Добавьте первый вопрос',
   'questions.tag.strict': 'Строго',
   'questions.button.edit': 'Редактировать',
   'questions.button.delete': 'Удалить',

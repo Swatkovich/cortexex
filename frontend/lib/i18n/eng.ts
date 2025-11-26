@@ -128,7 +128,7 @@ const eng: Record<string, string> = {
   'questions.form.cancel': 'Cancel',
   'questions.form.validation.select.mustChoose': 'Please select at least one correct option for Select questions.',
   'questions.form.validation.radio.mustChoose': 'Please choose the correct option for Radio Buttons.',
-  'questions.empty': 'No questions yet. Add your first question to get started.',
+  'questions.empty': 'No questions yet. Add your first question',
   'questions.tag.strict': 'Strict',
   'questions.button.edit': 'Edit',
   'questions.button.delete': 'Delete',
@@ -176,7 +176,7 @@ const eng: Record<string, string> = {
   'themes.error.delete': 'Failed to delete topic',
 
   // Generic
-  'action.backToThemes': 'Back to topics',
+  'action.backToThemes': 'Back to Topics',
   'generic.errorPrefix': 'Error',
 
   // Circular Diagram
