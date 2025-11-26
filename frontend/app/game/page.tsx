@@ -628,9 +628,6 @@ const PlayPage = observer(() => {
   return (
     <PageContainer fullHeight className="max-w-4xl">
       <header className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
-          {t('game.modeLabel')}
-        </p>
         <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">{t(titleKey)}</h1>
         <p className="max-w-2xl text-lg text-light/70">{t(subtitleKey)}</p>
       </header>
