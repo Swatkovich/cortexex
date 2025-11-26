@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/navigation';
@@ -361,7 +362,7 @@ const UserPage = observer(() => {
                               type="button"
                               onClick={() => handleExport(theme.id)}
                               disabled={exporting || deletingId === theme.id}
-                              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-light hover:bg-dark/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-light hover:bg-light/15 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {exporting ? (
                                 <svg
@@ -383,20 +384,13 @@ const UserPage = observer(() => {
                                   ></path>
                                 </svg>
                               ) : (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5 text-light/80"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l4 4m0 0l-4 4m4-4H4"
-                                  />
-                                </svg>
+                                <Image
+                                  src="/file.svg"
+                                  alt=""
+                                  width={20}
+                                  height={20}
+                                  className="h-5 w-5 c"
+                                />
                               )}
                               <span>{t('questions.export.button')}</span>
                             </button>
