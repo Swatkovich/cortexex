@@ -303,11 +303,15 @@ const UserPage = observer(() => {
 
           <section className="grid gap-6 lg:grid-cols-2">
             {themeStore.themes.map((theme) => (
-              <Card key={theme.id} className="group bg-dark-hover/50 p-6 hover:border-light/50">
-                <div className="flex flex-col gap-5">
-                  <div className="flex items-start justify-between gap-5">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2 flex-wrap">
+              <Card
+                key={theme.id}
+                className="group h-full bg-dark-hover/50 p-6 hover:border-light/50"
+              >
+                <div className="flex h-full flex-col gap-5">
+                  {/* Header: info + stats/menu */}
+                  <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-6">
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
                         <DifficultyTag d={theme.difficulty} />
                         {theme.is_language_topic && (
                           <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-blue-200">
@@ -315,8 +319,10 @@ const UserPage = observer(() => {
                           </span>
                         )}
                       </div>
-                      <h2 className="text-xl font-bold text-light">{theme.title}</h2>
-                      <p className="text-sm leading-relaxed text-light/70">{theme.description}</p>
+                      <h2 className="truncate text-xl font-bold text-light">{theme.title}</h2>
+                      <p className="truncate text-sm leading-relaxed text-light/70">
+                        {theme.description}
+                      </p>
                       <p className="text-xs font-medium text-light/50">
                         {theme.questions}{' '}
                         {theme.is_language_topic
@@ -325,7 +331,7 @@ const UserPage = observer(() => {
                       </p>
                     </div>
 
-                    <div className="flex items-start gap-3 shrink-0">
+                    <div className="flex flex-col items-end gap-2 shrink-0 sm:flex-row sm:items-start sm:gap-3">
                       {/* Per-theme diagram */}
                       <ProfileDiagram
                         counts={
@@ -347,7 +353,7 @@ const UserPage = observer(() => {
                       >
                         <button
                           onClick={() => setOpenMenuId(openMenuId === theme.id ? null : theme.id)}
-                          className="p-2 rounded-lg hover:bg-dark/50 transition-colors"
+                          className="p-2 rounded-lg bg-transparent text-light border border-light/20 hover:border-light/40 hover:bg-light/5 transition-colors"
                           aria-label="Theme options"
                         >
                           <svg
@@ -453,25 +459,26 @@ const UserPage = observer(() => {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-3">
+                  {/* Actions */}
+                  <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
                     <Button
-                      variant={themeStore.isSelected(theme.id) ? 'primary' : 'ghost'}
+                      variant={themeStore.isSelected(theme.id) ? 'primary' : 'outline'}
                       onClick={() => themeStore.toggleTheme(theme.id)}
-                      className="flex-1 px-5 py-2.5 text-sm"
+                      className="w-full px-5 py-2.5 text-sm sm:flex-1"
                     >
                       {themeStore.isSelected(theme.id) ? t('theme.selected') : t('theme.select')}
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => handleEditTheme(theme.id)}
-                      className="px-5 py-2.5 text-sm"
+                      className="w-full px-5 py-2.5 text-sm sm:w-auto"
                     >
                       {t('theme.edit')}
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => handleManageQuestions(theme.id)}
-                      className="px-5 py-2.5 text-sm"
+                      className="w-full px-5 py-2.5 text-sm sm:w-auto"
                     >
                       {t('theme.questions')}
                     </Button>
