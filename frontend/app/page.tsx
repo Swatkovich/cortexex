@@ -75,7 +75,7 @@ const HomePage = observer(() => {
 
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           {isAuthenticated ? (
-            <ButtonLink href="/user" size="lg">
+            <ButtonLink href="/user" size="lg" className="h-14 px-32 text-xl">
               {t('home.getStarted')}
             </ButtonLink>
           ) : (
@@ -100,16 +100,16 @@ const HomePage = observer(() => {
             <p className="text-sm text-red-300">{t('home.stats.error')}</p>
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                 {statsItems.map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-2xl border border-light/5 bg-dark/40 p-4 text-center shadow-inner shadow-black/30"
+                    className="rounded-2xl border border-light/5 bg-dark/40 p-4 text-center shadow-inner shadow-black/30 min-w-0 flex flex-col"
                   >
-                    <p className="text-xs font-semibold uppercase tracking-widest text-light/60">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-light/60 break-words leading-tight px-1">
                       {item.label}
                     </p>
-                    <p className="mt-2 text-3xl font-bold text-light">{formatNumber(item.value)}</p>
+                    <p className="mt-2 text-3xl font-bold text-light flex-shrink-0">{formatNumber(item.value)}</p>
                   </div>
                 ))}
               </div>

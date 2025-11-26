@@ -68,29 +68,29 @@ const ProfilePage = observer(() => {
 
   return (
     <PageContainer fullHeight className="max-w-4xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-light">{t('profile.title')}</h1>
-        <ButtonLink href="/user" variant="outline" size="lg" className="ml-4 flex-1">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold text-light sm:text-3xl">{t('profile.title')}</h1>
+        <ButtonLink href="/user" variant="outline" size="lg" className="w-full sm:w-auto sm:ml-4 sm:flex-1 sm:max-w-xs">
           {t('profile.backToThemes')}
         </ButtonLink>
       </div>
 
       <section className="mb-8">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">{t('profile.gamesPlayed')}</h3>
+            <h3 className="text-sm font-semibold text-light/70 mb-2">{t('profile.gamesPlayed')}</h3>
             <p className="text-2xl font-bold text-light">{stats.totalGames}</p>
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">
+            <h3 className="text-sm font-semibold text-light/70 mb-2">
               {t('profile.questionsAnswered')}
             </h3>
             <p className="text-2xl font-bold text-light">{stats.totalQuestionsAnswered}</p>
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">{t('profile.bestStreak')}</h3>
-            <p className="text-2xl font-bold text-light">{stats.bestCorrectInRow ?? 0}</p>
-            <h3 className="text-sm font-semibold text-light/70">
+            <h3 className="text-sm font-semibold text-light/70 mb-2">{t('profile.bestStreak')}</h3>
+            <p className="text-2xl font-bold text-light mb-2">{stats.bestCorrectInRow ?? 0}</p>
+            <h3 className="text-sm font-semibold text-light/70 mb-2">
               {t('profile.bestCurrentStreak')}
             </h3>
             <p className="text-2xl font-bold text-light">
@@ -101,24 +101,24 @@ const ProfilePage = observer(() => {
             </p>
           </div>
           <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
-            <h3 className="text-sm font-semibold text-light/70">{t('profile.yourQuestions')}</h3>
+            <h3 className="text-sm font-semibold text-light/70 mb-2">{t('profile.yourQuestions')}</h3>
             <div>
               <p className="text-2xl font-bold text-light">
+              {t('profile.questionsSummary.total')}{': '}
                 {stats.questionsCounts.total ??
                   stats.questionsCounts.strict +
                     stats.questionsCounts.nonStrict +
-                    (stats.questionsCounts.words ?? 0)}{' '}
-                {t('profile.questionsSummary.total')}
+                    (stats.questionsCounts.words ?? 0)}
               </p>
               <p className="mt-2 text-sm text-light/70 space-y-1">
                 <span className="block">
-                  {t('profile.questionsSummary.words')}: {stats.questionsCounts.words ?? 0}
+                  {`  `}{t('profile.questionsSummary.words')}: {stats.questionsCounts.words ?? 0}
                 </span>
                 <span className="block">
-                  {t('profile.questionsSummary.strict')}: {stats.questionsCounts.strict}
+                  {`  `}{t('profile.questionsSummary.strict')}: {stats.questionsCounts.strict}
                 </span>
                 <span className="block">
-                  {t('profile.questionsSummary.nonStrict')}: {stats.questionsCounts.nonStrict}
+                  {`  `}{t('profile.questionsSummary.nonStrict')}: {stats.questionsCounts.nonStrict}
                 </span>
               </p>
             </div>
@@ -127,9 +127,12 @@ const ProfilePage = observer(() => {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-light mb-4">
+        <h2 className="text-lg font-semibold text-light mb-1">
           {t('profile.knowledgeDistribution.title')}
         </h2>
+        <p className="text-sm text-light/70 mb-4">
+          {t('profile.knowledgeDistribution.description')}
+        </p>
         <div className="rounded-2xl border border-light/10 bg-dark-hover/50 p-6">
           <ProfileDiagram counts={stats.knowledgeDistribution} />
         </div>
