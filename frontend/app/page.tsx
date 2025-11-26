@@ -61,16 +61,12 @@ const HomePage = observer(() => {
   return (
     <PageContainer fullHeight className="max-w-4xl items-center text-center">
       <div className="space-y-10">
-        <div className="inline-block rounded-full border border-light/20 bg-light/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.4em] text-light/80">
+        <div className="inline-block rounded-full border border-light/20 bg-light/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-light/80">
           {t('home.beta')}
         </div>
 
-        <h1 className="text-5xl font-bold leading-tight text-light sm:text-6xl lg:text-7xl">
+        <h1 className="text-5xl font-bold leading-tight text-light ">
           {t('home.h1.part1')}
-          <br />
-          <span className="bg-gradient-to-r from-light to-light/60 bg-clip-text text-transparent">
-            {t('home.h1.part2')}
-          </span>
         </h1>
 
         <p className="mx-auto max-w-2xl text-lg leading-relaxed text-light/70 sm:text-xl">

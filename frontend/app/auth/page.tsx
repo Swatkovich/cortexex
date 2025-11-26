@@ -94,7 +94,6 @@ export default function AuthPage() {
             {isRegister ? t('auth.title.register') : t('auth.title.login')}
           </h1>
 
-          {/* Tab Switcher */}
           <div className="flex rounded-2xl border border-light/10 bg-dark/30 p-1">
             <button
               type="button"
@@ -116,9 +115,8 @@ export default function AuthPage() {
             </button>
           </div>
 
-          {isRegister && (
-            <p className="mt-4 text-center text-sm text-light/60">{t('auth.subtitle.register')}</p>
-          )}
+          
+
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

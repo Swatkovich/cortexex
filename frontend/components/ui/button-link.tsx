@@ -11,7 +11,6 @@ type ButtonLinkProps = LinkProps & {
   variant?: ButtonVariant;
   size?: ButtonSize;
 };
-
 export function ButtonLink({
   children,
   className,
@@ -23,7 +22,7 @@ export function ButtonLink({
     <Link
       {...props}
       className={cn(
-        'inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light/60',
+        'inline-flex cursor-pointer w-full items-center justify-center gap-2 rounded-2xl font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light/60',
         buttonVariants[variant],
         buttonSizes[size] ?? buttonSizes.md,
         className,

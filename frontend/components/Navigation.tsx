@@ -5,28 +5,9 @@ import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 import { authStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
-import { useT, useLang } from '@/lib/i18n';
-import React from 'react';
+import { useT } from '@/lib/i18n';
 
-function LangSwitcher() {
-  const { lang, setLang } = useLang();
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        className={`px-2 py-1 rounded ${lang === 'eng' ? 'bg-light/10 text-light' : 'bg-transparent text-light/70'}`}
-        onClick={() => setLang('eng')}
-      >
-        EN
-      </button>
-      <button
-        className={`px-2 py-1 rounded ${lang === 'ru' ? 'bg-light/10 text-light' : 'bg-transparent text-light/70'}`}
-        onClick={() => setLang('ru')}
-      >
-        RU
-      </button>
-    </div>
-  );
-}
+import LangSwitcher from './LangSwitcher';
 
 const Navigation = observer(() => {
   const router = useRouter();
@@ -64,14 +45,17 @@ const Navigation = observer(() => {
           >
             {t('brand')}
           </Link>
+
+          <div className='flex gap-3'>
+
           <div className="flex items-center gap-4">
-            {/* language switcher */}
             <LangSwitcher />
           </div>
 
-          {authStore.isAuthenticated ? (
-            <div className="flex items-center gap-6">
-              <Link href="/user/profile" className="text-base font-bold text-light/90 hover:underline">
+          {authStore.isAuthenticated && (
+            <div className="flex items-center gap-3">
+              <Link href="/user/profile" 
+              className="rounded-lg border border-light/20 bg-transparent px-5 py-2.5 text-sm font-medium text-light hover:border-light/40 hover:bg-light/5">
                 {authStore.user?.name}
               </Link>
               <button
@@ -82,22 +66,9 @@ const Navigation = observer(() => {
                 {t('logout')}
               </button>
             </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                href="/auth?type=login"
-                className="rounded-lg border border-light/20 text-sm bg-transparent px-5 py-2.5 text-base font-semibold text-light hover:border-light/40 hover:bg-light/5 hover:scale-[1.02]"
-              >
-                {t('login')}
-              </Link>
-              <Link
-                href="/auth?type=register"
-                className="rounded-lg bg-light px-5 py-2.5 text-sm font-semibold text-dark hover:bg-light-hover hover:scale-[1.02]"
-              >
-               {t('register')}
-              </Link>
-            </div>
           )}
+
+          </div>
         </div>
       </div>
     </nav>

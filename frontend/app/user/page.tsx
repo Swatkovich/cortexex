@@ -158,12 +158,6 @@ const UserPage = observer(() => {
   return (
     <PageContainer fullHeight>
       <section className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wider text-light/60">
-          {t('dashboard.title')}
-        </p>
-        <h1 className="text-4xl font-bold tracking-tight text-light sm:text-5xl">
-          {t('dashboard.title')}
-        </h1>
         <p className="max-w-2xl text-lg text-light/70">{t('dashboard.subtitle')}</p>
       </section>
 
@@ -171,7 +165,7 @@ const UserPage = observer(() => {
         <Button onClick={handlePlay} disabled={!themeStore.canPlay} size="lg" className="flex-1">
           {t('dashboard.play')}
         </Button>
-        <Button variant="ghost" onClick={handleCreateTheme} size="lg" className="flex-1">
+        <Button variant="outline" onClick={handleCreateTheme} size="lg" className="flex-1">
           {t('dashboard.createTheme')}
         </Button>
       </section>

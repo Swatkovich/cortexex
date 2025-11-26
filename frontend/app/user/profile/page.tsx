@@ -64,12 +64,13 @@ const ProfilePage = observer(() => {
       </PageContainer>
     );
   }
+  
 
   return (
     <PageContainer fullHeight className="max-w-4xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-light">{t('profile.title')}</h1>
-        <ButtonLink href="/user" variant="ghost" size="sm" className="ml-4">
+        <ButtonLink href="/user" variant="outline" size="lg" className="ml-4 flex-1">
           {t('profile.backToThemes')}
         </ButtonLink>
       </div>
