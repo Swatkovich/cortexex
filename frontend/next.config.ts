@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "/cortexex";
+
 const nextConfig: NextConfig = {
-  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '/cortexex',
-  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '/cortexex',
-  output: 'standalone',
+  reactStrictMode: true,
+  basePath,
+  assetPrefix: basePath,
+  output: "standalone",
 };
 
 export default nextConfig;

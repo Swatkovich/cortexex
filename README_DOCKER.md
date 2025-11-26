@@ -27,10 +27,12 @@ This guide explains how to set up and deploy CortexEx using Docker and Docker Co
 4. **Initialize database:**
    ```bash
    # Apply schema
-   docker-compose exec db psql -U cortexex -d cortexex -f /path/to/schema.sql
+   docker-compose exec -T db psql -U cortexex -d cortexex < backend/schema.sql
    
-   # Or run migrations
-   docker-compose exec backend node scripts/apply_migration.js
+   # Apply migrations
+   for migration in backend/migrations/*.sql; do
+     docker-compose exec -T db psql -U cortexex -d cortexex < "$migration"
+   done
    ```
 
 ## Services
