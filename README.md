@@ -1,127 +1,222 @@
 # CortexEx
 
-Project overview
-----------------
+Learning/training platform that lets users create themed question sets, run short quiz sessions, and visualise progress. The monorepo hosts a Next.js frontend, a Node/Express-style backend, and Ops tooling (Docker, backups, scripts) for PostgreSQL deployments.
 
-CortexEx is a small learning/training platform that lets users create themed question sets, play short quiz-style sessions, and track per-user knowledge statistics. This repository contains a Next.js frontend and a TypeScript/Node backend with a PostgreSQL database.
+## Table of contents
 
-Key features
- - Create and manage themes and questions (input/multiple choice/radio)
- - Play game sessions with per-question scoring and persistence
- - Per-user statistics and diagrams to visualise knowledge
- - Background backups and optional Docker-based deployment
+1. [System overview](#system-overview)
+2. [Tech stack](#tech-stack)
+3. [Repository layout](#repository-layout)
+4. [Prerequisites](#prerequisites)
+5. [Environment configuration](#environment-configuration)
+6. [Quick start with Docker](#quick-start-with-docker)
+7. [Local development](#local-development)
+8. [Database setup & migrations](#database-setup--migrations)
+9. [Deployment options](#deployment-options)
+10. [Reverse proxy / nginx](#reverse-proxy--nginx)
+11. [Backups & maintenance](#backups--maintenance)
+12. [Scripts & useful commands](#scripts--useful-commands)
+13. [Troubleshooting](#troubleshooting)
+14. [Contributing & license](#contributing--license)
 
-Tech stack
-----------
-- Frontend: Next.js (app router), React, TypeScript, Tailwind CSS
-- Backend: Node.js, TypeScript, Express-style controllers, PostgreSQL
-- Persistence: PostgreSQL (migrations and schema in `backend/`)
-- Dev tooling: Docker / docker-compose (optional), ESLint, TypeScript
+## System overview
 
-Repository structure (top-level)
--------------------------------
-- `backend/` — server code, controllers, DB migrations, scripts
-- `frontend/` — Next.js app (app router), components and lib
-- `scripts/` — utility scripts (backups, DB init/migrate)
-- `DEPLOYMENT_INSTRUCTIONS.txt` — detailed deploy guide
-- `DEPLOYMENT_UNSTUCTIONS.txt` — short deploy checklist (copyable)
+- Themes contain multiple questions across input/select/radio types with optional strict validation.
+- Players launch lightweight games, accumulate per-question scores, and view diagrams of their knowledge areas.
+- Background jobs keep the database backed up and prune historical dumps.
+- The stack is optimised for subpath deployments (served from `/cortexex` by default).
 
-Quick development (local)
--------------------------
-1. Install dependencies (root-level operations vary by setup; see below).
+## Tech stack
 
-Frontend (from `frontend/`):
+| Area      | Tools |
+|-----------|-------|
+| Frontend  | Next.js (App Router), React, TypeScript, Tailwind CSS |
+| Backend   | Node.js, TypeScript, Express-style routing/controllers |
+| Database  | PostgreSQL (`backend/schema.sql` + migrations) |
+| Tooling   | Docker & docker-compose, ESLint, TypeScript, cron-based backups |
+
+## Repository layout
+
+- `frontend/` – Next.js app, shared UI components, stores, hooks, i18n.
+- `backend/` – Controllers, services, DB access layer, middleware, SQL schema.
+- `scripts/` – Shell & PowerShell helpers (`backup.sh`, `init-db.sh`, `migrate-db.sh`, `backup_docker.sh`).
+- `docker-compose.yml` – Multi-service setup (frontend, backend, db, backup).
+- `backups/` – Rolling compressed SQL dumps (generated when Docker backup service or cron job runs).
+- `nginx.conf` – Example reverse proxy configuration for `/cortexex` + `/api`.
+
+## Prerequisites
+
+- Docker + Docker Compose **or** Node 18+, npm, and PostgreSQL 14+.
+- Access to a PostgreSQL instance (local container or managed service).
+- Optional: domain + nginx/Apache for production.
+- PostgreSQL client binaries (`psql`), required for manual schema/migration runs.
+
+## Environment configuration
+
+1. Duplicate the sample env: `cp .env.example .env`.
+2. Update secrets and URLs:
+   - `DB_PASSWORD`, `POSTGRES_PASSWORD`, `POSTGRES_USER`, `POSTGRES_DB`.
+   - `NEXT_PUBLIC_BASE_PATH=/cortexex` if deploying under a subpath (default is already set in frontend config).
+   - `NEXT_PUBLIC_API_URL`, `FRONTEND_URL`, `BACKEND_URL`.
+3. Ensure the frontend `.env` points to the backend `/api` endpoint and matches the nginx reverse proxy paths.
+
+## Quick start with Docker
+
+```bash
+cp .env.example .env            # adjust values
+docker-compose up -d --build    # build images and start services
+docker-compose ps               # confirm all services are healthy
+docker-compose logs -f          # stream logs if needed
+```
+
+What you get:
+- PostgreSQL (`db`) with persisted volume.
+- Backend API on port `5000`.
+- Frontend Next.js app on port `3000` (or `3001` in the VDS variant below).
+- Backup service scheduled for daily runs at 02:00, writing to `./backups`.
+
+## Local development
+
+Run services independently if you prefer not to use Docker:
+
+Frontend:
 ```bash
 cd frontend
 npm install
-npm run dev
-# open http://localhost:3000
+npm run dev    # http://localhost:3000 (or matching basePath)
 ```
 
-Backend (from `backend/`):
+Backend:
 ```bash
 cd backend
 npm install
-npm run dev
-# default port configured in env or tsconfig
+npm run dev    # default http://localhost:5000
 ```
 
-Database
---------
-- Use the Docker Compose setup (recommended) or a local PostgreSQL instance.
-- To run with Docker Compose: `docker-compose up -d --build` (see `DEPLOYMENT_INSTRUCTIONS.txt`).
+Helpful steps:
+- Copy `backend/.env.example` (if provided) or export the same values you use for Docker.
+- Use a local PostgreSQL instance or run `docker-compose up db` to reuse the containerised database.
 
-Notes on deployment and ops
----------------------------
-This README is intentionally informational. The full deployment guide is included below.
+## Database setup & migrations
 
-## Deployment
+1. Apply the canonical schema:
+   ```bash
+   docker-compose exec -T db psql -U cortexex -d cortexex < backend/schema.sql
+   ```
+2. Apply incremental migrations:
+   ```bash
+   for migration in backend/migrations/*.sql; do
+     docker-compose exec -T db psql -U cortexex -d cortexex < "$migration"
+   done
+   ```
+3. Alternatively run the helper scripts:
+   - Linux/macOS: `bash scripts/init-db.sh`
+   - Windows PowerShell: see inline commands in `scripts/migrate-db.ps1`
 
-The quick deployment instructions below are a copy from the repository's deployment guide. For most cases use Docker Compose; if you prefer manual deployment, follow the Node+Postgres steps and nginx notes.
+Schema notes (from `backend/DATABASE_SETUP.md`):
+- Themes and questions are related via `theme_id`; deletes cascade.
+- `questions.answer` column stores the expected text for `input` questions.
+- Use `\dt`, `\d themes`, `\d questions` inside `psql` to verify.
+- Run `ALTER TABLE questions ADD COLUMN IF NOT EXISTS answer TEXT;` if upgrading an old DB.
 
-1) Prerequisites
-	- Docker & `docker-compose` or Node + PostgreSQL installed.
-	- Domain + `nginx` if exposing on the web.
+## Deployment options
 
-2) Basic deploy (Docker Compose)
-	- Copy env: `cp .env.example .env` and edit values.
-	- Build & start: `docker-compose up -d --build`
-	- Check: `docker-compose ps` and `docker-compose logs -f`.
+### Standard Docker Compose (ports 3000/5000)
+1. Follow the [Quick start](#quick-start-with-docker).
+2. Make scripts executable: `chmod +x scripts/*.sh`.
+3. Configure cron/backup if you run scripts on the host (see [Backups](#backups--maintenance)).
+4. Point your reverse proxy to `localhost:3000` (frontend) and `localhost:5000` (API).
 
-3) File permissions (make scripts executable)
-	- On Unix hosts run: ``chmod +x scripts/backup.sh scripts/init-db.sh scripts/migrate-db.sh``
+### VDS / shared host (frontend on port 3001)
+Use this when port `3000` is already occupied:
 
-4) Cron / backups
-	- Install crontab entry for host (example daily 02:00):
-		``echo "0 2 * * * /absolute/path/to/project/scripts/backup.sh >> /var/log/cortexex-backup.log 2>&1" | crontab -``
-	- Or use the Docker backup service (see `docker-compose`). Verify with `crontab -l`.
+1. Update `docker-compose.yml` to expose `3001:3001` for the frontend and keep `5000:5000` for the backend (already configured in `DEPLOYMENT_VDS` scenario).
+2. Start services as usual: `docker-compose up -d --build`.
+3. Reuse the same DB init commands as above.
+4. Configure nginx to proxy `/cortexex/` to `localhost:3001/` and `/api/` to `localhost:5000/`, ensuring `X-Forwarded-Prefix` is set so Next.js assets load correctly.
 
-5) Nginx (reverse proxy) minimal notes
-	- Proxy root path (example `/cortexex`) to frontend:
+### Data migration between environments
+
+```bash
+# Linux / macOS
+export LOCAL_DB_URL="postgresql://user:password@localhost:5432/cortexex"
+export REMOTE_DB_URL="postgresql://user:password@remote:5432/cortexex"
+bash scripts/migrate-db.sh
+```
+
+```powershell
+# Windows PowerShell
+$env:LOCAL_DB_URL="postgresql://user:password@localhost:5432/cortexex"
+$env:REMOTE_DB_URL="postgresql://user:password@remote:5432/cortexex"
+.\scripts\migrate-db.ps1
+```
+
+> ⚠️ The remote database is overwritten. Always create a backup first.
+
+## Reverse proxy / nginx
+
+Minimal configuration for serving the app at `/cortexex` and the API at `/api`:
 
 ```nginx
 location /cortexex/ {
-	proxy_pass http://127.0.0.1:3000/;
-	proxy_set_header Host $host;
-	proxy_set_header X-Real-IP $remote_addr;
-	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-	proxy_set_header X-Forwarded-Proto $scheme;
-	proxy_set_header X-Forwarded-Prefix /cortexex;
-	proxy_http_version 1.1;
-	proxy_set_header Upgrade $http_upgrade;
-	proxy_set_header Connection "upgrade";
+    proxy_pass http://127.0.0.1:3000/;    # use 3001 if you followed the VDS setup
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Prefix /cortexex;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+
+location /api/ {
+    proxy_pass http://127.0.0.1:5000/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
 }
 ```
 
-	- Proxy API `/api` to backend (port 5000):
+For locked-down environments (e.g., existing nginx container), append CORS headers and WebSocket settings as shown in `DEPLOYMENT_VDS.md`. Always validate and reload: `nginx -t && nginx -s reload`.
 
-```nginx
-location /api/ { proxy_pass http://127.0.0.1:5000/; }
-```
+## Backups & maintenance
 
-	- Test and reload: ``sudo nginx -t && sudo systemctl reload nginx``
+- **Automated backups**: `backup` service runs daily at 02:00, producing `./backups/cortexex_YYYYMMDD_HHMMSS.sql.gz`. Latest 7 days are kept.
+- **Manual backup**: `docker-compose exec backup /backup.sh`.
+- **Host cron alternative**:  
+  `echo "0 2 * * * /absolute/path/to/project/scripts/backup.sh >> /var/log/cortexex-backup.log 2>&1" | crontab -`
+- **Restore**:
+  ```bash
+  gunzip backups/cortexex_YYYYMMDD_HHMMSS.sql.gz
+  docker-compose exec -T db psql -U cortexex -d cortexex < backups/cortexex_YYYYMMDD_HHMMSS.sql
+  ```
 
-6) Quick verify
-	- Frontend: visit `https://yourdomain/cortexex`
-	- API: `curl -s https://yourdomain/api/health` or open `/api`
-	- DB: `docker-compose exec db psql -U $DB_USER -d $DB_NAME -c "\dt"`
+## Scripts & useful commands
 
-7) Useful commands
-	- Start: `docker-compose up -d --build`
-	- Stop: `docker-compose down`
-	- Logs: `docker-compose logs -f`
-	- Rebuild service: `docker-compose up -d --build <service>`
+| Command | Description |
+|---------|-------------|
+| `docker-compose up -d --build` | Build and start all services |
+| `docker-compose down [-v]` | Stop (and optionally wipe volumes) |
+| `docker-compose logs -f [service]` | Tail logs |
+| `docker-compose exec db psql -U cortexex -d cortexex` | Open psql shell |
+| `chmod +x scripts/*.sh` | Ensure scripts are executable on Unix hosts |
+| `bash scripts/backup.sh` | Manual backup when not using the Docker service |
 
-Make sure to keep any host-specific notes (absolute paths, service users, firewall rules) in your deployment runbook. The repository also contains `DEPLOYMENT_UNSTUCTIONS.txt` (short checklist) referenced elsewhere.
+## Troubleshooting
 
-Contributing
-------------
-- Fork and send pull requests. Keep changes small and focused.
-- Run linters and TypeScript checks before submitting: `npm run lint` / `npx tsc --noEmit` in respective folders.
+- **Services won’t start**: inspect `docker-compose logs <service>` and ensure required ports are free.
+- **Frontend 404 or assets missing**: verify `NEXT_PUBLIC_BASE_PATH=/cortexex` and the nginx `X-Forwarded-Prefix` header; ensure you proxy to the correct port (3000 vs 3001).
+- **Backend DB errors**: confirm `DATABASE_URL`/`DB_PASSWORD`, check `docker-compose ps` to ensure the database is healthy, and run migrations again if tables are missing.
+- **Backup failures**: look at `docker-compose logs backup`, confirm cron schedule, and check write permissions on `./backups`.
+- **Port conflicts**: adjust the host port mapping inside `docker-compose.yml` (e.g., `5001:5000`) and update nginx accordingly.
 
-License & contact
------------------
-- Project: MIT (or your preferred license) — add `LICENSE` file if needed.
-- Author / Maintainer: refer to repository owner for contact.
+## Contributing & license
 
-If you want, I can also convert other README files (`frontend/README.md`, `README_DOCKER.md`) to follow this same informational structure.
+- Fork the repo, make focused changes, and submit pull requests.
+- Run linting/TypeScript checks before pushing: `npm run lint` / `npx tsc --noEmit` in both `frontend/` and `backend/`.
+- License: MIT (add a `LICENSE` file if you plan to distribute builds widely).
+
+Questions or ops-specific notes should live alongside your internal runbooks—this README now centralises all previous `.md` and `.txt` guides.
