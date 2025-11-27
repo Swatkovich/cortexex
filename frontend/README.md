@@ -1,3 +1,24 @@
+This is a Next.js frontend. Brief deploy notes (see top-level `DEPLOYMENT_UNSTUCTIONS.txt`):
+
+Local dev:
+```bash
+npm run dev
+# open http://localhost:3000
+```
+
+Deploy (Docker):
+```bash
+cp .env.example .env
+docker-compose up -d --build
+```
+
+Make scripts executable and configure cron on the host if not using the Docker backup service:
+```bash
+chmod +x ../scripts/backup.sh
+echo "0 2 * * * /absolute/path/to/project/scripts/backup.sh >> /var/log/cortexex-backup.log 2>&1" | crontab -
+```
+
+For nginx reverse-proxy hints and full deploy steps see `DEPLOYMENT_UNSTUCTIONS.txt` and `DEPLOYMENT_INSTRUCTIONS.txt`.
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
