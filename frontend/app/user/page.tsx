@@ -75,11 +75,11 @@ const UserPage = observer(() => {
   };
 
   const handleCreateTheme = () => {
-    router.push('/createTheme');
+    router.push('/createTopic');
   };
 
   const handleEditTheme = (themeId: string) => {
-    router.push(`/createTheme?id=${themeId}`);
+    router.push(`/createTopic?id=${themeId}`);
   };
 
   const handleManageQuestions = (themeId: string) => {
@@ -96,7 +96,7 @@ const UserPage = observer(() => {
       const jsonString = JSON.stringify(exportData);
       // Convert to UTF-8 bytes, then to base64
       const encodedData = btoa(unescape(encodeURIComponent(jsonString)));
-      const shareableUrl = `${window.location.origin}/createTheme?import=${encodeURIComponent(encodedData)}`;
+      const shareableUrl = `${window.location.origin}/createTopic?import=${encodeURIComponent(encodedData)}`;
 
       // Auto-copy to clipboard
       await navigator.clipboard.writeText(shareableUrl);

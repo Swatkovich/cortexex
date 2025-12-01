@@ -124,7 +124,7 @@ const HomePage = observer(() => {
           )}
         </div>
       </div>
-      <p className="text-sm text-light/50">{t('home.developing')}</p>
+      <p className="text-sm text-light/20">{t('home.developing')}</p>
     </PageContainer>
   );
 });

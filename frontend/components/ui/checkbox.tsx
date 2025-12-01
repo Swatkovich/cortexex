@@ -11,8 +11,8 @@ export type CheckboxProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 't
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, label, description, ...props }, ref) => {
     return (
-      <label className="flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-light/15 bg-dark/40 px-4 py-3 transition hover:border-light/40 hover:bg-dark/60">
-        <span className="pointer-events-none relative mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border border-light/30 bg-dark/60">
+      <label className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-light/15 bg-dark/40 px-4 py-3 transition hover:border-light/40 hover:bg-dark/60">
+        <span className="pointer-events-none relative flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border border-light/30 bg-dark/60">
           <input
             ref={ref}
             type="checkbox"
