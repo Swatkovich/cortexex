@@ -31,7 +31,6 @@ RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist
 
 # Copy migrations and schema
-COPY migrations ./migrations
 COPY schema.sql ./schema.sql
 COPY scripts ./scripts
 
