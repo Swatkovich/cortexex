@@ -588,14 +588,15 @@ export const deleteLanguageEntry = async (req: AuthRequest, res: Response) => {
 };
 
 // Export theme data for sharing
+// NOTE: This endpoint intentionally does NOT check user_id so that
+// themes can be shared between different users via a public UUID link.
 export const exportTheme = async (req: AuthRequest, res: Response) => {
-    const userId = req.userId!;
     const { id } = req.params;
 
-    // Check if theme exists and belongs to user
+    // Check if theme exists (regardless of owner)
     const themeResult = await pool.query(
-        "SELECT * FROM themes WHERE id = $1 AND user_id = $2",
-        [id, userId]
+        "SELECT * FROM themes WHERE id = $1",
+        [id]
     );
 
     if (themeResult.rows.length === 0) {

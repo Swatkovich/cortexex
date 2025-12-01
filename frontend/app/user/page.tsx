@@ -7,7 +7,7 @@ import { themeStore } from '@/store/themeStore';
 import { Button, Toast } from '@/components/ui';
 import { authStore } from '@/store/authStore';
 import { useT } from '@/lib/i18n';
-import { fetchThemeStats, exportTheme } from '@/lib/api';
+import { fetchThemeStats } from '@/lib/api';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 import { PageContainer } from '@/components/layout';
@@ -91,12 +91,7 @@ const UserPage = observer(() => {
     setExportError(null);
     setExportSuccess(false);
     try {
-      const exportData = await exportTheme(themeId);
-      // Encode the data as base64 - handle Unicode characters properly
-      const jsonString = JSON.stringify(exportData);
-      // Convert to UTF-8 bytes, then to base64
-      const encodedData = btoa(unescape(encodeURIComponent(jsonString)));
-      const shareableUrl = `${window.location.origin}/createTopic?import=${encodeURIComponent(encodedData)}`;
+      const shareableUrl = `${window.location.origin}/cortexex/createTopic?import=${encodeURIComponent(themeId)}`;
 
       // Auto-copy to clipboard
       await navigator.clipboard.writeText(shareableUrl);

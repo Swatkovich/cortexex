@@ -58,27 +58,13 @@ export default function CreateThemePage() {
       };
       loadTheme();
     } else {
-      // Check for import parameter in URL
+      // Check for import parameter in URL (now contains theme ID or full URL)
       const importParam = searchParams.get('import');
       if (importParam) {
-        try {
-          // Decode the base64 data - handle Unicode characters properly
-          const decodedData = decodeURIComponent(escape(atob(importParam)));
-          const importData = JSON.parse(decodedData) as api.ExportThemeData;
-
-          // Auto-fill the form with imported data
-          setTitle(importData.title);
-          setDescription(importData.description);
-          setDifficulty(importData.difficulty);
-          setIsLanguageTopic(importData.is_language_topic);
-
-          // Set import URL for reference and show the form
-          const shareableUrl = typeof window !== 'undefined' ? window.location.href : importParam;
-          setImportUrl(shareableUrl);
-          setShowImportForm(true);
-        } catch (err) {
-          setError(t('createTheme.import.invalid'));
-        }
+        // Pre-fill the import input and show the form;
+        // actual import happens when the user confirms.
+        setImportUrl(importParam);
+        setShowImportForm(true);
       }
     }
   }, [isEditMode, themeId, searchParams, t]);
@@ -95,24 +81,21 @@ export default function CreateThemePage() {
     setImportError(null);
 
     try {
-      // Extract the import parameter from the URL
-      let importDataParam = paramToUse;
+      // Extract the theme ID from the provided value
+      let themeIdToImport = paramToUse;
 
-      // If it's a full URL, extract the import parameter
+      // If it's a full URL, extract the `import` parameter (which holds the theme ID)
       try {
         const url = new URL(paramToUse);
-        importDataParam = url.searchParams.get('import') || paramToUse;
+        themeIdToImport = url.searchParams.get('import') || paramToUse;
       } catch {
-        // If it's not a valid URL, assume it's just the encoded data
-        importDataParam = paramToUse;
+        // If it's not a valid URL, assume it's just the theme ID
+        themeIdToImport = paramToUse;
       }
 
-      // Decode the base64 data - handle Unicode characters properly
-      const decodedData = decodeURIComponent(escape(atob(importDataParam)));
-      const importData = JSON.parse(decodedData) as api.ExportThemeData;
-
-      // Import the theme directly
-      const importedTheme = await api.importTheme(importData);
+      // First, export the theme data by ID, then import it for the current user
+      const exportData = await api.exportTheme(themeIdToImport);
+      const importedTheme = await api.importTheme(exportData);
 
       // Refresh themeStore to show the new imported theme
       await themeStore.fetchThemes();
@@ -208,7 +191,31 @@ export default function CreateThemePage() {
                 <FormField required className="w-full mt-4">
                   <Input
                     value={importUrl}
-                    onChange={(e) => setImportUrl(e.target.value)}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      let normalized = raw;
+
+                      // Try to extract ?import=<id> from a full URL or query string
+                      try {
+                        const url = new URL(raw);
+                        const param = url.searchParams.get('import');
+                        if (param) {
+                          normalized = param;
+                        }
+                      } catch {
+                        // Not a full URL; try to parse "import=" manually
+                        const match = raw.match(/(?:\?|&)import=([^&]+)/);
+                        if (match?.[1]) {
+                          try {
+                            normalized = decodeURIComponent(match[1]);
+                          } catch {
+                            normalized = match[1];
+                          }
+                        }
+                      }
+
+                      setImportUrl(normalized);
+                    }}
                     placeholder={t('createTheme.import.placeholder')}
                     className="w-full"
                   />
