@@ -10,7 +10,7 @@ import { useT } from '@/lib/i18n';
 import { resolveErrorMessage } from '@/lib/i18n/errorMap';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
-export default function CreateThemePage() {
+const CreateThemePage = () => {
   const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -170,24 +170,29 @@ export default function CreateThemePage() {
         />
       )}
       <PageContainer fullHeight centered className="max-w-3xl justify-center">
-        <Card className="w-full p-10 backdrop-blur-sm">
-        <div className="mb-8">
-          <h1 className="mb-6 text-3xl font-bold tracking-tight text-light text-center">
+        <Card className="w-full p-6 backdrop-blur-sm sm:p-8 lg:p-10">
+        <div className="mb-8 text-center">
+          <h1 className="mb-4 text-2xl font-bold tracking-tight text-light sm:text-3xl">
             {isEditMode ? t('createTheme.title.edit') : t('createTheme.title.create')}
           </h1>
         </div>
 
         {!isEditMode && (
-          <div className="mb-6 rounded-2xl border border-light/10 bg-dark/30 p-6">
-            <div className="flex items-center justify-between">
+          <div className="mb-6 rounded-2xl border border-light/10 bg-dark/30 p-5 sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-sm font-semibold text-light/80">{t('createTheme.import.label')}</h2>
-              <Button variant="outline" size="sm" onClick={() => setShowImportForm(!showImportForm)}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() => setShowImportForm(!showImportForm)}
+              >
                 {showImportForm ? t('createTheme.cancel') : t('createTheme.import.button')}
               </Button>
             </div>
 
             {showImportForm && (
-              <div className="space-y-4 ">
+              <div className="mt-4 space-y-4">
                 <FormField required className="w-full mt-4">
                   <Input
                     value={importUrl}
@@ -226,7 +231,7 @@ export default function CreateThemePage() {
                   disabled={!importUrl.trim() || importing}
                   size="fluid"
                   isLoading={importing}
-                  className="w-full mt-4"
+                  className="w-full"
                 >
                   {t('createTheme.import.button')}
                 </Button>
@@ -309,13 +314,13 @@ export default function CreateThemePage() {
             )}
           </div>
 
-          <div className="sticky bottom-0 -mx-10 flex flex-col gap-4 border-t border-light/10 bg-dark/95 px-10 pb-2 pt-4 sm:flex-row">
+          <div className="sticky bottom-0 -mx-6 flex flex-col gap-3 border-t border-light/10 bg-dark/95 px-6 pb-3 pt-4 sm:-mx-8 sm:flex-row sm:px-8 lg:-mx-10 lg:px-10">
             <Button
               type="submit"
               size="fluid"
               disabled={!title.trim() || !description.trim()}
               isLoading={loading}
-              className="sm:flex-1"
+              className="w-full sm:flex-1"
             >
               {isEditMode ? t('createTheme.save.update') : t('createTheme.save.create')}
             </Button>
@@ -323,7 +328,7 @@ export default function CreateThemePage() {
               variant="outline"
               size="fluid"
               onClick={() => router.push('/user')}
-              className="sm:flex-1"
+              className="w-full sm:flex-1"
             >
               {t('createTheme.cancel')}
             </Button>
@@ -333,4 +338,6 @@ export default function CreateThemePage() {
       </PageContainer>
     </>
   );
-}
+};
+
+export default CreateThemePage;

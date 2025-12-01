@@ -132,15 +132,15 @@ const UserPage = observer(() => {
   return (
     <PageContainer fullHeight>
       <section className="space-y-3">
-        <p className="max-w-2xl text-lg text-light/70">{t('dashboard.subtitle')}</p>
+        <p className="max-w-2xl text-base text-light/70 sm:text-lg">{t('dashboard.subtitle')}</p>
       </section>
 
-      <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+      <section className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
         <Button
           onClick={handlePlay}
           disabled={!themeStore.canPlay}
           size="lg"
-          className="flex-1 h-auto py-4 text-base sm:h-13 sm:py-0 sm:text-lg"
+          className="h-auto w-full py-4 text-base sm:flex-1 sm:h-13 sm:py-0 sm:text-lg"
         >
           {t('dashboard.play')}
         </Button>
@@ -148,7 +148,7 @@ const UserPage = observer(() => {
           variant="outline"
           onClick={handleCreateTheme}
           size="lg"
-          className="flex-1 h-auto py-4 text-base sm:h-13 sm:py-0 sm:text-lg"
+          className="h-auto w-full py-4 text-base sm:flex-1 sm:h-13 sm:py-0 sm:text-lg"
         >
           {t('dashboard.createTheme')}
         </Button>
@@ -198,7 +198,7 @@ const UserPage = observer(() => {
             />
           )}
 
-          <section className="grid gap-6 lg:grid-cols-2 sm:grid-cols-1">
+          <section className="grid gap-5 sm:grid-cols-2">
             {themeStore.themes.map((theme) => (
               <ThemeCard
                 key={theme.id}

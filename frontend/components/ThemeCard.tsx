@@ -70,13 +70,21 @@ export function ThemeCard({
     onDelete();
   };
 
+  useEffect(() => {
+    if (!showDiagramTooltip) {
+      return;
+    }
+    const timeoutId = window.setTimeout(() => setShowDiagramTooltip(false), 3000);
+    return () => window.clearTimeout(timeoutId);
+  }, [showDiagramTooltip]);
+
   return (
     <Card
-      className="group relative h-full cursor-pointer bg-dark-hover/50 p-6 hover:border-light/50"
+      className="group relative h-full cursor-pointer bg-dark-hover/50 p-3 hover:border-light/50 sm:p-5 lg:p-6"
       onClick={onToggleSelected}
     >
       {/* Three-dot menu in top-right corner */}
-      <div className="absolute right-4 top-4 z-10" ref={menuRef}>
+      <div className="absolute right-3 top-3 z-10 sm:right-4 sm:top-4" ref={menuRef}>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -102,7 +110,7 @@ export function ThemeCard({
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-light/20 bg-dark/90 backdrop-blur-sm shadow-lg py-2">
+          <div className="absolute right-0 top-full mt-2 w-52 rounded-lg border border-light/20 bg-dark/90 py-2 shadow-lg backdrop-blur-sm sm:w-56">
             <button
               type="button"
               onClick={(e) => {
@@ -191,10 +199,10 @@ export function ThemeCard({
         )}
       </div>
 
-      <div className="flex h-full flex-col gap-5">
+      <div className="flex h-full flex-col gap-4 sm:gap-5">
         {/* Top row: tags (left) + menu (right) */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
             <DifficultyTag d={theme.difficulty} />
             {theme.is_language_topic && (
               <span className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider border border-blue-500/20 bg-blue-500/10 text-blue-200">
@@ -206,9 +214,11 @@ export function ThemeCard({
 
         {/* Title, description, counts */}
         <div className="space-y-2">
-          <h2 className="text-xl font-bold text-light break-words">{theme.title}</h2>
-          <p className="truncate text-sm leading-relaxed text-light/70">{theme.description}</p>
-          <div className="space-y-1 text-xs font-medium text-light/50">
+          <h2 className="break-words text-base font-bold text-light sm:text-lg lg:text-xl">
+            {theme.title}
+          </h2>
+          <p className="text-xs leading-relaxed text-light/70 sm:text-sm">{theme.description}</p>
+          <div className="space-y-1 text-[0.7rem] font-medium text-light/60 sm:text-xs">
             {theme.is_language_topic ? (
               <p>
                 {t('theme.languageEntries')}:{' '}
@@ -233,7 +243,7 @@ export function ThemeCard({
         </div>
 
         {/* Diagram centered */}
-        <div className="mt-auto flex items-center justify-center gap-4 py-2">
+        <div className="mt-auto flex flex-col items-center justify-center gap-3 py-1 sm:flex-row sm:gap-4 sm:py-2">
           <div className="relative">
             <button
               type="button"
@@ -241,13 +251,13 @@ export function ThemeCard({
                 e.stopPropagation();
                 setShowDiagramTooltip((prev) => !prev);
               }}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-light/20 bg-dark/60 text-sm font-semibold text-light/80 transition hover:border-light/40 hover:text-light"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-light/20 bg-dark/60 text-xs font-semibold text-light/80 transition hover:border-light/40 hover:text-light sm:h-8 sm:w-8 sm:text-sm"
               aria-label={t('profile.knowledgeDistribution.description')}
             >
               ?
             </button>
             {showDiagramTooltip && (
-              <div className="absolute left-1/2 top-full z-20 mt-2 w-60 -translate-x-1/2 rounded-xl border border-light/15 bg-dark/90 p-3 text-xs text-light/80 shadow-lg">
+              <div className="absolute left-1/2 top-full z-20 mt-2 w-60 -translate-x-1/2 rounded-xl border border-light/15 bg-dark/90 p-3 text-xs text-light/80 shadow-lg sm:left-full sm:top-1/2 sm:mt-0 sm:ml-3 sm:-translate-x-0 sm:-translate-y-1/2">
                 {t('profile.knowledgeDistribution.description')}
               </div>
             )}
@@ -263,7 +273,7 @@ export function ThemeCard({
               e.stopPropagation();
               onToggleSelected();
             }}
-            className={`w-full px-5 py-2.5 text-sm sm:flex-1 ${
+            className={`w-full px-4 py-2 text-xs sm:flex-1 sm:px-5 sm:py-2.5 sm:text-sm ${
               isSelected
                 ? 'bg-green-500/40 text-white hover:bg-green-500/40 border-green-500/30'
                 : ''
@@ -277,7 +287,7 @@ export function ThemeCard({
               e.stopPropagation();
               onEdit();
             }}
-            className="w-full px-5 py-2.5 text-sm sm:w-auto"
+            className="w-full px-4 py-2 text-xs sm:w-auto sm:px-5 sm:py-2.5 sm:text-sm"
           >
             {t('theme.edit')}
           </Button>
@@ -287,7 +297,7 @@ export function ThemeCard({
               e.stopPropagation();
               onManageQuestions();
             }}
-            className="w-full px-5 py-2.5 text-sm sm:w-auto bg-light/20 text-light hover:bg-light/40"
+            className="w-full px-4 py-2 text-xs sm:w-auto sm:px-5 sm:py-2.5 sm:text-sm bg-light/20 text-light hover:bg-light/40"
           >
             {t('theme.add')}
           </Button>
