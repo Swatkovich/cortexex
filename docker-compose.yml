@@ -72,8 +72,8 @@ services:
       PGDATABASE: ${DB_NAME:-cortexex}
     volumes:
       - ./backups:/backups
-      - ./backend/scripts/backup.sh:/backup.sh
-      - ./backend/scripts/crontab:/etc/cron.d/backup
+      - ./scripts/backup_docker.sh:/backup.sh
+      - ./scripts/crontab:/etc/cron.d/backup
     command: sh -c "chmod +x /backup.sh && chmod 0644 /etc/cron.d/backup && crond -f -l 2"
     depends_on:
       db:
